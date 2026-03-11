@@ -1,6 +1,7 @@
 brew "git"
 brew "mas"
 brew "dockutil"
+brew "mczachurski/wallpapper"
 
 cask "cleanshot"
 cask "figma"
@@ -19,3 +20,7 @@ cask "whatsapp"
 cask "raycast"
 cask "opencode-desktop"
 cask "github"
+cask "ticktick"
+
+
+

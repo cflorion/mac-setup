@@ -41,6 +41,11 @@ cp -f ./dotfiles/.gitconfig "$HOME/.gitconfig"
 echo "==> Applying macOS preferences"
 bash ./macos-defaults.sh
 
+wallpaper \
+-i black.png \
+-i white.png \
+-o black-white-dynamic.heic
+
 echo "==> Apple Account / iCloud"
 echo "Apple Account sign-in cannot be fully automated on macOS."
 echo "The Apple Account settings page will now open."
