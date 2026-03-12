@@ -39,9 +39,11 @@ else
   echo "dockutil not installed, skipping Dock configuration"
 fi
 
+echo "==> Hiding Finder tags in sidebar"
+defaults write com.apple.finder ShowRecentTags -bool false
+
 echo "==> Setting wallpaper"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 osascript <<EOF
 tell application "System Events"
   tell every desktop

@@ -38,13 +38,13 @@ brew bundle --file ./Brewfile
 cp -f ./dotfiles/.zshrc "$HOME/.zshrc"
 cp -f ./dotfiles/.gitconfig "$HOME/.gitconfig"
 
+echo "==> Installing Neovim configuration"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+mkdir -p "$HOME/.config/nvim"
+cp "$SCRIPT_DIR/dotfiles/nvim/init.vim" "$HOME/.config/nvim/init.vim"
+
 echo "==> Applying macOS preferences"
 bash ./macos-defaults.sh
-
-wallpaper \
--i black.png \
--i white.png \
--o black-white-dynamic.heic
 
 echo "==> Apple Account / iCloud"
 echo "Apple Account sign-in cannot be fully automated on macOS."
@@ -52,16 +52,16 @@ echo "The Apple Account settings page will now open."
 echo "Please sign in to your Apple Account and complete iCloud setup if needed."
 echo "Press Enter only after this step is fully complete."
 
-open "x-apple.systempreferences:com.apple.preferences.AppleIDPrefPane" || true
-read -r
+# open "x-apple.systempreferences:com.apple.preferences.AppleIDPrefPane" || true #TODO: Remove comment
+# read -r #TODO: Remove Comment
 
 echo "==> App Store authentication"
 echo "The App Store will now open."
 echo "Please sign in to the App Store with your Apple Account if needed."
 echo "Press Enter once App Store sign-in is complete."
 
-open -a "App Store"
-read -r
+# open -a "App Store" #TODO: Remove comment
+# read -r #TODO: Remove comment
 
 echo "==> Mac App Store apps"
 bash ./apps-mas.sh
