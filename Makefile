@@ -1,12 +1,12 @@
 DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 
-.PHONY: all install update link brew mas macos
+.PHONY: all install update link brew npm-global mas macos
 
 all: install
 
 # Full setup for a new machine
-install: brew link macos mas
+install: brew npm-global link macos mas
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -16,6 +16,11 @@ update: brew link macos
 brew:
 	@echo "==> Installing from Brewfile..."
 	@brew bundle --file Brewfile
+
+npm-global:
+	@echo "==> Installing global npm packages..."
+	@mkdir -p "$(HOME)/Library/pnpm"
+	@PNPM_HOME="$(HOME)/Library/pnpm" PATH="$(HOME)/Library/pnpm:$(PATH)" pnpm add -g @fveauvy/cli
 
 mas:
 	@echo "==> Installing App Store apps..."

@@ -1,3 +1,6 @@
+export PNPM_HOME="$HOME/Library/pnpm"
+export PATH="$PNPM_HOME:$PATH"
+
 alias c="cd ~/code"
 alias vim="nvim"
 
