@@ -10,7 +10,7 @@ sudo softwareupdate --install --all || true
 echo "==> Installing Command Line Tools if missing"
 if ! xcode-select -p >/dev/null 2>&1; then
   xcode-select --install || true
-  echo "⚠️ Command Line Tools may require graphical confirmation."
+  echo "Command Line Tools may require graphical confirmation."
   echo "Run this script again after installation if needed."
 fi
 
@@ -33,15 +33,17 @@ brew update
 echo "==> Installing from Brewfile"
 brew bundle --file ./Brewfile
 
-# echo "==> Copying dotfiles"
-# mkdir -p "$HOME/.config"
-cp -f ./dotfiles/.zshrc "$HOME/.zshrc"
-cp -f ./dotfiles/.gitconfig "$HOME/.gitconfig"
-
-echo "==> Installing Neovim configuration"
+echo "==> Applying dotfiles"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.config/nvim"
-cp "$SCRIPT_DIR/dotfiles/nvim/init.vim" "$HOME/.config/nvim/init.vim"
+mkdir -p "$HOME/.config/ghostty"
+
+ln -sfn "$SCRIPT_DIR/dotfiles/.zshrc" "$HOME/.zshrc"
+ln -sfn "$SCRIPT_DIR/dotfiles/.gitconfig" "$HOME/.gitconfig"
+ln -sfn "$SCRIPT_DIR/dotfiles/nvim/init.vim" "$HOME/.config/nvim/init.vim"
+ln -sfn "$SCRIPT_DIR/dotfiles/ghostty/config.ghostty" "$HOME/.config/ghostty/config.ghostty"
 
 echo "==> Applying macOS preferences"
 bash ./macos-defaults.sh
@@ -52,16 +54,16 @@ echo "The Apple Account settings page will now open."
 echo "Please sign in to your Apple Account and complete iCloud setup if needed."
 echo "Press Enter only after this step is fully complete."
 
-# open "x-apple.systempreferences:com.apple.preferences.AppleIDPrefPane" || true #TODO: Remove comment
-# read -r #TODO: Remove Comment
+# open "x-apple.systempreferences:com.apple.preferences.AppleIDPrefPane" || true
+# read -r
 
 echo "==> App Store authentication"
 echo "The App Store will now open."
 echo "Please sign in to the App Store with your Apple Account if needed."
 echo "Press Enter once App Store sign-in is complete."
 
-# open -a "App Store" #TODO: Remove comment
-# read -r #TODO: Remove comment
+# open -a "App Store"
+# read -r
 
 echo "==> Mac App Store apps"
 bash ./apps-mas.sh
