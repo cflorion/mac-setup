@@ -39,11 +39,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.config/nvim"
 mkdir -p "$HOME/.config/ghostty"
+mkdir -p "$HOME/.config/tmux"
 
 ln -sfn "$SCRIPT_DIR/dotfiles/.zshrc" "$HOME/.zshrc"
 ln -sfn "$SCRIPT_DIR/dotfiles/.gitconfig" "$HOME/.gitconfig"
 ln -sfn "$SCRIPT_DIR/dotfiles/nvim/init.vim" "$HOME/.config/nvim/init.vim"
 ln -sfn "$SCRIPT_DIR/dotfiles/ghostty/config.ghostty" "$HOME/.config/ghostty/config.ghostty"
+ln -sfn "$SCRIPT_DIR/dotfiles/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
 
 echo "==> Applying macOS preferences"
 bash ./macos-defaults.sh
