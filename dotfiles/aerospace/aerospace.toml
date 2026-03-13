@@ -1,0 +1,174 @@
+# AeroSpace - tiling window manager
+# Docs: https://nikitabobko.github.io/AeroSpace/guide
+
+start-at-login = true
+
+# Move mouse to the center of the focused window
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
+# Normalizations (recommended defaults)
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+# Default layout: tiling
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+
+# Gaps between windows
+[gaps]
+inner.horizontal = 8
+inner.vertical = 8
+outer.left = 0
+outer.bottom = 0
+outer.top = 0
+outer.right = 0
+
+# Ensure Homebrew binaries are available in exec commands
+[exec]
+inherit-env-vars = true
+
+[exec.env-vars]
+PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
+
+# French AZERTY keyboard: remap keys that differ from QWERTY
+[key-mapping.key-notation-to-key-code]
+a = 'q'
+z = 'w'
+q = 'a'
+w = 'z'
+m = 'semicolon'
+comma = 'm'
+semicolon = 'comma'
+
+# ----------------------------
+# Main keybindings
+# ----------------------------
+[mode.main.binding]
+
+# Focus: alt + h/j/k/l (vim-style)
+alt-h = 'focus --boundaries-action wrap-around-the-workspace left'
+alt-j = 'focus --boundaries-action wrap-around-the-workspace down'
+alt-k = 'focus --boundaries-action wrap-around-the-workspace up'
+alt-l = 'focus --boundaries-action wrap-around-the-workspace right'
+
+# Move window: alt-shift + h/j/k/l
+alt-shift-h = 'move left'
+alt-shift-j = 'move down'
+alt-shift-k = 'move up'
+alt-shift-l = 'move right'
+
+# Layout
+alt-comma = 'layout tiles horizontal vertical'
+alt-period = 'layout tiles vertical horizontal'
+alt-f = 'fullscreen'
+alt-shift-f = 'layout floating tiling'
+
+# Resize mode
+alt-r = 'mode resize'
+
+# Reload config
+alt-shift-r = 'reload-config'
+
+# Service mode (for advanced operations)
+alt-shift-semicolon = 'mode service'
+
+# ----------------------------
+# Named workspaces
+# ----------------------------
+
+# Switch to workspace
+alt-c = ['workspace C', 'exec-and-forget open -a Ghostty']
+alt-b = ['workspace B', 'exec-and-forget open -a Safari']
+alt-m = ['workspace M', 'exec-and-forget open -a Superhuman', 'exec-and-forget open -a Slack']
+alt-g = ['workspace G', 'exec-and-forget open -a "GitHub Desktop"']
+
+# Free workspaces (1-9)
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+alt-9 = 'workspace 9'
+
+# Move window to workspace
+alt-shift-c = ['move-node-to-workspace C', 'workspace C']
+alt-shift-b = ['move-node-to-workspace B', 'workspace B']
+alt-shift-m = ['move-node-to-workspace M', 'workspace M']
+alt-shift-g = ['move-node-to-workspace G', 'workspace G']
+
+alt-shift-1 = ['move-node-to-workspace 1', 'workspace 1']
+alt-shift-2 = ['move-node-to-workspace 2', 'workspace 2']
+alt-shift-3 = ['move-node-to-workspace 3', 'workspace 3']
+alt-shift-4 = ['move-node-to-workspace 4', 'workspace 4']
+alt-shift-5 = ['move-node-to-workspace 5', 'workspace 5']
+alt-shift-6 = ['move-node-to-workspace 6', 'workspace 6']
+alt-shift-7 = ['move-node-to-workspace 7', 'workspace 7']
+alt-shift-8 = ['move-node-to-workspace 8', 'workspace 8']
+alt-shift-9 = ['move-node-to-workspace 9', 'workspace 9']
+
+# ----------------------------
+# Resize mode
+# ----------------------------
+[mode.resize.binding]
+h = 'resize width -50'
+j = 'resize height +50'
+k = 'resize height -50'
+l = 'resize width +50'
+esc = 'mode main'
+enter = 'mode main'
+
+# ----------------------------
+# Service mode (advanced)
+# ----------------------------
+[mode.service.binding]
+q = ['close-all-windows-but-current', 'mode main']
+f = ['flatten-workspace-tree', 'mode main']
+esc = 'mode main'
+
+# ----------------------------
+# Window rules: assign apps to workspaces
+# ----------------------------
+
+# Code / Terminal
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'move-node-to-workspace C'
+
+# Browser
+[[on-window-detected]]
+if.app-id = 'com.apple.Safari'
+run = 'move-node-to-workspace B'
+
+# Mail / Messages
+[[on-window-detected]]
+if.app-id = 'com.superhuman.electron'
+run = 'move-node-to-workspace M'
+
+[[on-window-detected]]
+if.app-id = 'com.tinyspeck.slackmacgap'
+run = 'move-node-to-workspace M'
+
+# Git
+[[on-window-detected]]
+if.app-id = 'com.github.GitHubClient'
+run = 'move-node-to-workspace G'
+
+# Always floating (dialogs, utilities)
+[[on-window-detected]]
+if.app-id = 'com.apple.systempreferences'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.calculator'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.archiveutility'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.raycast.macos'
+run = 'layout floating'

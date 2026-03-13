@@ -19,3 +19,5 @@ shell-integration = zsh
 scrollback-limit = 100000
 
 mouse-hide-while-typing = true
+
+macos-titlebar-style = hidden

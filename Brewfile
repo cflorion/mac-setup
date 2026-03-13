@@ -1,4 +1,5 @@
 tap "anomalyco/tap"
+tap "nikitabobko/tap"
 
 brew "opencode"
 brew "git"
@@ -28,4 +29,5 @@ cask "wezterm"
 cask "claude"
 cask "ghostty"
 cask "font-jetbrains-mono-nerd-font"
+cask "nikitabobko/tap/aerospace"
 cask "spokenly"
