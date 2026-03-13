@@ -1,3 +1,5 @@
+theme = light:eink,dark:oled
+
 font-family = JetBrainsMono Nerd Font
 font-size = 17
 

@@ -1,0 +1,44 @@
+# OLED theme
+# Pure black background for true pixel-off black on OLED displays
+
+background = #000000
+foreground = #FFFFFF
+
+cursor-color = #FFFFFF
+cursor-text = #000000
+
+selection-foreground = #000000
+selection-background = #FFFFFF
+
+# ANSI colors (vivid to pop on OLED)
+# Black
+palette = 0=#333333
+palette = 8=#666666
+
+# Red
+palette = 1=#FF4444
+palette = 9=#FF6666
+
+# Green
+palette = 2=#44FF44
+palette = 10=#66FF66
+
+# Yellow
+palette = 3=#FFCC00
+palette = 11=#FFDD44
+
+# Blue
+palette = 4=#4488FF
+palette = 12=#66AAFF
+
+# Magenta
+palette = 5=#FF44FF
+palette = 13=#FF77FF
+
+# Cyan
+palette = 6=#44FFFF
+palette = 14=#77FFFF
+
+# White
+palette = 7=#CCCCCC
+palette = 15=#FFFFFF

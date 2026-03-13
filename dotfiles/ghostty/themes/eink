@@ -1,0 +1,44 @@
+# E-ink / e-paper theme
+# Pure white background with maximum contrast for low-refresh displays
+
+background = #FFFFFF
+foreground = #000000
+
+cursor-color = #000000
+cursor-text = #FFFFFF
+
+selection-foreground = #FFFFFF
+selection-background = #000000
+
+# ANSI colors (muted for readability on e-paper)
+# Black
+palette = 0=#000000
+palette = 8=#555555
+
+# Red
+palette = 1=#990000
+palette = 9=#CC0000
+
+# Green
+palette = 2=#006600
+palette = 10=#008800
+
+# Yellow
+palette = 3=#665500
+palette = 11=#887700
+
+# Blue
+palette = 4=#000099
+palette = 12=#0000CC
+
+# Magenta
+palette = 5=#770077
+palette = 13=#990099
+
+# Cyan
+palette = 6=#006666
+palette = 14=#008888
+
+# White
+palette = 7=#AAAAAA
+palette = 15=#FFFFFF
