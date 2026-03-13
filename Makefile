@@ -1,21 +1,25 @@
 DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 
-.PHONY: all install update link brew npm-global mas macos
+.PHONY: all install update link brew npm-global mas macos node
 
 all: install
 
 # Full setup for a new machine
-install: brew npm-global link macos mas
+install: brew node npm-global link macos mas
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
-update: brew link macos
+update: brew node link macos
 	@echo "==> Updates applied!"
 
 brew:
 	@echo "==> Installing from Brewfile..."
 	@brew bundle --file Brewfile
+
+node:
+	@echo "==> Installing Node.js LTS via fnm..."
+	@eval "$$(fnm env)" && fnm install --lts && fnm default lts-latest
 
 npm-global:
 	@echo "==> Installing global npm packages..."
