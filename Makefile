@@ -69,3 +69,4 @@ link:
 		fi; \
 		ln -sfnv "$$dir" "$$target"; \
 	done
+	@chmod +x "$(CONFIG_DIR)/tmux/dev.sh"

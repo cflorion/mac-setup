@@ -18,7 +18,6 @@ defaults write NSGlobalDomain KeyRepeat -int 2
 defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
 echo "==> Enabling tap to click"
-
 # Built-in trackpad
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
 
@@ -34,9 +33,6 @@ defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 echo "==> Rebuilding Dock"
 if command -v dockutil >/dev/null 2>&1; then
   dockutil --no-restart --remove all
-  dockutil --no-restart --add /Applications/Safari.app
-  dockutil --no-restart --add /Applications/Visual\ Studio\ Code.app
-  dockutil --no-restart --add /Applications/iTerm.app
   dockutil --no-restart --add "$HOME/Downloads" --view grid --display folder
 else
   echo "dockutil not installed, skipping Dock configuration"
