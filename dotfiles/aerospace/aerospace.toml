@@ -82,6 +82,7 @@ alt-c = ['workspace C', 'exec-and-forget open -a Ghostty']
 alt-b = ['workspace B', 'exec-and-forget open -a Safari']
 alt-m = ['workspace M', 'exec-and-forget open -a Superhuman', 'exec-and-forget open -a Slack']
 alt-g = ['workspace G', 'exec-and-forget open -a "GitHub Desktop"']
+alt-t = ['workspace T', 'exec-and-forget open -a TickTick']
 
 # Free workspaces (1-9)
 alt-1 = 'workspace 1'
@@ -89,10 +90,6 @@ alt-2 = 'workspace 2'
 alt-3 = 'workspace 3'
 alt-4 = 'workspace 4'
 alt-5 = 'workspace 5'
-alt-6 = 'workspace 6'
-alt-7 = 'workspace 7'
-alt-8 = 'workspace 8'
-alt-9 = 'workspace 9'
 
 # Move window to workspace
 alt-shift-a = ['move-node-to-workspace A', 'workspace A']
@@ -100,16 +97,13 @@ alt-shift-c = ['move-node-to-workspace C', 'workspace C']
 alt-shift-b = ['move-node-to-workspace B', 'workspace B']
 alt-shift-m = ['move-node-to-workspace M', 'workspace M']
 alt-shift-g = ['move-node-to-workspace G', 'workspace G']
+alt-shift-t = ['move-node-to-workspace T', 'workspace T']
 
 alt-shift-1 = ['move-node-to-workspace 1', 'workspace 1']
 alt-shift-2 = ['move-node-to-workspace 2', 'workspace 2']
 alt-shift-3 = ['move-node-to-workspace 3', 'workspace 3']
 alt-shift-4 = ['move-node-to-workspace 4', 'workspace 4']
 alt-shift-5 = ['move-node-to-workspace 5', 'workspace 5']
-alt-shift-6 = ['move-node-to-workspace 6', 'workspace 6']
-alt-shift-7 = ['move-node-to-workspace 7', 'workspace 7']
-alt-shift-8 = ['move-node-to-workspace 8', 'workspace 8']
-alt-shift-9 = ['move-node-to-workspace 9', 'workspace 9']
 
 # ----------------------------
 # Resize mode
