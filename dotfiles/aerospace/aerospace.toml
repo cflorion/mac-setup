@@ -77,6 +77,7 @@ alt-shift-semicolon = 'mode service'
 # ----------------------------
 
 # Switch to workspace
+alt-a = ['workspace A', 'exec-and-forget open -a ChatGPT', 'exec-and-forget open -a Claude']
 alt-c = ['workspace C', 'exec-and-forget open -a Ghostty']
 alt-b = ['workspace B', 'exec-and-forget open -a Safari']
 alt-m = ['workspace M', 'exec-and-forget open -a Superhuman', 'exec-and-forget open -a Slack']
@@ -94,6 +95,7 @@ alt-8 = 'workspace 8'
 alt-9 = 'workspace 9'
 
 # Move window to workspace
+alt-shift-a = ['move-node-to-workspace A', 'workspace A']
 alt-shift-c = ['move-node-to-workspace C', 'workspace C']
 alt-shift-b = ['move-node-to-workspace B', 'workspace B']
 alt-shift-m = ['move-node-to-workspace M', 'workspace M']
@@ -131,6 +133,15 @@ esc = 'mode main'
 # ----------------------------
 # Window rules: assign apps to workspaces
 # ----------------------------
+
+# AI
+[[on-window-detected]]
+if.app-id = 'com.openai.chat'
+run = 'move-node-to-workspace A'
+
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'
+run = 'move-node-to-workspace A'
 
 # Code / Terminal
 [[on-window-detected]]
