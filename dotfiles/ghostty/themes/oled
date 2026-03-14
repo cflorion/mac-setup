@@ -2,43 +2,43 @@
 # Pure black background for true pixel-off black on OLED displays
 
 background = #000000
-foreground = #FFFFFF
+foreground = #888888
 
-cursor-color = #FFFFFF
+cursor-color = #888888
 cursor-text = #000000
 
 selection-foreground = #000000
-selection-background = #FFFFFF
+selection-background = #888888
 
-# ANSI colors (vivid to pop on OLED)
+# ANSI colors (softened for eye comfort)
 # Black
 palette = 0=#333333
-palette = 8=#666666
+palette = 8=#444444
 
 # Red
-palette = 1=#FF4444
-palette = 9=#FF6666
+palette = 1=#CC3333
+palette = 9=#DD5555
 
 # Green
-palette = 2=#44FF44
-palette = 10=#66FF66
+palette = 2=#33BB33
+palette = 10=#55CC55
 
 # Yellow
-palette = 3=#FFCC00
-palette = 11=#FFDD44
+palette = 3=#CCAA00
+palette = 11=#DDBB33
 
 # Blue
-palette = 4=#4488FF
-palette = 12=#66AAFF
+palette = 4=#3366CC
+palette = 12=#5588DD
 
 # Magenta
-palette = 5=#FF44FF
-palette = 13=#FF77FF
+palette = 5=#CC33CC
+palette = 13=#DD55DD
 
 # Cyan
-palette = 6=#44FFFF
-palette = 14=#77FFFF
+palette = 6=#33CCCC
+palette = 14=#55DDDD
 
 # White
-palette = 7=#CCCCCC
-palette = 15=#FFFFFF
+palette = 7=#777777
+palette = 15=#888888
