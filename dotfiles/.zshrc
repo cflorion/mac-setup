@@ -1,3 +1,5 @@
+export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
+
 export PNPM_HOME="$HOME/Library/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
