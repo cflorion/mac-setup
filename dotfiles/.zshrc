@@ -38,5 +38,5 @@ alias dev="$HOME/.config/tmux/dev.sh"
 # -------
 
 if command -v tmux &>/dev/null && [ -z "$TMUX" ]; then
-  tmux attach -t dev 2>/dev/null || tmux new -s dev
+  exec "$HOME/.config/tmux/dev.sh"
 fi
