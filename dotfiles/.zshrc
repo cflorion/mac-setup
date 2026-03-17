@@ -2,8 +2,6 @@
 # Env
 # -------
 
-export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
-
 export PNPM_HOME="$HOME/Library/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
@@ -32,6 +30,12 @@ source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.z
 alias c="cd ~/code"
 alias vim="nvim"
 alias dev="$HOME/.config/tmux/dev.sh"
+
+# -------
+# fnm node version manager (always last)
+# -------
+
+eval "$(fnm env --use-on-cd --shell zsh)"
 
 # -------
 # tmux — auto-attach to dev session

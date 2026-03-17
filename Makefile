@@ -1,12 +1,12 @@
 DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 
-.PHONY: all install update link brew npm-global mas macos node colima
+.PHONY: all install update link brew npm-global mas macos node
 
 all: install
 
 # Full setup for a new machine
-install: brew node npm-global link macos mas colima
+install: brew node npm-global link macos mas
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -29,23 +29,6 @@ npm-global:
 mas:
 	@echo "==> Installing App Store apps..."
 	@bash ./apps-mas.sh
-
-colima:
-	@echo "==> Configuring Docker (removing Docker Desktop credential helper)..."
-	@mkdir -p "$(HOME)/.docker"
-	@if [ -f "$(HOME)/.docker/config.json" ]; then \
-		python3 -c "\
-import json, sys; \
-f=open('$(HOME)/.docker/config.json','r+'); \
-d=json.load(f); \
-d.pop('credsStore', None); \
-f.seek(0); json.dump(d, f, indent='\t'); f.truncate(); f.close(); \
-print('  Removed credsStore from ~/.docker/config.json')"; \
-	else \
-		echo '{}' > "$(HOME)/.docker/config.json"; \
-	fi
-	@echo "==> Enabling Colima service (auto-start at login)..."
-	@brew services start colima || true
 
 macos:
 	@echo "==> Applying macOS defaults..."
