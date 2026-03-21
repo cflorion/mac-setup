@@ -80,8 +80,8 @@ alt-shift-semicolon = 'mode service'
 alt-a = ['workspace A', 'exec-and-forget open -a ChatGPT', 'exec-and-forget open -a Claude']
 alt-c = ['workspace C', 'exec-and-forget open -a Ghostty']
 alt-b = ['workspace B', 'exec-and-forget open -a Safari']
-alt-m = ['workspace M', 'exec-and-forget open -a Superhuman', 'exec-and-forget open -a Slack']
-alt-g = ['workspace G', 'exec-and-forget open -a "GitHub Desktop"']
+alt-m = ['workspace M', 'exec-and-forget open -a Superhuman']
+alt-p = ['workspace S', 'exec-and-forget open -a Slack']
 alt-t = ['workspace T', 'exec-and-forget open -a TickTick']
 
 # Free workspaces (1-9)
@@ -96,7 +96,7 @@ alt-shift-a = ['move-node-to-workspace A', 'workspace A']
 alt-shift-c = ['move-node-to-workspace C', 'workspace C']
 alt-shift-b = ['move-node-to-workspace B', 'workspace B']
 alt-shift-m = ['move-node-to-workspace M', 'workspace M']
-alt-shift-g = ['move-node-to-workspace G', 'workspace G']
+alt-shift-p = ['move-node-to-workspace S', 'workspace S']
 alt-shift-t = ['move-node-to-workspace T', 'workspace T']
 
 alt-shift-1 = ['move-node-to-workspace 1', 'workspace 1']
@@ -154,12 +154,7 @@ run = 'move-node-to-workspace M'
 
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
-run = 'move-node-to-workspace M'
-
-# Git
-[[on-window-detected]]
-if.app-id = 'com.github.GitHubClient'
-run = 'move-node-to-workspace G'
+run = 'move-node-to-workspace S'
 
 # Always floating (dialogs, utilities)
 [[on-window-detected]]
