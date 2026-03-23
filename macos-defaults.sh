@@ -51,6 +51,10 @@ tell application "System Events"
 end tell
 EOF
 
+echo "==> Configuring accessibility"
+defaults write com.apple.universalaccess reduceMotion -bool true
+defaults write com.apple.universalaccess increaseContrast -bool true
+
 echo "==> Restarting system services"
 killall Finder || true
 killall SystemUIServer || true
@@ -65,11 +69,9 @@ killall Dock || true
 
 # Accessibility
 # - Grayscale color filter (100%)
-# - Increase contrast
 # - Reduce transparency
 # - Slightly increase pointer size
 # - Differentiate without color
-# - Reduce motion
 
 # Apps to install
 # - DisplayBuddy
