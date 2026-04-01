@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 #
 # bootstrap.sh - First-time setup for a new Mac.
+# Can be run standalone via:
+#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/cflorion/mac-setup/main/bootstrap.sh)"
+#
 # For ongoing updates, use: make update
 #
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+REPO_URL="https://github.com/cflorion/mac-setup.git"
+REPO_DIR="$HOME/code/mac-setup"
 
 echo "==> Checking sudo access"
 sudo -v
@@ -38,6 +41,14 @@ fi
 
 echo "==> Creating code workspace"
 mkdir -p "$HOME/code"
+
+# Clone the repo if not already present (e.g. running via curl one-liner)
+if [ ! -d "$REPO_DIR" ]; then
+  echo "==> Cloning mac-setup repo..."
+  git clone "$REPO_URL" "$REPO_DIR"
+fi
+
+cd "$REPO_DIR"
 
 echo "==> Running full install via Makefile"
 make install

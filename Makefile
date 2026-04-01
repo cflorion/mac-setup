@@ -1,7 +1,7 @@
 DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 
-.PHONY: all install update link brew npm-global mas macos node raycast
+.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh
 
 all: install
 
@@ -57,3 +57,11 @@ link:
 		ln -sfnv "$$dir" "$$target"; \
 	done
 	@chmod +x "$(CONFIG_DIR)/tmux/dev.sh"
+
+# Backup SSH keys before formatting
+backup:
+	@bash ./backup.sh
+
+# Restore SSH keys from most recent backup
+restore-ssh:
+	@bash ./restore-ssh.sh
