@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadUUID</key>
+    <string>E1NK-ACC0-4D1S-PLAY-SETUP000001</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadOrganization</key>
+    <string>mac-setup</string>
+    <key>PayloadIdentifier</key>
+    <string>com.mac-setup.eink-accessibility</string>
+    <key>PayloadDisplayName</key>
+    <string>E-Ink Display Accessibility</string>
+    <key>PayloadDescription</key>
+    <string>Accessibility settings optimized for a 13-inch color e-ink display: increase contrast, reduce transparency, differentiate without color, display contrast, and pointer size.</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadEnabled</key>
+    <true/>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadContent</key>
+    <array>
+      <dict>
+        <key>PayloadDisplayName</key>
+        <string>E-Ink Accessibility Settings</string>
+        <key>PayloadIdentifier</key>
+        <string>com.mac-setup.eink-accessibility.universalaccess</string>
+        <key>PayloadOrganization</key>
+        <string>mac-setup</string>
+        <key>PayloadType</key>
+        <string>com.apple.universalaccess</string>
+        <key>PayloadUUID</key>
+        <string>E1NK-ACC0-4D1S-PLAY-SETUP000002</string>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>increaseContrast</key>
+        <true/>
+        <key>reduceTransparency</key>
+        <true/>
+        <key>reduceMotion</key>
+        <true/>
+        <key>differentiateWithoutColor</key>
+        <true/>
+        <key>contrast</key>
+        <real>0.25</real>
+        <key>mouseDriverCursorSize</key>
+        <real>2.0</real>
+      </dict>
+    </array>
+  </dict>
+</plist>

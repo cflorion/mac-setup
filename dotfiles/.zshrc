@@ -28,6 +28,7 @@ source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.z
 # -------
 
 alias c="cd ~/code"
+alias v="nvim"
 alias vim="nvim"
 alias dev="$HOME/.config/tmux/dev.sh"
 

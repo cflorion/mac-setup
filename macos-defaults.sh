@@ -51,9 +51,19 @@ tell application "System Events"
 end tell
 EOF
 
-echo "==> Configuring accessibility"
-defaults write com.apple.universalaccess reduceMotion -bool true
-defaults write com.apple.universalaccess increaseContrast -bool true
+echo "==> Configuring accessibility (optimized for e-ink color display)"
+# On macOS Sequoia+ defaults write cannot modify com.apple.universalaccess (SIP-protected).
+# A configuration profile (.mobileconfig) is the only reliable method.
+# This opens System Settings for the user to confirm installation.
+PROFILE="$SCRIPT_DIR/profiles/eink-accessibility.mobileconfig"
+if [ -f "$PROFILE" ]; then
+  open "$PROFILE"
+  echo "    Profile opened in System Settings — please confirm installation."
+  echo "    Settings: increase contrast, reduce transparency, reduce motion,"
+  echo "    differentiate without color, display contrast 25%, pointer size 2x."
+else
+  echo "    Profile not found at $PROFILE, skipping."
+fi
 
 echo "==> Restarting system services"
 killall Finder || true
@@ -68,10 +78,7 @@ killall Dock || true
 # - Allow apps from identified developers / external sources
 
 # Accessibility
-# - Grayscale color filter (100%)
-# - Reduce transparency
-# - Slightly increase pointer size
-# - Differentiate without color
+# - Grayscale color filter (100%) — optional, not needed for color e-ink
 
 # Apps to install
 # - DisplayBuddy

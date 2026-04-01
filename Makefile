@@ -1,12 +1,12 @@
 DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 
-.PHONY: all install update link brew npm-global mas macos node
+.PHONY: all install update link brew npm-global mas macos node raycast
 
 all: install
 
 # Full setup for a new machine
-install: brew node npm-global link macos mas
+install: brew node npm-global link macos raycast mas
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -33,6 +33,10 @@ mas:
 macos:
 	@echo "==> Applying macOS defaults..."
 	@bash ./macos-defaults.sh
+
+raycast:
+	@echo "==> Configuring Raycast..."
+	@bash ./raycast.sh
 
 # Smart symlink: dotfiles/.* -> ~, dotfiles/<dir> -> ~/.config/<dir>
 link:
