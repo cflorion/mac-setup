@@ -177,6 +177,7 @@ config.keys = {
   -- -------------------------------------------------------------------------
   -- Misc
   -- -------------------------------------------------------------------------
+  { key = 'q', mods = 'SUPER',       action = act.QuitApplication },
   { key = 'r', mods = 'SUPER|SHIFT', action = act.ReloadConfiguration },
   { key = 'f', mods = 'SUPER',       action = act.Search { CaseSensitiveString = '' } },
   { key = 'p', mods = 'SUPER',       action = act.ActivateCommandPalette },
