@@ -34,6 +34,7 @@ open "https://raycast.com/thomas/color-picker"      # Color Picker
 open "https://raycast.com/lucaschultz/port-manager" # Port Manager
 open "https://raycast.com/rolandleth/kill-process"  # Kill Process
 open "https://raycast.com/raycast/google-workspace" # Google Workspace (Calendar, Drive, Mail)
+open "https://raycast.com/gstvds/amphetamine"      # Amphetamine (keep Mac awake)
 
 # -----------------------------------------------------------------------------
 # TODO (manual steps)

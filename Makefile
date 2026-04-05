@@ -1,12 +1,12 @@
 DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 
-.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh
+.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar
 
 all: install
 
 # Full setup for a new machine
-install: brew node npm-global link macos raycast mas
+install: brew node npm-global link sketchybar macos raycast mas
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -42,20 +42,52 @@ raycast:
 link:
 	@echo "==> Linking dotfiles..."
 	@mkdir -p $(CONFIG_DIR)
+	@mkdir -p $(HOME)/.local
 	@# Link hidden files (e.g. .zshrc, .gitconfig) to HOME
 	@find $(DOTFILES_DIR) -maxdepth 1 -name ".*" \
 		-not -name "." -not -name ".." -not -name ".git" \
 		-exec ln -sfnv {} $(HOME)/ \;
-	@# Link directories (e.g. nvim, aerospace) to ~/.config/
+	@# Link starship.toml to ~/.config/starship.toml (special case: file, not directory)
+	@ln -sfnv $(DOTFILES_DIR)/starship.toml $(CONFIG_DIR)/starship.toml
+	@# Link directories to ~/.config/ (except bin/ which goes to ~/.local/bin/)
 	@for dir in $(DOTFILES_DIR)/*/; do \
 		name=$$(basename "$$dir"); \
-		target="$(CONFIG_DIR)/$$name"; \
-		if [ -d "$$target" ] && [ ! -L "$$target" ]; then \
-			echo "  Backing up $$target -> $$target.bak"; \
-			mv "$$target" "$$target.bak"; \
+		if [ "$$name" = "bin" ]; then \
+			echo "  Linking $$dir -> $(HOME)/.local/bin"; \
+			ln -sfnv "$$dir" "$(HOME)/.local/bin"; \
+		else \
+			target="$(CONFIG_DIR)/$$name"; \
+			if [ -d "$$target" ] && [ ! -L "$$target" ]; then \
+				echo "  Backing up $$target -> $$target.bak"; \
+				mv "$$target" "$$target.bak"; \
+			fi; \
+			ln -sfnv "$$dir" "$$target"; \
 		fi; \
-		ln -sfnv "$$dir" "$$target"; \
 	done
+
+# Build and install sketchybar helpers (SbarLua, event providers, menus)
+sketchybar:
+	@echo "==> Setting up sketchybar..."
+	@# Install SbarLua (Lua bindings for sketchybar)
+	@if [ ! -d "$(HOME)/.local/share/sketchybar_lua" ]; then \
+		echo "  Installing SbarLua..."; \
+		rm -rf /tmp/SbarLua; \
+		git clone https://github.com/FelixKratz/SbarLua.git /tmp/SbarLua; \
+		cd /tmp/SbarLua && make install; \
+		rm -rf /tmp/SbarLua; \
+	fi
+	@# Install sketchybar-app-font
+	@if [ ! -f "$(HOME)/Library/Fonts/sketchybar-app-font.ttf" ]; then \
+		echo "  Installing sketchybar-app-font..."; \
+		curl -sL https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.5/sketchybar-app-font.ttf \
+			-o "$(HOME)/Library/Fonts/sketchybar-app-font.ttf"; \
+	fi
+	@# Build event providers (cpu_load, network_load, menus)
+	@echo "  Building sketchybar helpers..."
+	@cd $(CONFIG_DIR)/sketchybar/helpers && make
+	@# Start sketchybar service
+	@brew services start sketchybar 2>/dev/null || true
+	@echo "  Sketchybar ready!"
 
 # Backup SSH keys before formatting
 backup:

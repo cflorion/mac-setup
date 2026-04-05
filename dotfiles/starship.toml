@@ -1,0 +1,299 @@
+# Get editor completions based on the config schema
+'$schema' = 'https://starship.rs/config-schema.json'
+
+### MAIN SHELL
+# directory | username@hostname | cmd duration | sudo | VCS | language versions | kubernetes
+# > input after line break
+# $username\
+# $shlvl\
+# $git_commit\
+# $git_state\
+# $git_metrics\
+# $vcsh\
+# $hg_branch\
+# $nodejs\
+# $package\
+# $buf\
+# $character
+# $shell"""
+#
+format = """
+$hostname\
+$directory\
+$container\
+$sudo\
+$git_branch\
+$git_status\
+$git_metrics\
+$status\
+$fill\
+$python\
+$lua\
+$nodejs\
+$docker_context\
+$golang\
+$haskell\
+$rust\
+$ruby\
+$jobs\
+$cmd_duration\
+$line_break\
+$character"""
+
+add_newline = true
+
+[line_break]
+disabled = false
+
+
+[palettes.catppuccin_mocha]
+rosewater = "#f5e0dc"
+flamingo = "#f2cdcd"
+pink = "#f5c2e7"
+mauve = "#cba6f7"
+red = "#f38ba8"
+maroon = "#eba0ac"
+peach = "#fab387"
+yellow = "#f9e2af"
+green = "#a6e3a1"
+teal = "#94e2d5"
+sky = "#89dceb"
+sapphire = "#74c7ec"
+blue = "#89b4fa"
+lavender = "#b4befe"
+text = "#cdd6f4"
+subtext1 = "#bac2de"
+subtext0 = "#a6adc8"
+overlay2 = "#9399b2"
+overlay1 = "#7f849c"
+overlay0 = "#6c7086"
+surface2 = "#585b70"
+surface1 = "#45475a"
+surface0 = "#313244"
+base = "#1e1e2e"
+mantle = "#181825"
+crust = "#11111b"
+
+palette = "catppuccin_mocha"
+
+[character]
+vimcmd_symbol = ' [](bold green) '
+success_symbol = ' [](bold blue) '
+error_symbol = ' [](bold red) '
+
+[directory]
+style = 'bold fg:blue'
+format = '[$path ]($style)'
+read_only = ' '
+use_os_path_sep = false     # fuck windows :verynice:
+truncate_to_repo = false
+truncation_length = 3
+truncation_symbol = "../"
+
+[directory.substitutions]
+'.config' = ' '
+'projects' = ' '
+'playground' = '󰙨 '
+'git-files' = ' '
+
+[username]
+show_always = true
+style_user = "#a6e3a1 bold"
+# format = '\[[$user]($style)\]'
+format = "[$user]($style)[@](#89b4fa)"
+
+[hostname]
+# ssh_only = false
+ssh_symbol = "🌐 "
+format = "[$hostname]($style) "
+style = "#f38ba8 bold"
+
+[sudo]
+disabled = false
+format = '[$symbol]($style) '
+style = 'fg:red'
+symbol = ''
+
+[git_branch]
+symbol = ' '
+format = '(white) [$symbol$branch ]($style)'
+truncation_length = 16
+style = 'fg:purple'
+
+[git_status]
+style = 'fg:red'
+format = '([$all_status$ahead_behind]($style) )'
+
+[git_metrics]
+format = '([+$added]($added_style))([-$deleted]($deleted_style)) '
+disabled = false
+
+[fill]
+symbol = ' '
+
+[hg_branch]
+format = '\[[$symbol$branch]($style)\]'
+
+[cmd_duration]
+format = '[󰥔 $duration]($style) '
+
+### LANGUAGE VERSION INDICATORS
+[aws]
+symbol = "  "
+
+[buf]
+symbol = " "
+
+[c]
+symbol = " "
+
+[conda]
+symbol = " "
+
+[crystal]
+symbol = " "
+
+[dart]
+symbol = " "
+
+[docker_context]
+symbol = ' '
+style = 'fg:blue'
+format = '[$symbol]($style) $path'
+detect_files = ['docker-compose.yml', 'docker-compose.yaml', 'Dockerfile']
+detect_extensions = ['Dockerfile']
+
+[elixir]
+symbol = " "
+
+[elm]
+symbol = " "
+
+[fennel]
+symbol = " "
+
+[fossil_branch]
+symbol = " "
+
+[golang]
+symbol = " "
+
+[guix_shell]
+symbol = " "
+
+[haskell]
+symbol = " "
+
+[haxe]
+symbol = " "
+
+[java]
+symbol = " "
+
+[julia]
+symbol = " "
+
+[kotlin]
+symbol = " "
+
+[lua]
+symbol = " "
+
+[memory_usage]
+symbol = "󰍛 "
+
+[meson]
+symbol = "󰔷 "
+
+[nim]
+symbol = "󰆥 "
+
+[nix_shell]
+symbol = " "
+
+[nodejs]
+style = 'green'
+symbol = ' '
+format = '[${symbol}${version} ]($style)'
+
+[ocaml]
+symbol = " "
+
+[os.symbols]
+Alpaquita = " "
+Alpine = " "
+AlmaLinux = " "
+Amazon = " "
+Android = " "
+Arch = " "
+Artix = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = "󰛓 "
+Gentoo = " "
+HardenedBSD = "󰞌 "
+Illumos = "󰈸 "
+Kali = " "
+Linux = " "
+Mabox = " "
+Macos = " "
+Manjaro = " "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+OpenBSD = "󰈺 "
+openSUSE = " "
+OracleLinux = "󰌷 "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+RockyLinux = " "
+Redox = "󰀘 "
+Solus = "󰠳 "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Void = " "
+Windows = "󰍲 "
+
+[package]
+symbol = "󰏗 "
+
+[perl]
+symbol = " "
+
+[php]
+symbol = " "
+
+[pijul_channel]
+symbol = " "
+
+[python]
+symbol = ' '
+format = '[${symbol}${version} ]($style)'
+
+[rlang]
+symbol = "󰟔 "
+
+[ruby]
+symbol = " "
+
+[rust]
+symbol = "󱘗 "
+
+[scala]
+symbol = " "
+
+[swift]
+symbol = " "
+
+[zig]
+symbol = " "

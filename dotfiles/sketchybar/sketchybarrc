@@ -1,0 +1,17 @@
+#!/usr/bin/env lua
+local home = os.getenv("HOME")
+local config_dir = os.getenv("CONFIG_DIR") or (home and (home .. "/.config/sketchybar")) or "."
+
+package.path = table.concat({
+	config_dir .. "/?.lua",
+	config_dir .. "/?/init.lua",
+	package.path,
+}, ";")
+
+if home then
+	package.cpath = package.cpath .. ";" .. home .. "/.local/share/sketchybar_lua/?.so"
+end
+
+-- Load the sketchybar-package and prepare the helper binaries
+require("helpers")
+require("init")

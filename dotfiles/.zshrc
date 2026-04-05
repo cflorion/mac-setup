@@ -3,7 +3,7 @@
 # -------
 
 export PNPM_HOME="$HOME/Library/pnpm"
-export PATH="$PNPM_HOME:$PATH"
+export PATH="$HOME/.local/bin:$PNPM_HOME:$PATH"
 
 # -------
 # History
@@ -28,11 +28,31 @@ source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.z
 # -------
 
 alias c="cd ~/code"
-alias v="nvim"
 alias vim="nvim"
+alias lg="lazygit"
+alias co="commit"
+alias ll="eza -l -F --icons -a -b --no-permissions --no-user"
+alias ls="eza -G -F --icons --git-ignore"
+alias cat="bat --style header --style snip --style changes"
+alias tree="eza -T -F -a --git-ignore -L=2"
+alias dl="cd ~/Downloads"
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias myip="curl http://ipecho.net/plain; echo"
+alias brewup="brew update; brew upgrade; brew cleanup; brew doctor"
+alias rm="trash"
 
 # -------
-# fnm node version manager (always last)
+# fnm node version manager
 # -------
 
 eval "$(fnm env --use-on-cd --shell zsh)"
+
+# -------
+# Shell tools (zoxide, starship, atuin)
+# -------
+
+eval "$(zoxide init zsh)"
+eval "$(starship init zsh)"
+eval "$(atuin init zsh)"

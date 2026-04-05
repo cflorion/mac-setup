@@ -1,0 +1,378 @@
+#!/bin/bash
+
+# Colors for output formatting
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Function to generate commit message (minimal context, fast)
+generate_commit_message() {
+	local additional_context=$1
+	local branch_name staged_files recent_history
+
+	branch_name=$(git rev-parse --abbrev-ref HEAD)
+	staged_files=$(git diff --staged --name-status)
+	recent_history=$(git log --pretty='%s' -n 5 2>/dev/null)
+
+	# Fast-path: if ONLY changeset files are staged
+	if [ -n "$staged_files" ]; then
+		if ! echo "$staged_files" | awk '{print $2}' | grep -Ev '^\.changeset/' >/dev/null 2>&1; then
+			echo "docs(changeset): add changeset"
+			return 0
+		fi
+	fi
+
+	local prompt="You are a commit message generator. Do NOT use any tools. Do NOT run any commands. Do NOT ask questions.
+
+Based on the info below, output EXACTLY ONE commitizen commit message line and nothing else.
+
+Format: <type>(<scope>): <description>
+Types: feat|fix|chore|docs|refactor|test|style|perf
+Rules: lowercase, no period, max 50 chars, single line only
+
+Branch: $branch_name
+Recent: $recent_history
+Staged: $staged_files"
+
+	if [ -n "$additional_context" ]; then
+		prompt+="
+Hint: $additional_context"
+	fi
+
+	# Execute and return output directly
+	timeout 15s opencode run -m opencode/claude-sonnet-4-5 "$prompt" 2>/dev/null
+}
+
+# Function to clean commit message (extract valid commitizen line)
+clean_commit_message() {
+	local message="$1"
+	# Remove code fences, trim whitespace
+	message=$(echo "$message" | sed -e 's/```[a-z]*//g' -e 's/```//g' | tr -d '\r')
+	# Try strict commitizen match first
+	local result
+	result=$(echo "$message" | grep -E '^(feat|fix|chore|docs|refactor|test|style|perf)(\([^)]+\))?: .+' | head -1)
+	if [ -n "$result" ]; then
+		echo "$result"
+		return
+	fi
+	# Fallback: find commitizen pattern anywhere in output
+	result=$(echo "$message" | grep -oE '(feat|fix|chore|docs|refactor|test|style|perf)(\([^)]+\))?: [^`\n]+' | head -1)
+	if [ -n "$result" ]; then
+		echo "$result"
+		return
+	fi
+	# Last resort: return first non-empty line
+	echo "$message" | awk 'NF{print; exit}'
+}
+
+# Function to group staged files (excluding lock files) by top-level directory (or file root)
+compute_groups() {
+	local lock_patterns='(\.lock$|yarn.lock$|package-lock.json$|pnpm-lock.yaml$|bun.lockb$|Cargo.lock$|Gemfile.lock$|Podfile.lock$|composer.lock$|go.sum$)'
+	git diff --staged --name-only --diff-filter=ACMR | grep -Ev "$lock_patterns" | awk -F'/' '{print $1}' | awk 'NF' | sort | uniq -c | sort -nr
+}
+
+# Function to let user select a group to isolate
+select_group_and_isolate() {
+	local groups_output
+	groups_output=$(compute_groups)
+	if [ -z "$groups_output" ]; then
+		echo -e "${YELLOW}No non-lock staged files to group.${NC}"
+		return 1
+	fi
+
+	# Build arrays of counts and names
+	local group_names=()
+	# shellcheck disable=SC2034 # suppress unused field variable warning as only name is needed
+	while read -r _ name; do
+		group_names+=("$name")
+	done < <(echo "$groups_output" | awk '{print $1, $2}')
+
+	if [ ${#group_names[@]} -le 1 ]; then
+		echo -e "${YELLOW}Only one group present; nothing to split.${NC}"
+		return 1
+	fi
+
+	local sel=0
+	while true; do
+		clear
+		echo -e "${BLUE}Split commit by group - choose one group to commit now:${NC}\n"
+		echo "$groups_output" | awk '{printf("  %s %s\n", $1, $2)}'
+		echo -e "\n${BLUE}Groups:${NC}"
+		for i in "${!group_names[@]}"; do
+			if [[ $i -eq $sel ]]; then
+				echo -e "  ${GREEN}▸ ${group_names[$i]}${NC}"
+			else
+				echo -e "    ${group_names[$i]}"
+			fi
+		done
+		echo -e "\n${DIM}Use j/k or ↑/↓ to navigate, Enter to select, q to cancel${NC}"
+		IFS= read -rsn1 key
+		case "$key" in
+		$'\x1b')
+			read -rsn2 key2
+			case "$key2" in '[A')
+				((sel--))
+				[[ $sel -lt 0 ]] && sel=$((${#group_names[@]} - 1))
+				;;
+			'[B')
+				((sel++))
+				[[ $sel -ge ${#group_names[@]} ]] && sel=0
+				;;
+			esac
+			;;
+		'k' | 'K')
+			((sel--))
+			[[ $sel -lt 0 ]] && sel=$((${#group_names[@]} - 1))
+			;;
+		'j' | 'J')
+			((sel++))
+			[[ $sel -ge ${#group_names[@]} ]] && sel=0
+			;;
+		'q' | 'Q') return 1 ;;
+		'') break ;;
+		esac
+	done
+
+	local chosen=${group_names[$sel]}
+	echo -e "${BLUE}Isolating group:${NC} $chosen"
+
+	# Unstage everything not in chosen group (excluding lock files which we leave staged but ignored)
+	local all_files
+	all_files=$(git diff --staged --name-only --diff-filter=ACMR)
+	local to_unstage=()
+	while read -r f; do
+		[[ -z "$f" ]] && continue
+		[[ "$f" =~ \.lock$ || "$f" =~ yarn.lock$ || "$f" =~ package-lock.json$ || "$f" =~ pnpm-lock.yaml$ || "$f" =~ bun.lockb$ || "$f" =~ Cargo.lock$ || "$f" =~ Gemfile.lock$ || "$f" =~ Podfile.lock$ || "$f" =~ composer.lock$ || "$f" =~ go.sum$ ]] && continue
+		top=${f%%/*}
+		if [[ "$top" != "$chosen" ]]; then
+			to_unstage+=("$f")
+		fi
+	done < <(echo "$all_files")
+
+	if [ ${#to_unstage[@]} -gt 0 ]; then
+		git restore --staged "${to_unstage[@]}"
+		echo -e "${YELLOW}Temporarily unstaged ${#to_unstage[@]} file(s) outside group '$chosen'.${NC}"
+		echo -e "Commit this group; remaining files stay unstaged for subsequent commits."
+	else
+		echo -e "${YELLOW}No files needed to unstage for this group.${NC}"
+	fi
+
+	return 0
+}
+
+# Function to show menu and get user choice (now with optional split-by-group)
+show_menu() {
+	local has_groups=false
+	local groups_count
+	groups_count=$(compute_groups | wc -l | tr -d ' ')
+	if [ "$groups_count" -gt 1 ]; then
+		has_groups=true
+	fi
+
+	local options=("Confirm and commit with this message" "Add additional context and regenerate")
+	if $has_groups; then
+		options+=("Split commit by group")
+	fi
+	options+=("Cancel")
+
+	local selected=0
+
+	while true; do
+		# Clear screen and show everything fresh
+		clear
+
+		# Show header
+		echo -e "${BLUE}Generating commit message for staged changes...${NC}"
+
+		# Show commit message
+		echo -e "\n${GREEN}Generated commit message:${NC}"
+		echo "----------------------------------------"
+		echo "$COMMIT_MESSAGE"
+		echo "----------------------------------------"
+
+		# Show git status summary
+		echo -e "\n${BLUE}Git status summary:${NC}"
+		local staged_files
+		staged_files=$(git diff --staged --name-status)
+		if [ -n "$staged_files" ]; then
+			local added_count modified_count deleted_count renamed_count total_count
+			added_count=$(echo "$staged_files" | grep -c "^A")
+			modified_count=$(echo "$staged_files" | grep -c "^M")
+			deleted_count=$(echo "$staged_files" | grep -c "^D")
+			renamed_count=$(echo "$staged_files" | grep -c "^R")
+			total_count=$(echo "$staged_files" | wc -l | tr -d ' ')
+
+			local summary_parts=()
+			[[ $added_count -gt 0 ]] && summary_parts+=("🟢 +${added_count} new")
+			[[ $modified_count -gt 0 ]] && summary_parts+=("🟡 ~${modified_count} modified")
+			[[ $deleted_count -gt 0 ]] && summary_parts+=("🔴 -${deleted_count} deleted")
+			[[ $renamed_count -gt 0 ]] && summary_parts+=("🔵 →${renamed_count} renamed")
+
+			echo -e "  ${total_count} files: $(
+				IFS=', '
+				echo "${summary_parts[*]}"
+			)"
+			if $has_groups; then
+				echo -e "  Groups detected: $groups_count (use 'Split commit by group' to isolate)"
+			fi
+		else
+			echo -e "  ${GRAY}No staged files${NC}"
+		fi
+
+		# Show menu
+		echo -e "\n${BLUE}Choose an option:${NC}"
+		for i in "${!options[@]}"; do
+			if [[ $i -eq $selected ]]; then
+				echo -e "  ${GREEN}▸ ${options[$i]}${NC}"
+			else
+				echo -e "    ${options[$i]}"
+			fi
+		done
+
+		echo -e "\n${DIM}Use j/k or ↑/↓ to navigate, Enter to select${NC}"
+
+		# Read key
+		IFS= read -rsn1 key
+		case "$key" in
+		$'\x1b') # Arrow keys
+			read -rsn2 key
+			case "$key" in
+			'[A')
+				((selected--))
+				[[ $selected -lt 0 ]] && selected=$((${#options[@]} - 1))
+				;;
+			'[B')
+				((selected++))
+				[[ $selected -ge ${#options[@]} ]] && selected=0
+				;;
+			esac
+			;;
+		'k' | 'K')
+			((selected--))
+			[[ $selected -lt 0 ]] && selected=$((${#options[@]} - 1))
+			;;
+		'j' | 'J')
+			((selected++))
+			[[ $selected -ge ${#options[@]} ]] && selected=0
+			;;
+		'') # Enter key
+			return $((selected + 1))
+			;;
+		esac
+	done
+}
+
+# Function to commit with message
+commit_with_message() {
+	local message="$1"
+	echo -e "\n${GREEN}Committing with message:${NC}"
+	echo "$message"
+	echo
+	if git commit -m "$message"; then
+		echo -e "\n${GREEN}Commit successful!${NC}"
+		echo -e "\n${BLUE}Git status:${NC}"
+		git status --short
+	else
+		echo -e "\n${RED}Commit failed!${NC}"
+		exit 1
+	fi
+}
+
+# Main script logic
+main() {
+	# Check if there are staged changes
+	if ! git diff --staged --quiet; then
+		echo -e "${BLUE}Generating commit message for staged changes...${NC}"
+
+		# Initial additional context from command line argument
+		local additional_context="$1"
+
+		while true; do
+			# Generate commit message
+			local raw_message choice
+			raw_message=$(generate_commit_message "$additional_context")
+			commit_message=$(clean_commit_message "$raw_message")
+
+			# Fallbacks if empty (robustness against over-cleaning or empty model output)
+			if [ -z "$commit_message" ]; then
+				staged_only=$(git diff --staged --name-only)
+				if [ -n "$staged_only" ] && ! echo "$staged_only" | grep -Ev '^\.changeset/' >/dev/null 2>&1; then
+					# Only changeset files staged
+					count=$(printf '%s\n' "$staged_only" | wc -l | tr -d ' ')
+					noun="file"
+					[ "$count" -gt 1 ] && noun="files"
+					commit_message="docs(changeset): add changeset ${noun}"
+				else
+					commit_message="chore: update"
+				fi
+			fi
+
+			COMMIT_MESSAGE="$commit_message"
+
+			# Show menu and get user choice (menu now handles all display)
+			show_menu
+			choice=$?
+
+			case $choice in
+			1)
+				commit_with_message "$commit_message"
+				exit 0
+				;;
+			2)
+				echo -n "Enter additional context: "
+				read -r new_context
+				if [ -n "$additional_context" ]; then
+					additional_context="$additional_context. $new_context"
+				else
+					additional_context="$new_context"
+				fi
+				echo -e "\n${BLUE}Regenerating with additional context...${NC}"
+				sleep 1
+				;;
+			3)
+				# This may be Split or Cancel depending on groups presence. Need to detect.
+				local groups_count
+				groups_count=$(compute_groups | wc -l | tr -d ' ')
+				if [ "$groups_count" -gt 1 ]; then
+					# Option 3 is Split
+					if select_group_and_isolate; then
+						echo -e "${BLUE}Group isolated. Regenerating commit message...${NC}"
+						sleep 1
+					else
+						echo -e "${YELLOW}Split cancelled or not applicable.${NC}"
+						sleep 1
+					fi
+				else
+					# No groups; treat as Cancel
+					echo -e "\n${YELLOW}Cancelled.${NC}"
+					exit 0
+				fi
+				;;
+			4)
+				# Only valid when split option exists; acts as Cancel when groups present
+				local groups_count2
+				groups_count2=$(compute_groups | wc -l | tr -d ' ')
+				if [ "$groups_count2" -gt 1 ]; then
+					echo -e "\n${YELLOW}Cancelled.${NC}"
+					exit 0
+				else
+					echo -e "\n${RED}Invalid choice. Please try again.${NC}"
+					sleep 1
+				fi
+				;;
+			*)
+				echo -e "\n${RED}Invalid choice. Please try again.${NC}"
+				sleep 1
+				;;
+			esac
+		done
+	else
+		echo -e "${RED}No staged changes found. Stage your changes first with 'git add'.${NC}"
+		exit 1
+	fi
+}
+
+# Run the main function with all arguments
+main "$@"

@@ -1,0 +1,4 @@
+keymap_mode = "vim-normal"
+
+[theme]
+name = "catppuccin-mocha-blue"
