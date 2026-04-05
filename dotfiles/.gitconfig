@@ -1,5 +1,5 @@
 [user]
-    name = Florion Coiffé
+	name = Florion
     email = florion@popina.com
 [filter "lfs"]
 	clean = git-lfs clean -- %f

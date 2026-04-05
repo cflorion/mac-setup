@@ -46,7 +46,7 @@ link:
 	@find $(DOTFILES_DIR) -maxdepth 1 -name ".*" \
 		-not -name "." -not -name ".." -not -name ".git" \
 		-exec ln -sfnv {} $(HOME)/ \;
-	@# Link directories (e.g. nvim, tmux, ghostty) to ~/.config/
+	@# Link directories (e.g. nvim, aerospace) to ~/.config/
 	@for dir in $(DOTFILES_DIR)/*/; do \
 		name=$$(basename "$$dir"); \
 		target="$(CONFIG_DIR)/$$name"; \
@@ -56,7 +56,6 @@ link:
 		fi; \
 		ln -sfnv "$$dir" "$$target"; \
 	done
-	@chmod +x "$(CONFIG_DIR)/tmux/dev.sh"
 
 # Backup SSH keys before formatting
 backup:

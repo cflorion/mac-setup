@@ -78,7 +78,7 @@ alt-shift-semicolon = 'mode service'
 
 # Switch to workspace
 alt-a = ['workspace A', 'exec-and-forget open -a ChatGPT', 'exec-and-forget open -a Claude']
-alt-c = ['workspace C', 'exec-and-forget open -a Ghostty']
+alt-c = ['workspace C', 'exec-and-forget open -a WezTerm']
 alt-b = ['workspace B', 'exec-and-forget open -a Safari']
 alt-m = ['workspace M', 'exec-and-forget open -a Superhuman']
 alt-p = ['workspace S', 'exec-and-forget open -a Slack']
@@ -139,7 +139,7 @@ run = 'move-node-to-workspace A'
 
 # Code / Terminal
 [[on-window-detected]]
-if.app-id = 'com.mitchellh.ghostty'
+if.app-id = 'com.github.wez.wezterm'
 run = 'move-node-to-workspace C'
 
 # Browser

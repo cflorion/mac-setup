@@ -30,18 +30,9 @@ source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.z
 alias c="cd ~/code"
 alias v="nvim"
 alias vim="nvim"
-alias dev="$HOME/.config/tmux/dev.sh"
 
 # -------
 # fnm node version manager (always last)
 # -------
 
 eval "$(fnm env --use-on-cd --shell zsh)"
-
-# -------
-# tmux — auto-attach to dev session
-# -------
-
-if command -v tmux &>/dev/null && [ -z "$TMUX" ]; then
-  exec "$HOME/.config/tmux/dev.sh"
-fi

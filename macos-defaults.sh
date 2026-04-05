@@ -16,6 +16,7 @@ defaults write NSGlobalDomain _HIHideMenuBar -bool true
 echo "==> Configuring keyboard"
 defaults write NSGlobalDomain KeyRepeat -int 2
 defaults write NSGlobalDomain InitialKeyRepeat -int 15
+defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
 echo "==> Enabling tap to click"
 # Built-in trackpad
@@ -51,19 +52,11 @@ tell application "System Events"
 end tell
 EOF
 
-echo "==> Configuring accessibility (optimized for e-ink color display)"
-# On macOS Sequoia+ defaults write cannot modify com.apple.universalaccess (SIP-protected).
-# A configuration profile (.mobileconfig) is the only reliable method.
-# This opens System Settings for the user to confirm installation.
-PROFILE="$SCRIPT_DIR/profiles/eink-accessibility.mobileconfig"
-if [ -f "$PROFILE" ]; then
-  open "$PROFILE"
-  echo "    Profile opened in System Settings — please confirm installation."
-  echo "    Settings: increase contrast, reduce transparency, reduce motion,"
-  echo "    differentiate without color, display contrast 25%, pointer size 2x."
-else
-  echo "    Profile not found at $PROFILE, skipping."
-fi
+echo "==> Accessibility settings (manual)"
+echo "    Please configure in System Settings > Accessibility > Display:"
+echo "    - Increase contrast: ON"
+echo "    - Reduce transparency: ON"
+echo "    - Display contrast: 50% (midpoint)"
 
 echo "==> Restarting system services"
 killall Finder || true
@@ -77,12 +70,7 @@ killall Dock || true
 # Security
 # - Allow apps from identified developers / external sources
 
-# Accessibility
-# - Grayscale color filter (100%) — optional, not needed for color e-ink
-
 # Apps to install
+# - SwitchResX (display resolution)
 # - DisplayBuddy
-# - Zoom
-# - Obsidian
-# - StillColor
 # - Adobe Acrobat Reader
