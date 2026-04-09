@@ -4,6 +4,7 @@ set -euo pipefail
 echo "==> Configuring Finder"
 defaults write com.apple.finder AppleShowAllFiles -bool true
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+defaults write com.apple.finder ShowPathbar -bool true
 
 echo "==> Configuring Dock settings"
 defaults write com.apple.dock autohide -bool true
