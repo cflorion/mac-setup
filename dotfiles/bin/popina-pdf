@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TEMPLATE_DIR="$HOME/templates"
+TEMPLATE_SRC="$TEMPLATE_DIR/popina-template.typ"
+LOGO_SRC="$TEMPLATE_DIR/popina-logo.svg"
+
+for f in "$TEMPLATE_SRC" "$LOGO_SRC"; do
+  if [ ! -f "$f" ]; then
+    echo "Missing: $f" >&2
+    exit 1
+  fi
+done
+
+INPUT_FILE=""
+OUTPUT_FILE=""
+EXTRA_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -o|--output)
+      OUTPUT_FILE="$2"; shift 2 ;;
+    -o*)
+      OUTPUT_FILE="${1#-o}"; shift ;;
+    --output=*)
+      OUTPUT_FILE="${1#--output=}"; shift ;;
+    -*)
+      EXTRA_ARGS+=("$1"); shift ;;
+    *)
+      if [[ -z "$INPUT_FILE" ]]; then
+        INPUT_FILE="$1"
+      fi
+      shift ;;
+  esac
+done
+
+if [[ -z "$INPUT_FILE" ]]; then
+  echo "Usage: popina-pdf <input.md> [-o output.pdf]" >&2
+  exit 1
+fi
+
+if [[ ! -f "$INPUT_FILE" ]]; then
+  echo "File not found: $INPUT_FILE" >&2
+  exit 1
+fi
+
+if [[ -z "$OUTPUT_FILE" ]]; then
+  OUTPUT_FILE="${INPUT_FILE%.md}.pdf"
+fi
+
+# Creer un repertoire temporaire de travail
+# Typst resout les imports relativement au working directory
+WORKDIR=$(mktemp -d /tmp/popina-pdf.XXXXXX)
+trap 'rm -rf "$WORKDIR"' EXIT
+
+# Copier le template et le logo dans le repertoire de travail
+cp "$TEMPLATE_SRC" "$WORKDIR/popina-template.typ"
+cp "$LOGO_SRC" "$WORKDIR/popina-logo.svg"
+
+# Preparer le Markdown sans les --- (separateurs qui cassent le YAML de Pandoc)
+sed '/^---$/d' "$INPUT_FILE" > "$WORKDIR/input.md"
+
+# Convertir le chemin de sortie en absolu
+case "$OUTPUT_FILE" in
+  /*) ;; # deja absolu
+  *)  OUTPUT_FILE="$(pwd)/$OUTPUT_FILE" ;;
+esac
+
+# Generer le PDF depuis le workdir (Typst resout les imports depuis le CWD)
+(
+  cd "$WORKDIR"
+  pandoc input.md \
+    --pdf-engine=typst \
+    -V "template:popina-template.typ" \
+    -M "title:${TITLE:-Vision Produit & Technologie 2026-2027}" \
+    -M "author:${AUTHOR:-Florion Coiffé, CPTO}" \
+    -M "date:${DATE:-Avril 2025}" \
+    ${EXTRA_ARGS[@]:+"${EXTRA_ARGS[@]}"} \
+    -o "$OUTPUT_FILE"
+)
+
+echo "PDF: $OUTPUT_FILE"

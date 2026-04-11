@@ -43,6 +43,9 @@ link:
 	@echo "==> Linking dotfiles..."
 	@mkdir -p $(CONFIG_DIR)
 	@mkdir -p $(HOME)/.local
+	@mkdir -p $(HOME)/templates
+	@# Install templates
+	@cp -n $(DOTFILES_DIR)/../documents/popina-template.typ $(HOME)/templates/popina-pandoc.typ 2>/dev/null || true
 	@# Link hidden files (e.g. .zshrc, .gitconfig) to HOME
 	@find $(DOTFILES_DIR) -maxdepth 1 -name ".*" \
 		-not -name "." -not -name ".." -not -name ".git" \

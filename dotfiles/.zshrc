@@ -42,6 +42,7 @@ alias ....="cd ../../.."
 alias myip="curl http://ipecho.net/plain; echo"
 alias brewup="brew update; brew upgrade; brew cleanup; brew doctor"
 alias rm="trash"
+alias popina-pdf='popina-pdf'
 
 # -------
 # fnm node version manager
