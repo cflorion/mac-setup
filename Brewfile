@@ -32,6 +32,7 @@ brew "switchaudio-osx"
 brew "nowplaying-cli"
 brew "felixkratz/formulae/sketchybar"
 brew "typst"
+brew "pandoc"
 
 cask "cleanshot"
 cask "figma"
