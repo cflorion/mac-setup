@@ -16,7 +16,15 @@ end
 
 local function scheme_for_appearance(appearance)
   if appearance:find('Dark') then
-    return 'Tokyo Night'
+    local mocha = wezterm.color.get_builtin_schemes()['Catppuccin Mocha']
+    mocha.background = '#000000'
+    mocha.tab_bar.background = '#000000'
+    mocha.tab_bar.inactive_tab.bg_color = '#0f0f0f'
+    mocha.tab_bar.new_tab.bg_color = '#0f0f0f'
+    config.color_schemes = {
+      ['Catppuccin Mocha OLED'] = mocha,
+    }
+    return 'Catppuccin Mocha OLED'
   else
     return 'Tokyo Night Day'
   end
@@ -83,7 +91,7 @@ config.show_tab_index_in_tab_bar = true
 wezterm.on('update-right-status', function(window, pane)
   local workspace = window:active_workspace()
   local date = wezterm.strftime '%H:%M'
-  local fg = is_dark and '#565f89' or '#6172b0'
+  local fg = is_dark and '#6c7086' or '#6172b0'
   window:set_right_status(wezterm.format {
     { Foreground = { Color = fg } },
     { Text = ' ' .. workspace .. '  ' .. date .. ' ' },
