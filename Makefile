@@ -49,10 +49,19 @@ link:
 		-exec ln -sfnv {} $(HOME)/ \;
 	@# Link starship.toml to ~/.config/starship.toml (special case: file, not directory)
 	@ln -sfnv $(DOTFILES_DIR)/starship.toml $(CONFIG_DIR)/starship.toml
-	@# Link directories to ~/.config/ (except bin/ which goes to ~/.local/bin/)
+	@# Link zed/settings.json only (preserve Zed's own extensions, keymap, etc.)
+	@mkdir -p $(CONFIG_DIR)/zed
+	@ln -sfnv $(DOTFILES_DIR)/zed/settings.json $(CONFIG_DIR)/zed/settings.json
+	@# Link Sublime Text preferences (lives in ~/Library, not ~/.config)
+	@mkdir -p "$(HOME)/Library/Application Support/Sublime Text/Packages/User"
+	@ln -sfnv $(DOTFILES_DIR)/sublime-text/Preferences.sublime-settings \
+		"$(HOME)/Library/Application Support/Sublime Text/Packages/User/Preferences.sublime-settings"
+	@# Link directories to ~/.config/ (except bin/, zed/, sublime-text/ which are handled above)
 	@for dir in $(DOTFILES_DIR)/*/; do \
 		name=$$(basename "$$dir"); \
-		if [ "$$name" = "bin" ]; then \
+		if [ "$$name" = "zed" ] || [ "$$name" = "sublime-text" ]; then \
+			continue; \
+		elif [ "$$name" = "bin" ]; then \
 			echo "  Linking $$dir -> $(HOME)/.local/bin"; \
 			ln -sfnv "$$dir" "$(HOME)/.local/bin"; \
 		else \

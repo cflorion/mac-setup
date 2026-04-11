@@ -6,6 +6,24 @@ local wezterm = require 'wezterm'
 local act = wezterm.action
 local config = wezterm.config_builder()
 
+-- Detect system light/dark appearance (auto-reloads on change)
+local function get_appearance()
+  if wezterm.gui then
+    return wezterm.gui.get_appearance()
+  end
+  return 'Dark'
+end
+
+local function scheme_for_appearance(appearance)
+  if appearance:find('Dark') then
+    return 'Tokyo Night'
+  else
+    return 'Tokyo Night Day'
+  end
+end
+
+local is_dark = get_appearance():find('Dark')
+
 -- =============================================================================
 -- MUX SERVER (persistent sessions)
 -- =============================================================================
@@ -21,7 +39,7 @@ config.unix_domains = {
 -- APPEARANCE
 -- =============================================================================
 
-config.color_scheme = 'Tokyo Night'
+config.color_scheme = scheme_for_appearance(get_appearance())
 
 config.font = wezterm.font('JetBrainsMono Nerd Font', { weight = 'Regular' })
 config.font_size = 13.5
@@ -56,33 +74,7 @@ config.hide_tab_bar_if_only_one_tab = true
 config.tab_max_width = 32
 config.show_tab_index_in_tab_bar = true
 
--- Tab bar colors (Tokyo Night)
-config.colors = {
-  tab_bar = {
-    background = '#1a1b26',
-    active_tab = {
-      bg_color = '#7aa2f7',
-      fg_color = '#1a1b26',
-      intensity = 'Bold',
-    },
-    inactive_tab = {
-      bg_color = '#1a1b26',
-      fg_color = '#565f89',
-    },
-    inactive_tab_hover = {
-      bg_color = '#24283b',
-      fg_color = '#a9b1d6',
-    },
-    new_tab = {
-      bg_color = '#1a1b26',
-      fg_color = '#565f89',
-    },
-    new_tab_hover = {
-      bg_color = '#24283b',
-      fg_color = '#7aa2f7',
-    },
-  },
-}
+-- Tab bar colors (from color scheme)
 
 -- =============================================================================
 -- STATUS BAR (right)
@@ -91,8 +83,9 @@ config.colors = {
 wezterm.on('update-right-status', function(window, pane)
   local workspace = window:active_workspace()
   local date = wezterm.strftime '%H:%M'
+  local fg = is_dark and '#565f89' or '#6172b0'
   window:set_right_status(wezterm.format {
-    { Foreground = { Color = '#565f89' } },
+    { Foreground = { Color = fg } },
     { Text = ' ' .. workspace .. '  ' .. date .. ' ' },
   })
 end)

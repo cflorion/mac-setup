@@ -1,0 +1,10 @@
+{
+	"theme": "auto",
+	"color_scheme": "auto",
+	"dark_theme": "Adaptive.sublime-theme",
+	"light_theme": "Adaptive.sublime-theme",
+	"dark_color_scheme": "Mariana.sublime-color-scheme",
+	"light_color_scheme": "Celeste.sublime-color-scheme",
+	"font_face": "JetBrainsMono Nerd Font",
+	"font_size": 13.5
+}
