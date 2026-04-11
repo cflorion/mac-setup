@@ -1,13 +1,13 @@
 return {
-	text = "SF Pro", -- Used for text
-	numbers = "Victor Mono", -- Used for numbers
+	text = "Inter", -- Used for text
+	numbers = "Inter", -- Used for numbers
 
 	-- Unified font style map
 	style_map = {
 		["Regular"] = "Regular",
-		["Semibold"] = "Semibold",
+		["Semibold"] = "SemiBold",
 		["Bold"] = "Bold",
-		["Heavy"] = "Heavy",
+		["Heavy"] = "ExtraBold",
 		["Black"] = "Black",
 	},
 }
