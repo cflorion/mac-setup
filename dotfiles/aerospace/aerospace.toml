@@ -89,7 +89,6 @@ alt-m = ['workspace M', 'exec-and-forget open -a Superhuman']
 alt-p = ['workspace S', 'exec-and-forget open -a Slack']
 alt-t = ['workspace T', 'exec-and-forget open -a TickTick']
 alt-o = ['workspace O', 'exec-and-forget open -a Obsidian']
-alt-i = ['workspace I', 'exec-and-forget open -a Chat']
 
 # Free workspaces (1-5)
 alt-1 = 'workspace 1'
@@ -106,7 +105,6 @@ alt-shift-m = 'move-node-to-workspace M --focus-follows-window'
 alt-shift-p = 'move-node-to-workspace S --focus-follows-window'
 alt-shift-t = 'move-node-to-workspace T --focus-follows-window'
 alt-shift-o = 'move-node-to-workspace O --focus-follows-window'
-alt-shift-i = 'move-node-to-workspace I --focus-follows-window'
 
 alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
 alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
@@ -141,30 +139,40 @@ esc = 'mode main'
 # AI
 [[on-window-detected]]
 if.app-id = 'com.openai.chat'
-run = 'move-node-to-workspace A'
+run = ['move-node-to-workspace A', 'workspace A']
 
 [[on-window-detected]]
 if.app-id = 'com.anthropic.claudefordesktop'
-run = 'move-node-to-workspace A'
+run = ['move-node-to-workspace A', 'workspace A']
 
 # Code / Terminal
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
-run = 'move-node-to-workspace C'
+run = ['move-node-to-workspace C', 'workspace C']
 
 # Browser
 [[on-window-detected]]
 if.app-id = 'com.apple.Safari'
-run = 'move-node-to-workspace B'
+run = ['move-node-to-workspace B', 'workspace B']
 
 # Mail / Messages
 [[on-window-detected]]
 if.app-id = 'com.superhuman.electron'
-run = 'move-node-to-workspace M'
+run = ['move-node-to-workspace M', 'workspace M']
 
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
-run = 'move-node-to-workspace S'
+run = ['move-node-to-workspace S', 'workspace S']
+
+# Notes
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = ['move-node-to-workspace O', 'workspace O']
+
+# Tasks
+[[on-window-detected]]
+if.app-id = 'com.TickTick.task.mac'
+run = ['move-node-to-workspace T', 'workspace T']
 
 # Always floating (dialogs, utilities)
 [[on-window-detected]]
@@ -181,4 +189,8 @@ run = 'layout floating'
 
 [[on-window-detected]]
 if.app-id = 'com.raycast.macos'
+run = 'layout floating'
+
+# All other apps: floating by default
+[[on-window-detected]]
 run = 'layout floating'

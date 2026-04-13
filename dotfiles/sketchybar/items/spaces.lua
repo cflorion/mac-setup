@@ -9,7 +9,7 @@ sbar.add("event", "aerospace_workspace_change")
 local spaces = {}
 
 -- All possible AeroSpace workspaces
-local workspace_names = { "A", "B", "C", "M", "S", "T", "1", "2", "3", "4", "5" }
+local workspace_names = { "A", "B", "C", "M", "O", "S", "T", "1", "2", "3", "4", "5" }
 
 for _, ws_name in ipairs(workspace_names) do
   local space = sbar.add("item", "space." .. ws_name, {
@@ -22,7 +22,7 @@ for _, ws_name in ipairs(workspace_names) do
     label = {
       padding_left = 10,
       padding_right = 10,
-      color = colors.grey,
+      color = colors.with_alpha(colors.grey, 0.4),
       highlight_color = colors.white,
       font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 13.0 },
       background = {
@@ -84,6 +84,7 @@ local function update_spaces()
             icon = { highlight = is_focused },
             label = {
               highlight = is_focused,
+              color = is_focused and colors.white or colors.with_alpha(colors.grey, 0.4),
               background = { color = is_focused and colors.white or colors.transparent },
             },
           })
