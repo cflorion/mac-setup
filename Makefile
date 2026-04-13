@@ -1,12 +1,13 @@
 DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
+OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/Travail/.obsidian
 
-.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar
+.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar obsidian
 
 all: install
 
 # Full setup for a new machine
-install: brew node npm-global link sketchybar macos raycast mas
+install: brew node npm-global link sketchybar obsidian macos raycast mas
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -62,7 +63,7 @@ link:
 	@# Link directories to ~/.config/ (except bin/, zed/, sublime-text/ which are handled above)
 	@for dir in $(DOTFILES_DIR)/*/; do \
 		name=$$(basename "$$dir"); \
-		if [ "$$name" = "zed" ] || [ "$$name" = "sublime-text" ]; then \
+		if [ "$$name" = "zed" ] || [ "$$name" = "sublime-text" ] || [ "$$name" = "obsidian" ]; then \
 			continue; \
 		elif [ "$$name" = "bin" ]; then \
 			echo "  Linking $$dir -> $(HOME)/.local/bin"; \
@@ -76,6 +77,19 @@ link:
 			ln -sfnv "$$dir" "$$target"; \
 		fi; \
 	done
+
+# Copy Obsidian theme to vault (copy, not symlink, to avoid iCloud sync issues)
+obsidian:
+	@echo "==> Applying Obsidian theme..."
+	@if [ -d "$(OBSIDIAN_VAULT)" ]; then \
+		cp -f $(DOTFILES_DIR)/obsidian/appearance.json "$(OBSIDIAN_VAULT)/appearance.json"; \
+		mkdir -p "$(OBSIDIAN_VAULT)/themes/Vanilla AMOLED"; \
+		cp -f "$(DOTFILES_DIR)/obsidian/themes/Vanilla AMOLED/manifest.json" "$(OBSIDIAN_VAULT)/themes/Vanilla AMOLED/manifest.json"; \
+		cp -f "$(DOTFILES_DIR)/obsidian/themes/Vanilla AMOLED/theme.css" "$(OBSIDIAN_VAULT)/themes/Vanilla AMOLED/theme.css"; \
+		echo "  Obsidian theme applied!"; \
+	else \
+		echo "  Obsidian vault not found, skipping (open Obsidian and create vault first)"; \
+	fi
 
 # Build and install sketchybar helpers (SbarLua, event providers, menus)
 sketchybar:
