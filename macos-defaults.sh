@@ -213,6 +213,12 @@ defaults write com.apple.menuextra.battery ShowPercent -bool true
 defaults write com.apple.menuextra.battery ShowTime -bool false
 defaults write com.apple.menuextra.battery PowerModeShowOnlyOnBattery -bool true
 
+echo "==> Configuring pointer"
+# Shake to locate pointer: OFF
+defaults write NSGlobalDomain CGDisableCursorLocationMagnification -bool true
+# Pointer size: ~1.5 (range 1.0 normal to 4.0 large)
+defaults write com.apple.universalaccess mouseDriverCursorSize -float 1.5
+
 echo "==> Accessibility settings (manual)"
 echo "    Please configure in System Settings > Accessibility > Display:"
 echo "    - Increase contrast: ON"
