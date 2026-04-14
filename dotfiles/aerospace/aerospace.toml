@@ -89,6 +89,7 @@ alt-m = ['workspace M', 'exec-and-forget open -a Superhuman']
 alt-p = ['workspace S', 'exec-and-forget open -a Slack']
 alt-t = ['workspace T', 'exec-and-forget open -a TickTick']
 alt-o = ['workspace O', 'exec-and-forget open -a Obsidian']
+alt-i = ['workspace I', 'exec-and-forget open ~/Applications/Calendar.app']
 
 # Free workspaces (1-5)
 alt-1 = 'workspace 1'
@@ -105,6 +106,7 @@ alt-shift-m = 'move-node-to-workspace M --focus-follows-window'
 alt-shift-p = 'move-node-to-workspace S --focus-follows-window'
 alt-shift-t = 'move-node-to-workspace T --focus-follows-window'
 alt-shift-o = 'move-node-to-workspace O --focus-follows-window'
+alt-shift-i = 'move-node-to-workspace I --focus-follows-window'
 
 alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
 alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
@@ -168,6 +170,11 @@ run = ['move-node-to-workspace S', 'workspace S']
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
 run = ['move-node-to-workspace O', 'workspace O']
+
+# Calendar (PWA)
+[[on-window-detected]]
+if.app-id = 'com.apple.Safari.WebApp.98B1A91D-38E6-48AA-AF09-76C6A8D78DCB'
+run = ['move-node-to-workspace I', 'workspace I']
 
 # Tasks
 [[on-window-detected]]
