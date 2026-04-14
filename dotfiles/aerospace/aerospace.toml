@@ -82,7 +82,7 @@ alt-shift-semicolon = 'mode service'
 # ----------------------------
 
 # Switch to workspace
-alt-a = ['workspace A', 'exec-and-forget open -a Claude']
+alt-u = ['workspace A', 'exec-and-forget open -a Claude']
 alt-c = ['workspace C', 'exec-and-forget open -a WezTerm']
 alt-b = ['workspace B', 'exec-and-forget open -a Safari']
 alt-m = ['workspace M', 'exec-and-forget open -a Superhuman']
@@ -99,7 +99,7 @@ alt-4 = 'workspace 4'
 alt-5 = 'workspace 5'
 
 # Move window to workspace
-alt-shift-a = 'move-node-to-workspace A --focus-follows-window'
+alt-shift-u = 'move-node-to-workspace A --focus-follows-window'
 alt-shift-c = 'move-node-to-workspace C --focus-follows-window'
 alt-shift-b = 'move-node-to-workspace B --focus-follows-window'
 alt-shift-m = 'move-node-to-workspace M --focus-follows-window'
