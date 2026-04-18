@@ -90,7 +90,7 @@ cmd-ctrl-alt-shift-w = ['workspace W', 'exec-and-forget open -a WezTerm']
 cmd-ctrl-alt-shift-s = ['workspace S', 'exec-and-forget open -a Safari']
 cmd-ctrl-alt-shift-m = ['workspace M', 'exec-and-forget open -a Superhuman']
 cmd-ctrl-alt-shift-n = ['workspace N', 'exec-and-forget open -a Slack']
-cmd-ctrl-alt-shift-g = ['workspace G', 'exec-and-forget open -a "Google Chat"']
+cmd-ctrl-alt-shift-g = ['workspace G', 'exec-and-forget open -a "$HOME/Applications/Chrome Apps.localized/Google Chat.app"']
 cmd-ctrl-alt-shift-o = ['workspace O', 'exec-and-forget open -a Obsidian']
 cmd-ctrl-alt-shift-t = ['workspace T', 'exec-and-forget open -a TickTick']
 cmd-ctrl-alt-shift-i = ['workspace I', 'exec-and-forget open -a "Notion Calendar"']
@@ -179,9 +179,9 @@ run = ['move-node-to-workspace M', 'workspace M']
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = ['move-node-to-workspace N', 'workspace N']
 
-# Google Chat PWA (G) — Chrome PWA, matched by window title
+# Google Chat PWA (G) — Chrome PWA
 [[on-window-detected]]
-if.window-title-regex = '.*Google Chat.*'
+if.app-id = 'com.google.Chrome.app.pommaclcbfghclhalboakcipcmmndhcj'
 run = ['move-node-to-workspace G', 'workspace G']
 
 # Notes - Obsidian (O)
