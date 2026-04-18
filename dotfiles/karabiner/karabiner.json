@@ -1,0 +1,40 @@
+{
+    "profiles": [
+        {
+            "complex_modifications": {
+                "parameters": {
+                    "basic.to_if_alone_timeout_milliseconds": 250,
+                    "basic.to_if_held_down_threshold_milliseconds": 250
+                },
+                "rules": [
+                    {
+                        "description": "CapsLock → Hyper (Cmd+Ctrl+Opt+Shift) / tap → Escape",
+                        "manipulators": [
+                            {
+                                "description": "CapsLock held → Hyper, tap → Escape",
+                                "from": {
+                                    "key_code": "caps_lock",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "left_shift",
+                                        "modifiers": ["left_command", "left_control", "left_option"]
+                                    }
+                                ],
+                                "to_if_alone": [{ "key_code": "escape" }],
+                                "type": "basic"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "name": "Default",
+            "selected": true,
+            "virtual_hid_keyboard": {
+                "country_code": 33,
+                "keyboard_type_v2": "iso"
+            }
+        }
+    ]
+}

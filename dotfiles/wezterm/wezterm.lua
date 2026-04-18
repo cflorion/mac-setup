@@ -26,7 +26,15 @@ local function scheme_for_appearance(appearance)
     }
     return 'Catppuccin Mocha OLED'
   else
-    return 'Tokyo Night Day'
+    local day = wezterm.color.get_builtin_schemes()['Tokyo Night Day']
+    day.background = '#ffffff'
+    day.tab_bar.background = '#ffffff'
+    day.tab_bar.inactive_tab.bg_color = '#f0f0f0'
+    day.tab_bar.new_tab.bg_color = '#f0f0f0'
+    config.color_schemes = {
+      ['Tokyo Night Day White'] = day,
+    }
+    return 'Tokyo Night Day White'
   end
 end
 

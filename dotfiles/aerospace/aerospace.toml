@@ -50,71 +50,81 @@ semicolon = 'comma'
 # ----------------------------
 [mode.main.binding]
 
-# Focus: alt + h/j/k/l (vim-style)
-alt-h = 'focus --boundaries-action wrap-around-the-workspace left'
-alt-j = 'focus --boundaries-action wrap-around-the-workspace down'
-alt-k = 'focus --boundaries-action wrap-around-the-workspace up'
-alt-l = 'focus --boundaries-action wrap-around-the-workspace right'
+# Focus: hyper + h/j/k/l (vim-style)
+cmd-ctrl-alt-shift-h = 'focus --boundaries-action wrap-around-the-workspace left'
+cmd-ctrl-alt-shift-j = 'focus --boundaries-action wrap-around-the-workspace down'
+cmd-ctrl-alt-shift-k = 'focus --boundaries-action wrap-around-the-workspace up'
+cmd-ctrl-alt-shift-l = 'focus --boundaries-action wrap-around-the-workspace right'
 
-# Move window: alt-shift + h/j/k/l
-alt-shift-h = 'move left'
-alt-shift-j = 'move down'
-alt-shift-k = 'move up'
-alt-shift-l = 'move right'
+# Move window: hyper + shift is not possible (shift is part of hyper)
+# Use hyper + arrow keys instead
+cmd-ctrl-alt-shift-left = 'move left'
+cmd-ctrl-alt-shift-down = 'move down'
+cmd-ctrl-alt-shift-up = 'move up'
+cmd-ctrl-alt-shift-right = 'move right'
 
 # Layout
-alt-comma = 'layout tiles horizontal vertical'
-alt-period = 'layout tiles vertical horizontal'
-alt-f = 'fullscreen'
-alt-shift-f = 'layout floating tiling'
+cmd-ctrl-alt-shift-comma = 'layout tiles horizontal vertical'
+cmd-ctrl-alt-shift-period = 'layout tiles vertical horizontal'
+cmd-ctrl-alt-shift-f = 'fullscreen'
+cmd-ctrl-alt-shift-space = 'layout floating tiling'
 
 # Resize mode
-alt-r = 'mode resize'
+cmd-ctrl-alt-shift-r = 'mode resize'
 
 # Reload config
-alt-shift-r = 'reload-config'
+cmd-ctrl-alt-shift-backslash = 'reload-config'
 
 # Service mode (for advanced operations)
-alt-shift-semicolon = 'mode service'
+cmd-ctrl-alt-shift-semicolon = 'mode service'
 
 # ----------------------------
 # Named workspaces
 # Règle : raccourci = initiale de l'app = nom du workspace
-# Réservés (ne pas utiliser) : h j k l f r
+# Réservés (ne pas utiliser) : h j k l f r p
 # ----------------------------
 
 # Switch to workspace
-alt-c = ['workspace C', 'exec-and-forget open -a Claude']
-alt-w = ['workspace W', 'exec-and-forget open -a WezTerm']
-alt-s = ['workspace S', 'exec-and-forget open -a Safari']
-alt-m = ['workspace M', 'exec-and-forget open -a Superhuman']
-alt-n = ['workspace N', 'exec-and-forget open -a Slack']
-alt-o = ['workspace O', 'exec-and-forget open -a Obsidian']
-alt-t = ['workspace T', 'exec-and-forget open -a TickTick']
-alt-i = ['workspace I', 'exec-and-forget open ~/Applications/Calendar.app']
+cmd-ctrl-alt-shift-c = ['workspace C', 'exec-and-forget open -a Claude']
+cmd-ctrl-alt-shift-w = ['workspace W', 'exec-and-forget open -a WezTerm']
+cmd-ctrl-alt-shift-s = ['workspace S', 'exec-and-forget open -a Safari']
+cmd-ctrl-alt-shift-m = ['workspace M', 'exec-and-forget open -a Superhuman']
+cmd-ctrl-alt-shift-n = ['workspace N', 'exec-and-forget open -a Slack']
+cmd-ctrl-alt-shift-g = ['workspace G', 'exec-and-forget open -a "Google Chat"']
+cmd-ctrl-alt-shift-o = ['workspace O', 'exec-and-forget open -a Obsidian']
+cmd-ctrl-alt-shift-t = ['workspace T', 'exec-and-forget open -a TickTick']
+cmd-ctrl-alt-shift-i = ['workspace I', 'exec-and-forget open -a "Notion Calendar"']
 
 # Free workspaces (1-5)
-alt-1 = 'workspace 1'
-alt-2 = 'workspace 2'
-alt-3 = 'workspace 3'
-alt-4 = 'workspace 4'
-alt-5 = 'workspace 5'
+cmd-ctrl-alt-shift-1 = 'workspace 1'
+cmd-ctrl-alt-shift-2 = 'workspace 2'
+cmd-ctrl-alt-shift-3 = 'workspace 3'
+cmd-ctrl-alt-shift-4 = 'workspace 4'
+cmd-ctrl-alt-shift-5 = 'workspace 5'
 
-# Move window to workspace
-alt-shift-c = 'move-node-to-workspace C --focus-follows-window'
-alt-shift-w = 'move-node-to-workspace W --focus-follows-window'
-alt-shift-s = 'move-node-to-workspace S --focus-follows-window'
-alt-shift-m = 'move-node-to-workspace M --focus-follows-window'
-alt-shift-n = 'move-node-to-workspace N --focus-follows-window'
-alt-shift-o = 'move-node-to-workspace O --focus-follows-window'
-alt-shift-t = 'move-node-to-workspace T --focus-follows-window'
-alt-shift-i = 'move-node-to-workspace I --focus-follows-window'
+# Move window to workspace — via mode 'move' (hyper + p, puis lettre/chiffre)
+cmd-ctrl-alt-shift-p = 'mode move'
 
-alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
-alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
-alt-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
-alt-shift-4 = 'move-node-to-workspace 4 --focus-follows-window'
-alt-shift-5 = 'move-node-to-workspace 5 --focus-follows-window'
+# ----------------------------
+# Move mode (send window to workspace)
+# Enter: hyper+p, then type the workspace key
+# ----------------------------
+[mode.move.binding]
+c = ['move-node-to-workspace C --focus-follows-window', 'mode main']
+w = ['move-node-to-workspace W --focus-follows-window', 'mode main']
+s = ['move-node-to-workspace S --focus-follows-window', 'mode main']
+m = ['move-node-to-workspace M --focus-follows-window', 'mode main']
+n = ['move-node-to-workspace N --focus-follows-window', 'mode main']
+g = ['move-node-to-workspace G --focus-follows-window', 'mode main']
+o = ['move-node-to-workspace O --focus-follows-window', 'mode main']
+t = ['move-node-to-workspace T --focus-follows-window', 'mode main']
+i = ['move-node-to-workspace I --focus-follows-window', 'mode main']
+1 = ['move-node-to-workspace 1 --focus-follows-window', 'mode main']
+2 = ['move-node-to-workspace 2 --focus-follows-window', 'mode main']
+3 = ['move-node-to-workspace 3 --focus-follows-window', 'mode main']
+4 = ['move-node-to-workspace 4 --focus-follows-window', 'mode main']
+5 = ['move-node-to-workspace 5 --focus-follows-window', 'mode main']
+esc = 'mode main'
 
 # ----------------------------
 # Resize mode
@@ -169,6 +179,11 @@ run = ['move-node-to-workspace M', 'workspace M']
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = ['move-node-to-workspace N', 'workspace N']
 
+# Google Chat PWA (G) — Chrome PWA, matched by window title
+[[on-window-detected]]
+if.window-title-regex = '.*Google Chat.*'
+run = ['move-node-to-workspace G', 'workspace G']
+
 # Notes - Obsidian (O)
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
@@ -179,9 +194,9 @@ run = ['move-node-to-workspace O', 'workspace O']
 if.app-id = 'com.TickTick.task.mac'
 run = ['move-node-to-workspace T', 'workspace T']
 
-# Calendar PWA (I = iCal)
+# Calendar - Notion Calendar (I)
 [[on-window-detected]]
-if.app-id = 'com.apple.Safari.WebApp.98B1A91D-38E6-48AA-AF09-76C6A8D78DCB'
+if.app-id = 'com.cron.electron'
 run = ['move-node-to-workspace I', 'workspace I']
 
 # Always floating (dialogs, utilities)

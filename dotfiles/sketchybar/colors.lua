@@ -41,14 +41,14 @@ local dark = {
 -- Light theme: high-contrast with accents (e-ink friendly)
 local light = {
 	black = 0xff000000,
-	white = 0xff1a1a1a,      -- primary text (dark on light)
+	white = 0xff000000,      -- primary text (dark on light)
 	red = 0xffcc0000,
 	green = 0xff008800,
 	blue = 0xff0055cc,
 	yellow = 0xffcc8800,
 	orange = 0xffcc5500,
 	magenta = 0xff8800aa,
-	grey = 0xff555555,        -- secondary text / borders
+	grey = 0xff333333,        -- secondary text / borders
 	dark_gray = 0xfff5f5f5,
 	transparent = 0x00000000,
 
