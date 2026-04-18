@@ -94,6 +94,7 @@ cmd-ctrl-alt-shift-g = ['workspace G', 'exec-and-forget open -a "$HOME/Applicati
 cmd-ctrl-alt-shift-o = ['workspace O', 'exec-and-forget open -a Obsidian']
 cmd-ctrl-alt-shift-t = ['workspace T', 'exec-and-forget open -a TickTick']
 cmd-ctrl-alt-shift-i = ['workspace I', 'exec-and-forget open -a "Notion Calendar"']
+cmd-ctrl-alt-shift-y = ['workspace Y', 'exec-and-forget open -a Kaset']
 
 # Free workspaces (1-5)
 cmd-ctrl-alt-shift-1 = 'workspace 1'
@@ -119,6 +120,7 @@ g = ['move-node-to-workspace G --focus-follows-window', 'mode main']
 o = ['move-node-to-workspace O --focus-follows-window', 'mode main']
 t = ['move-node-to-workspace T --focus-follows-window', 'mode main']
 i = ['move-node-to-workspace I --focus-follows-window', 'mode main']
+y = ['move-node-to-workspace Y --focus-follows-window', 'mode main']
 1 = ['move-node-to-workspace 1 --focus-follows-window', 'mode main']
 2 = ['move-node-to-workspace 2 --focus-follows-window', 'mode main']
 3 = ['move-node-to-workspace 3 --focus-follows-window', 'mode main']
@@ -198,6 +200,11 @@ run = ['move-node-to-workspace T', 'workspace T']
 [[on-window-detected]]
 if.app-id = 'com.cron.electron'
 run = ['move-node-to-workspace I', 'workspace I']
+
+# Music - Kaset / YouTube Music (Y)
+[[on-window-detected]]
+if.app-id = 'com.sertacozercan.Kaset'
+run = ['move-node-to-workspace Y', 'workspace Y']
 
 # Always floating (dialogs, utilities)
 [[on-window-detected]]
