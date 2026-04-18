@@ -19,5 +19,8 @@ local cal = sbar.add("item", {
 })
 
 cal:subscribe({ "forced", "routine", "system_woke" }, function(env)
-	cal:set({ label = os.date("%H:%M") })
+	local handle = io.popen("LANG=fr_FR.UTF-8 date '+%a %d %b  %H:%M'")
+	local result = handle:read("*a"):gsub("%s+$", "")
+	handle:close()
+	cal:set({ label = result })
 end)
