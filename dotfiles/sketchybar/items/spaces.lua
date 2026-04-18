@@ -9,8 +9,8 @@ sbar.add("event", "aerospace_workspace_change")
 local spaces = {}
 
 -- All possible AeroSpace workspaces
--- C=Claude, W=WezTerm, S=Safari, M=Superhuman, N=Slack, O=Obsidian, T=TickTick, I=Calendar
-local workspace_names = { "C", "W", "S", "M", "N", "O", "T", "I", "1", "2", "3", "4", "5" }
+-- C=Claude, W=WezTerm, S=Safari, M=Superhuman, N=Slack, G=Google Chat, O=Obsidian, T=TickTick, I=Notion Calendar
+local workspace_names = { "C", "W", "S", "M", "N", "G", "O", "T", "I", "1", "2", "3", "4", "5" }
 
 for _, ws_name in ipairs(workspace_names) do
   local space = sbar.add("item", "space." .. ws_name, {
