@@ -57,8 +57,6 @@ eval "$(fnm env --use-on-cd --shell zsh)"
 eval "$(zoxide init zsh)"
 eval "$(starship init zsh)"
 eval "$(atuin init zsh)"
-eval "$(fnm env --use-on-cd)"
-
 # -------
 # Ollama
 # -------
@@ -67,7 +65,6 @@ source "$(brew --prefix)/share/ollama/homebrew_completions.zsh" 2>/dev/null || t
 alias ol="ollama"
 export OLLAMA_DEFAULT_MODEL="mistral-small3.2"
 
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/ion/.lmstudio/bin"
-# End of LM Studio CLI section
+# LM Studio CLI
+export PATH="$PATH:$HOME/.lmstudio/bin"
 

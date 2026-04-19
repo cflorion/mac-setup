@@ -2,7 +2,8 @@ DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/Travail/.obsidian
 
-.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama
+.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama \
+	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer
 
 all: install
 
@@ -35,6 +36,30 @@ macos:
 	@echo "==> Applying macOS defaults..."
 	@bash ./macos-defaults.sh
 
+macos-finder:
+	@bash -euo pipefail -c 'source ./macos/finder.sh'
+
+macos-dock:
+	@bash -euo pipefail -c 'source ./macos/dock.sh && killall Dock || true'
+
+macos-keyboard:
+	@bash -euo pipefail -c 'source ./macos/keyboard.sh'
+
+macos-trackpad:
+	@bash -euo pipefail -c 'source ./macos/trackpad.sh'
+
+macos-mission-control:
+	@bash -euo pipefail -c 'source ./macos/mission-control.sh && killall Dock || true'
+
+macos-desktop:
+	@bash -euo pipefail -c 'source ./macos/desktop.sh'
+
+macos-control-center:
+	@bash -euo pipefail -c 'source ./macos/control-center.sh && killall SystemUIServer || true'
+
+macos-pointer:
+	@bash -euo pipefail -c 'source ./macos/pointer.sh'
+
 raycast:
 	@echo "==> Configuring Raycast..."
 	@bash ./raycast.sh
@@ -46,7 +71,7 @@ link:
 	@mkdir -p $(HOME)/.local
 	@mkdir -p $(HOME)/templates
 	@# Install templates
-	@cp -n $(DOTFILES_DIR)/../documents/popina-template.typ $(HOME)/templates/popina-pandoc.typ 2>/dev/null || true
+	@cp -f $(DOTFILES_DIR)/../documents/popina-template.typ $(HOME)/templates/popina-pandoc.typ 2>/dev/null || true
 	@# Link hidden files (e.g. .zshrc, .gitconfig) to HOME
 	@find $(DOTFILES_DIR) -maxdepth 1 -name ".*" \
 		-not -name "." -not -name ".." -not -name ".git" \
