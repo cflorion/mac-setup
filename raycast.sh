@@ -37,6 +37,21 @@ open "https://raycast.com/raycast/google-workspace" # Google Workspace (Calendar
 open "https://raycast.com/gstvds/amphetamine"      # Amphetamine (keep Mac awake)
 
 # -----------------------------------------------------------------------------
+# Import Raycast settings from dotfiles
+# -----------------------------------------------------------------------------
+
+echo "==> Importing Raycast settings..."
+
+RAYCAST_CONFIG="$HOME/.config/raycast/raycast.rayconfig"
+
+if [[ -f "$RAYCAST_CONFIG" ]]; then
+    open "raycast://extensions/raycast/raycast/import-settings-data?path=$(realpath "$RAYCAST_CONFIG")"
+    echo "   Settings imported from $RAYCAST_CONFIG"
+else
+    echo "   No config found at $RAYCAST_CONFIG — skipping import"
+fi
+
+# -----------------------------------------------------------------------------
 # TODO (manual steps)
 # -----------------------------------------------------------------------------
 
