@@ -118,7 +118,7 @@ sketchybar:
 # Pull Ollama models
 ollama:
 	@echo "==> Pulling Ollama models..."
-	@ollama pull mistral-small3.2
+	@ollama list | grep -q mistral-small3.2 || ollama pull mistral-small3.2 || true
 
 # Backup SSH keys before formatting
 backup:

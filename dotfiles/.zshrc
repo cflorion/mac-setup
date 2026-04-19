@@ -65,3 +65,4 @@ eval "$(fnm env --use-on-cd)"
 
 source "$(brew --prefix)/share/ollama/homebrew_completions.zsh" 2>/dev/null || true
 alias ol="ollama"
+export OLLAMA_DEFAULT_MODEL="mistral-small3.2"
