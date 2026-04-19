@@ -2,12 +2,12 @@ DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/Travail/.obsidian
 
-.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar obsidian power-protect
+.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama
 
 all: install
 
 # Full setup for a new machine
-install: brew node npm-global link sketchybar obsidian macos raycast mas power-protect
+install: brew node npm-global link sketchybar obsidian macos raycast mas ollama
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -115,9 +115,10 @@ sketchybar:
 	@brew services start sketchybar 2>/dev/null || true
 	@echo "  Sketchybar ready!"
 
-# Install Amphetamine Power Protect for Closed-Display Mode on Apple Silicon
-power-protect:
-	@bash ./amphetamine-power-protect.sh
+# Pull Ollama models
+ollama:
+	@echo "==> Pulling Ollama models..."
+	@ollama pull mistral-small3.2
 
 # Backup SSH keys before formatting
 backup:

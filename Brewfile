@@ -33,6 +33,7 @@ brew "nowplaying-cli"
 brew "felixkratz/formulae/sketchybar"
 brew "typst"
 brew "pandoc"
+brew "ollama"
 
 cask "cleanshot"
 cask "figma"

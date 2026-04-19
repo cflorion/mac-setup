@@ -58,3 +58,10 @@ eval "$(zoxide init zsh)"
 eval "$(starship init zsh)"
 eval "$(atuin init zsh)"
 eval "$(fnm env --use-on-cd)"
+
+# -------
+# Ollama
+# -------
+
+source "$(brew --prefix)/share/ollama/homebrew_completions.zsh" 2>/dev/null || true
+alias ol="ollama"
