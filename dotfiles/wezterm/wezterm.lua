@@ -90,7 +90,7 @@ config.hide_tab_bar_if_only_one_tab = true
 config.tab_max_width = 32
 config.show_tab_index_in_tab_bar = true
 
--- Tab title formatting with visual separators
+-- Tab title formatting: dot indicator
 wezterm.on('format-tab-title', function(tab, tabs, panes, cfg, hover, max_width)
   local title = tab.tab_title
   if #title == 0 then
@@ -101,38 +101,28 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, cfg, hover, max_width)
   end
 
   local index = tab.tab_index + 1
-  local is_last = tab.tab_index == #tabs - 1
+  local dot = tab.is_active and '●' or '·'
 
   if is_dark then
     local fg = tab.is_active and '#ffffff' or '#a6adc8'
-    local bg = tab.is_active and '#1e1e2e' or '#000000'
-    local sep_fg = '#313244'
-    local elements = {
-      { Background = { Color = bg } },
+    local dot_fg = tab.is_active and '#ffffff' or '#585b70'
+    return {
+      { Background = { Color = '#000000' } },
+      { Foreground = { Color = dot_fg } },
+      { Text = ' ' .. dot .. ' ' },
       { Foreground = { Color = fg } },
-      { Text = ' ' .. index .. ': ' .. title .. ' ' },
+      { Text = index .. ': ' .. title .. ' ' },
     }
-    if not is_last then
-      table.insert(elements, { Background = { Color = '#000000' } })
-      table.insert(elements, { Foreground = { Color = sep_fg } })
-      table.insert(elements, { Text = '│' })
-    end
-    return elements
   else
-    local fg = tab.is_active and '#3760bf' or '#8990b3'
-    local bg = tab.is_active and '#e1e2e7' or '#ffffff'
-    local sep_fg = '#c4c8da'
-    local elements = {
-      { Background = { Color = bg } },
+    local fg = tab.is_active and '#000000' or '#999999'
+    local dot_fg = tab.is_active and '#000000' or '#aaaaaa'
+    return {
+      { Background = { Color = '#ffffff' } },
+      { Foreground = { Color = dot_fg } },
+      { Text = ' ' .. dot .. ' ' },
       { Foreground = { Color = fg } },
-      { Text = ' ' .. index .. ': ' .. title .. ' ' },
+      { Text = index .. ': ' .. title .. ' ' },
     }
-    if not is_last then
-      table.insert(elements, { Background = { Color = '#ffffff' } })
-      table.insert(elements, { Foreground = { Color = sep_fg } })
-      table.insert(elements, { Text = '│' })
-    end
-    return elements
   end
 end)
 
