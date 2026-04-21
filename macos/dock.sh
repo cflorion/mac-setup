@@ -10,9 +10,9 @@ defaults write com.apple.dock launchanim -bool false
 defaults write com.apple.dock show-process-indicators -bool false
 defaults write com.apple.dock show-recents -bool false
 
-echo "==> Disabling hot corners"
+echo "==> Configuring hot corners"
 defaults write com.apple.dock wvous-tl-corner -int 1
-defaults write com.apple.dock wvous-tr-corner -int 1
+defaults write com.apple.dock wvous-tr-corner -int 4
 defaults write com.apple.dock wvous-bl-corner -int 1
 defaults write com.apple.dock wvous-br-corner -int 1
 defaults write com.apple.dock wvous-tl-modifier -int 0

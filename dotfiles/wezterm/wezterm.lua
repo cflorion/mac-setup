@@ -90,7 +90,51 @@ config.hide_tab_bar_if_only_one_tab = true
 config.tab_max_width = 32
 config.show_tab_index_in_tab_bar = true
 
--- Tab bar colors (from color scheme)
+-- Tab title formatting with visual separators
+wezterm.on('format-tab-title', function(tab, tabs, panes, cfg, hover, max_width)
+  local title = tab.tab_title
+  if #title == 0 then
+    title = tab.active_pane.title
+  end
+  if #title > max_width - 6 then
+    title = title:sub(1, max_width - 7) .. '…'
+  end
+
+  local index = tab.tab_index + 1
+  local is_last = tab.tab_index == #tabs - 1
+
+  if is_dark then
+    local fg = tab.is_active and '#ffffff' or '#a6adc8'
+    local bg = tab.is_active and '#1e1e2e' or '#000000'
+    local sep_fg = '#313244'
+    local elements = {
+      { Background = { Color = bg } },
+      { Foreground = { Color = fg } },
+      { Text = ' ' .. index .. ': ' .. title .. ' ' },
+    }
+    if not is_last then
+      table.insert(elements, { Background = { Color = '#000000' } })
+      table.insert(elements, { Foreground = { Color = sep_fg } })
+      table.insert(elements, { Text = '│' })
+    end
+    return elements
+  else
+    local fg = tab.is_active and '#3760bf' or '#8990b3'
+    local bg = tab.is_active and '#e1e2e7' or '#ffffff'
+    local sep_fg = '#c4c8da'
+    local elements = {
+      { Background = { Color = bg } },
+      { Foreground = { Color = fg } },
+      { Text = ' ' .. index .. ': ' .. title .. ' ' },
+    }
+    if not is_last then
+      table.insert(elements, { Background = { Color = '#ffffff' } })
+      table.insert(elements, { Foreground = { Color = sep_fg } })
+      table.insert(elements, { Text = '│' })
+    end
+    return elements
+  end
+end)
 
 -- =============================================================================
 -- STATUS BAR (right)
@@ -113,7 +157,7 @@ end)
 -- Disable default keybindings and define our own
 config.disable_default_key_bindings = true
 
-config.leader = { key = 'a', mods = 'CTRL', timeout_milliseconds = 1000 }
+config.leader = { key = 'Space', mods = 'CTRL', timeout_milliseconds = 1000 }
 
 config.keys = {
 
