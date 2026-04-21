@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What This Is
 
 A macOS setup automation repo (cflorion/mac-setup) that configures a fresh Mac from scratch: installs apps via Homebrew/MAS, symlinks dotfiles, applies macOS defaults, and sets up development tools.
+When the user ask changes, the goal is to update this macOs setup repo.
 
 ## Key Commands
 
@@ -28,13 +29,14 @@ A macOS setup automation repo (cflorion/mac-setup) that configures a fresh Mac f
 - **raycast.sh** — Disables Spotlight shortcuts (freeing Cmd+Space for Raycast), opens extension install URLs, imports Raycast config.
 - **apps-mas.sh** — Mac App Store installs via `mas`.
 - **dotfiles/** — Symlinked into `~` and `~/.config/` by `make link`:
-  - Hidden files (`.gitconfig`, `.gitignore_global`) → `~/`
-  - Directories (`nvim/`, `lazygit/`, `sketchybar/`, `atuin/`) → `~/.config/<name>/`
-  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`)
+  - Hidden files (`.zshrc`, `.gitconfig`, `.gitignore_global`) → `~/`
+  - Directories (`nvim/`, `lazygit/`, `sketchybar/`, `atuin/`, `wezterm/`, `karabiner/`, `aerospace/`, `borders/`) → `~/.config/<name>/`
+  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`, `popina-pdf`)
   - `starship.toml` → `~/.config/starship.toml`
   - `zed/settings.json` → `~/.config/zed/settings.json` (only settings, not full dir)
   - `sublime-text/` → `~/Library/Application Support/Sublime Text/Packages/User/`
   - `obsidian/` → copied (not symlinked) to iCloud vault to avoid sync issues
+- **documents/** — Templates (e.g. Typst) copied to `~/templates/` by `make link`.
 
 ## Conventions
 
@@ -42,3 +44,6 @@ A macOS setup automation repo (cflorion/mac-setup) that configures a fresh Mac f
 - Manual steps that can't be automated are echoed to stdout as reminders.
 - The repo lives at `~/code/mac-setup`.
 - Backup directory (`backup/`) is gitignored and contains SSH key snapshots.
+- Sketchybar config is Lua-based (not shell). It has C event providers (`helpers/event_providers/`) that compile via `make` — run `make sketchybar` to rebuild after changes.
+- macOS defaults modules are sourced (not executed) by `macos-defaults.sh`, so they don't need their own shebang or `set -euo pipefail`.
+- The Raycast config file (`dotfiles/raycast/*.rayconfig`) is a binary export — update it by re-exporting from Raycast, not by hand-editing.

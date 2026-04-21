@@ -21,6 +21,9 @@ EOF
 echo "==> Configuring Desktop & Stage Manager"
 # Show items on desktop: ON
 defaults write com.apple.finder CreateDesktop -bool true
+# Sort desktop items by: Snap to Grid (keep items aligned)
+/usr/libexec/PlistBuddy -c "Set :DesktopViewSettings:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || \
+/usr/libexec/PlistBuddy -c "Add :DesktopViewSettings:IconViewSettings:arrangeBy string grid" ~/Library/Preferences/com.apple.finder.plist
 # Show items in Stage Manager: OFF
 defaults write com.apple.windowmanager AutoHide -bool false
 # Click wallpaper to reveal desktop: only in Stage Manager

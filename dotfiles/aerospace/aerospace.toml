@@ -56,13 +56,6 @@ cmd-ctrl-alt-shift-j = 'focus --boundaries-action wrap-around-the-workspace down
 cmd-ctrl-alt-shift-k = 'focus --boundaries-action wrap-around-the-workspace up'
 cmd-ctrl-alt-shift-l = 'focus --boundaries-action wrap-around-the-workspace right'
 
-# Move window: hyper + shift is not possible (shift is part of hyper)
-# Use hyper + arrow keys instead
-cmd-ctrl-alt-shift-left = 'move left'
-cmd-ctrl-alt-shift-down = 'move down'
-cmd-ctrl-alt-shift-up = 'move up'
-cmd-ctrl-alt-shift-right = 'move right'
-
 # Layout
 cmd-ctrl-alt-shift-comma = 'layout tiles horizontal vertical'
 cmd-ctrl-alt-shift-period = 'layout tiles vertical horizontal'
@@ -72,16 +65,14 @@ cmd-ctrl-alt-shift-space = 'layout floating tiling'
 # Resize mode
 cmd-ctrl-alt-shift-r = 'mode resize'
 
-# Reload config
-cmd-ctrl-alt-shift-backslash = 'reload-config'
 
-# Service mode (for advanced operations)
-cmd-ctrl-alt-shift-semicolon = 'mode service'
+# Reload config
+cmd-ctrl-alt-shift-x = 'reload-config'
 
 # ----------------------------
 # Named workspaces
 # Règle : raccourci = initiale de l'app = nom du workspace
-# Réservés (ne pas utiliser) : h j k l f r p
+# Réservés (ne pas utiliser) : h j k l f r
 # ----------------------------
 
 # Switch to workspace
@@ -94,6 +85,7 @@ cmd-ctrl-alt-shift-g = ['workspace G', 'exec-and-forget open -a "$HOME/Applicati
 cmd-ctrl-alt-shift-o = ['workspace O', 'exec-and-forget open -a Obsidian']
 cmd-ctrl-alt-shift-t = ['workspace T', 'exec-and-forget open -a TickTick']
 cmd-ctrl-alt-shift-i = ['workspace I', 'exec-and-forget open -a "Notion Calendar"']
+cmd-ctrl-alt-shift-b = ['workspace B', 'exec-and-forget open -a Linear']
 cmd-ctrl-alt-shift-y = ['workspace Y', 'exec-and-forget open -a Kaset']
 
 # Free workspaces (1-5)
@@ -103,8 +95,8 @@ cmd-ctrl-alt-shift-3 = 'workspace 3'
 cmd-ctrl-alt-shift-4 = 'workspace 4'
 cmd-ctrl-alt-shift-5 = 'workspace 5'
 
-# Move window to workspace — via mode 'move' (hyper + p, puis lettre/chiffre)
-cmd-ctrl-alt-shift-p = 'mode move'
+# Move window to workspace — via mode 'move' (hyper + d, puis lettre/chiffre)
+cmd-ctrl-alt-shift-d = 'mode move'
 
 # ----------------------------
 # Move mode (send window to workspace)
@@ -117,6 +109,7 @@ s = ['move-node-to-workspace S --focus-follows-window', 'mode main']
 m = ['move-node-to-workspace M --focus-follows-window', 'mode main']
 n = ['move-node-to-workspace N --focus-follows-window', 'mode main']
 g = ['move-node-to-workspace G --focus-follows-window', 'mode main']
+b = ['move-node-to-workspace B --focus-follows-window', 'mode main']
 o = ['move-node-to-workspace O --focus-follows-window', 'mode main']
 t = ['move-node-to-workspace T --focus-follows-window', 'mode main']
 i = ['move-node-to-workspace I --focus-follows-window', 'mode main']
@@ -185,6 +178,11 @@ run = ['move-node-to-workspace N', 'workspace N']
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome.app.pommaclcbfghclhalboakcipcmmndhcj'
 run = ['move-node-to-workspace G', 'workspace G']
+
+# Issue Tracking - Linear (B)
+[[on-window-detected]]
+if.app-id = 'com.linear'
+run = ['move-node-to-workspace B', 'workspace B']
 
 # Notes - Obsidian (O)
 [[on-window-detected]]

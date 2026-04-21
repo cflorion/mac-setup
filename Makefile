@@ -37,7 +37,7 @@ macos:
 	@bash ./macos-defaults.sh
 
 macos-finder:
-	@bash -euo pipefail -c 'source ./macos/finder.sh'
+	@bash -euo pipefail -c 'source ./macos/finder.sh && killall Finder || true'
 
 macos-dock:
 	@bash -euo pipefail -c 'source ./macos/dock.sh && killall Dock || true'
@@ -52,7 +52,7 @@ macos-mission-control:
 	@bash -euo pipefail -c 'source ./macos/mission-control.sh && killall Dock || true'
 
 macos-desktop:
-	@bash -euo pipefail -c 'source ./macos/desktop.sh'
+	@bash -euo pipefail -c 'source ./macos/desktop.sh && killall Finder || true'
 
 macos-control-center:
 	@bash -euo pipefail -c 'source ./macos/control-center.sh && killall SystemUIServer || true'
