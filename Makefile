@@ -103,15 +103,17 @@ link:
 		fi; \
 	done
 
-# Copy Obsidian theme to vault (copy, not symlink, to avoid iCloud sync issues)
+# Copy Obsidian theme and plugins to vault (copy, not symlink, to avoid iCloud sync issues)
 obsidian:
-	@echo "==> Applying Obsidian theme..."
+	@echo "==> Applying Obsidian config..."
 	@if [ -d "$(OBSIDIAN_VAULT)" ]; then \
 		cp -f $(DOTFILES_DIR)/obsidian/appearance.json "$(OBSIDIAN_VAULT)/appearance.json"; \
+		cp -f $(DOTFILES_DIR)/obsidian/community-plugins.json "$(OBSIDIAN_VAULT)/community-plugins.json"; \
 		mkdir -p "$(OBSIDIAN_VAULT)/themes/Vanilla AMOLED"; \
 		cp -f "$(DOTFILES_DIR)/obsidian/themes/Vanilla AMOLED/manifest.json" "$(OBSIDIAN_VAULT)/themes/Vanilla AMOLED/manifest.json"; \
 		cp -f "$(DOTFILES_DIR)/obsidian/themes/Vanilla AMOLED/theme.css" "$(OBSIDIAN_VAULT)/themes/Vanilla AMOLED/theme.css"; \
-		echo "  Obsidian theme applied!"; \
+		cp -r $(DOTFILES_DIR)/obsidian/plugins/ "$(OBSIDIAN_VAULT)/plugins/"; \
+		echo "  Obsidian config applied!"; \
 	else \
 		echo "  Obsidian vault not found, skipping (open Obsidian and create vault first)"; \
 	fi
