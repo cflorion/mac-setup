@@ -1,6 +1,7 @@
 tap "anomalyco/tap"
 tap "nikitabobko/tap"
 tap "felixkratz/formulae"
+tap "cormacrelf/tap"
 
 # --- Dev tools ---
 brew "git"
@@ -37,6 +38,7 @@ brew "dockutil"
 brew "switchaudio-osx"
 brew "nowplaying-cli"
 brew "felixkratz/formulae/sketchybar"
+brew "cormacrelf/tap/dark-notify"
 
 # --- AI ---
 brew "opencode"

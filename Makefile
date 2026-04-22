@@ -140,6 +140,12 @@ sketchybar:
 	@# Build event providers (cpu_load, network_load, menus)
 	@echo "  Building sketchybar helpers..."
 	@cd $(CONFIG_DIR)/sketchybar/helpers && make
+	@# Install theme watcher: dark-notify triggers sketchybar --reload on appearance change
+	@echo "  Installing theme watcher..."
+	@mkdir -p $(HOME)/Library/LaunchAgents
+	@sed "s|__HOME__|$(HOME)|g" launchd/com.user.sketchybar-theme.plist > $(HOME)/Library/LaunchAgents/com.user.sketchybar-theme.plist
+	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.sketchybar-theme.plist 2>/dev/null || true
+	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.sketchybar-theme.plist
 	@# Start sketchybar service
 	@brew services start sketchybar 2>/dev/null || true
 	@echo "  Sketchybar ready!"
