@@ -1,0 +1,18 @@
+#!/bin/bash
+set -euo pipefail
+
+# Usage: aerospace-focus-or-open <workspace> <bundle-id> <app-name-or-path>
+# If the app has a window, switch to its workspace.
+# Otherwise, launch it (on-window-detected handles workspace assignment).
+
+WORKSPACE="$1"
+BUNDLE_ID="$2"
+APP="$3"
+
+WS=$(aerospace list-windows --monitor all --app-bundle-id "$BUNDLE_ID" --format '%{workspace}' 2>/dev/null | head -1)
+
+if [ -n "$WS" ]; then
+    aerospace workspace "$WS"
+else
+    open -a "$APP"
+fi

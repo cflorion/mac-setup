@@ -102,6 +102,8 @@ link:
 			ln -sfnv "$$dir" "$$target"; \
 		fi; \
 	done
+	@# Link playbook repo into Obsidian vault (symlink so iCloud doesn't sync .git)
+	@ln -sfnv $(HOME)/code/playbook "$(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/Travail/Projects/Budget"
 
 # Copy Obsidian theme and plugins to vault (copy, not symlink, to avoid iCloud sync issues)
 obsidian:

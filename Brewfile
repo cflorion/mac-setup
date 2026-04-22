@@ -88,6 +88,7 @@ cask "displaylink"
 cask "keycastr"
 cask "uhk-agent"
 cask "handy"
+cask "homerow"
 cask "sf-symbols"
 
 # --- Fonts ---

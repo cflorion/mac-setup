@@ -33,7 +33,7 @@ outer.right = 0
 inherit-env-vars = true
 
 [exec.env-vars]
-PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
+PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 
 # French AZERTY keyboard: remap keys that differ from QWERTY
 [key-mapping.key-notation-to-key-code]
@@ -62,12 +62,13 @@ cmd-ctrl-alt-shift-period = 'layout tiles vertical horizontal'
 cmd-ctrl-alt-shift-f = 'fullscreen'
 cmd-ctrl-alt-shift-space = 'layout floating tiling'
 
+# Move window to another monitor
+cmd-ctrl-alt-shift-left = 'move-node-to-monitor --wrap-around left'
+cmd-ctrl-alt-shift-right = 'move-node-to-monitor --wrap-around right'
+
 # Resize mode
 cmd-ctrl-alt-shift-r = 'mode resize'
 
-
-# Reload config
-cmd-ctrl-alt-shift-x = 'reload-config'
 
 # ----------------------------
 # Named workspaces
@@ -75,18 +76,19 @@ cmd-ctrl-alt-shift-x = 'reload-config'
 # Réservés (ne pas utiliser) : h j k l f r
 # ----------------------------
 
-# Switch to workspace
-cmd-ctrl-alt-shift-c = ['workspace C', 'exec-and-forget open -a Claude']
-cmd-ctrl-alt-shift-w = ['workspace W', 'exec-and-forget open -a WezTerm']
-cmd-ctrl-alt-shift-s = ['workspace S', 'exec-and-forget open -a Safari']
-cmd-ctrl-alt-shift-m = ['workspace M', 'exec-and-forget open -a Superhuman']
-cmd-ctrl-alt-shift-n = ['workspace N', 'exec-and-forget open -a Slack']
-cmd-ctrl-alt-shift-g = ['workspace G', 'exec-and-forget open -a "$HOME/Applications/Chrome Apps.localized/Google Chat.app"']
-cmd-ctrl-alt-shift-o = ['workspace O', 'exec-and-forget open -a Obsidian']
-cmd-ctrl-alt-shift-t = ['workspace T', 'exec-and-forget open -a TickTick']
-cmd-ctrl-alt-shift-i = ['workspace I', 'exec-and-forget open -a "Notion Calendar"']
-cmd-ctrl-alt-shift-b = ['workspace B', 'exec-and-forget open -a Linear']
-cmd-ctrl-alt-shift-y = ['workspace Y', 'exec-and-forget open -a Kaset']
+# Switch to workspace (finds app window wherever it is) or launch app (on-window-detected handles workspace)
+cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C com.anthropic.claudefordesktop Claude'
+cmd-ctrl-alt-shift-w = 'exec-and-forget aerospace-focus-or-open W com.github.wez.wezterm WezTerm'
+cmd-ctrl-alt-shift-s = 'exec-and-forget aerospace-focus-or-open S com.apple.Safari Safari'
+cmd-ctrl-alt-shift-m = 'exec-and-forget aerospace-focus-or-open M com.superhuman.electron Superhuman'
+cmd-ctrl-alt-shift-n = 'exec-and-forget aerospace-focus-or-open N com.tinyspeck.slackmacgap Slack'
+cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.google.Chrome.app.pommaclcbfghclhalboakcipcmmndhcj "$HOME/Applications/Chrome Apps.localized/Google Chat.app"'
+cmd-ctrl-alt-shift-o = 'exec-and-forget aerospace-focus-or-open O md.obsidian Obsidian'
+cmd-ctrl-alt-shift-t = 'exec-and-forget aerospace-focus-or-open T com.TickTick.task.mac TickTick'
+cmd-ctrl-alt-shift-i = 'exec-and-forget aerospace-focus-or-open I com.cron.electron "Notion Calendar"'
+cmd-ctrl-alt-shift-b = 'exec-and-forget aerospace-focus-or-open B com.linear Linear'
+cmd-ctrl-alt-shift-y = 'exec-and-forget aerospace-focus-or-open Y com.sertacozercan.Kaset Kaset'
+cmd-ctrl-alt-shift-x = 'exec-and-forget aerospace-focus-or-open X com.google.Chrome "Google Chrome"'
 
 # Free workspaces (1-5)
 cmd-ctrl-alt-shift-1 = 'workspace 1'
@@ -114,6 +116,7 @@ o = ['move-node-to-workspace O --focus-follows-window', 'mode main']
 t = ['move-node-to-workspace T --focus-follows-window', 'mode main']
 i = ['move-node-to-workspace I --focus-follows-window', 'mode main']
 y = ['move-node-to-workspace Y --focus-follows-window', 'mode main']
+x = ['move-node-to-workspace X --focus-follows-window', 'mode main']
 1 = ['move-node-to-workspace 1 --focus-follows-window', 'mode main']
 2 = ['move-node-to-workspace 2 --focus-follows-window', 'mode main']
 3 = ['move-node-to-workspace 3 --focus-follows-window', 'mode main']
@@ -203,6 +206,11 @@ run = ['move-node-to-workspace I', 'workspace I']
 [[on-window-detected]]
 if.app-id = 'com.sertacozercan.Kaset'
 run = ['move-node-to-workspace Y', 'workspace Y']
+
+# Browser - Google Chrome (X)
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = ['move-node-to-workspace X', 'workspace X']
 
 # Always floating (dialogs, utilities)
 [[on-window-detected]]
