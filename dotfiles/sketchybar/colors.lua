@@ -15,19 +15,19 @@ end
 -- Dark theme: Catppuccin Mocha
 local dark = {
 	black = 0xff11111b,
-	white = 0xffcdd6f4,
+	white = 0xffffffff,       -- active text (pure white on dark)
 	red = 0xfff38ba8,
 	green = 0xffa6e3a1,
 	blue = 0xff89b4fa,
 	yellow = 0xfff9e2af,
 	orange = 0xfffab387,
 	magenta = 0xffcba6f7,
-	grey = 0xffbac2de,
+	grey = 0xff666666,        -- inactive text (dark grey on dark)
 	dark_gray = 0xff1e1e2e,
 	transparent = 0x00000000,
 
 	bar = {
-		bg = 0x00000000,
+		bg = 0xff000000,
 		border = 0xff2c2e34,
 	},
 	popup = {
@@ -41,19 +41,19 @@ local dark = {
 -- Light theme: high-contrast with accents (e-ink friendly)
 local light = {
 	black = 0xff000000,
-	white = 0xff000000,      -- primary text (dark on light)
+	white = 0xff000000,       -- active text (black on light)
 	red = 0xffcc0000,
 	green = 0xff008800,
 	blue = 0xff0055cc,
 	yellow = 0xffcc8800,
 	orange = 0xffcc5500,
 	magenta = 0xff8800aa,
-	grey = 0xff333333,        -- secondary text / borders
+	grey = 0xffaaaaaa,        -- inactive text (light grey on light)
 	dark_gray = 0xfff5f5f5,
 	transparent = 0x00000000,
 
 	bar = {
-		bg = 0x00000000,
+		bg = 0xffffffff,
 		border = 0xffcccccc,
 	},
 	popup = {

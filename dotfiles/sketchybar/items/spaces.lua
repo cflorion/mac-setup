@@ -23,7 +23,7 @@ for _, ws_name in ipairs(workspace_names) do
     label = {
       padding_left = 10,
       padding_right = 10,
-      color = colors.with_alpha(colors.grey, 0.4),
+      color = colors.grey,
       highlight_color = colors.white,
       font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 13.0 },
       background = {
@@ -85,7 +85,7 @@ local function update_spaces()
             icon = { highlight = is_focused },
             label = {
               highlight = is_focused,
-              color = is_focused and colors.white or colors.with_alpha(colors.grey, 0.4),
+              color = is_focused and colors.white or colors.grey,
               background = { color = is_focused and colors.white or colors.transparent },
             },
           })
