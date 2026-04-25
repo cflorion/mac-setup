@@ -77,6 +77,7 @@ cask "pdf-expert"
 cask "microsoft-excel"
 cask "cleanshot"
 cask "pixelsnap"
+cask "breaktimer"
 
 # --- Window management & display ---
 cask "nikitabobko/tap/aerospace"
