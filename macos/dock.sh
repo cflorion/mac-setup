@@ -1,5 +1,5 @@
 echo "==> Configuring Dock"
-defaults write com.apple.dock tilesize -int 36
+defaults write com.apple.dock tilesize -int 64
 defaults write com.apple.dock magnification -bool false
 defaults write com.apple.dock orientation -string "bottom"
 defaults write com.apple.dock mineffect -string "genie"
