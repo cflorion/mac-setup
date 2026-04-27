@@ -3,7 +3,7 @@ local colors = require("colors")
 
 local cal = sbar.add("item", {
 	label = {
-		color = colors.white,
+		color = colors.grey,
 		padding_right = 10,
 		font = {
 			family = settings.font.numbers,
