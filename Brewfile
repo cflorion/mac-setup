@@ -57,6 +57,7 @@ cask "gcloud-cli"
 cask "claude"
 cask "claude-code"
 cask "chatgpt"
+cask "google-gemini"
 cask "opencode-desktop"
 cask "lm-studio"
 

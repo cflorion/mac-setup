@@ -2,13 +2,13 @@ DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/Travail/.obsidian
 
-.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama \
+.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama pwa \
 	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer
 
 all: install
 
 # Full setup for a new machine
-install: brew node npm-global link sketchybar obsidian macos raycast mas ollama
+install: brew node npm-global link sketchybar obsidian macos raycast mas ollama pwa
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -149,6 +149,10 @@ sketchybar:
 	@# Start sketchybar service
 	@brew services start sketchybar 2>/dev/null || true
 	@echo "  Sketchybar ready!"
+
+# Install Chrome-based PWAs (Google Chat, etc.)
+pwa:
+	@bash ./pwa.sh
 
 # Pull Ollama models
 ollama:
