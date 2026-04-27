@@ -27,11 +27,7 @@ for _, ws_name in ipairs(workspace_names) do
       highlight_color = colors.white,
       font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 13.0 },
       background = {
-        height = 3,
-        corner_radius = 0,
-        y_offset = 19,
-        color = colors.transparent,
-        drawing = true,
+        drawing = false,
       },
     },
     padding_right = 1,
@@ -86,7 +82,6 @@ local function update_spaces()
             label = {
               highlight = is_focused,
               color = is_focused and colors.white or colors.grey,
-              background = { color = is_focused and colors.white or colors.transparent },
             },
           })
         end

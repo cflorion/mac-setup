@@ -25,7 +25,7 @@ inner.horizontal = 8
 inner.vertical = 8
 outer.left = 0
 outer.bottom = 0
-outer.top = [{ monitor.'built-in' = 10 }, 44]
+outer.top = [{ monitor.1 = 2 }, 44]
 outer.right = 0
 
 # Ensure Homebrew binaries are available in exec commands

@@ -49,4 +49,5 @@ sbar.default({
 	padding_left = 5,
 	padding_right = 5,
 	scroll_texts = true,
+	y_offset = -2,
 })
