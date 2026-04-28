@@ -23,7 +23,8 @@ defaults write com.apple.dock wvous-br-modifier -int 0
 echo "==> Rebuilding Dock"
 if command -v dockutil >/dev/null 2>&1; then
   dockutil --no-restart --remove all
-  dockutil --no-restart --add "$HOME/Downloads" --view grid --display folder
+  dockutil --no-restart --add "$HOME/Downloads" --view grid --display stack
+  dockutil --no-restart --add "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/Notes de frais" --view grid --display stack
 else
   echo "dockutil not installed, skipping Dock configuration"
 fi
