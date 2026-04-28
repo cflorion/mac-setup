@@ -86,7 +86,7 @@ cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.google.Chr
 cmd-ctrl-alt-shift-o = 'exec-and-forget aerospace-focus-or-open O md.obsidian Obsidian'
 cmd-ctrl-alt-shift-t = 'exec-and-forget aerospace-focus-or-open T com.TickTick.task.mac TickTick'
 cmd-ctrl-alt-shift-i = 'exec-and-forget aerospace-focus-or-open I com.cron.electron "Notion Calendar"'
-cmd-ctrl-alt-shift-b = 'exec-and-forget aerospace-focus-or-open B com.linear Linear'
+cmd-ctrl-alt-shift-p = 'exec-and-forget aerospace-focus-or-open P com.linear Linear'
 cmd-ctrl-alt-shift-y = 'exec-and-forget aerospace-focus-or-open Y com.sertacozercan.Kaset Kaset'
 cmd-ctrl-alt-shift-x = 'exec-and-forget aerospace-focus-or-open X com.google.Chrome "Google Chrome"'
 
@@ -102,7 +102,7 @@ cmd-ctrl-alt-shift-d = 'mode move'
 
 # ----------------------------
 # Move mode (send window to workspace)
-# Enter: hyper+p, then type the workspace key
+# Enter: hyper+d, then type the workspace key
 # ----------------------------
 [mode.move.binding]
 c = ['move-node-to-workspace C --focus-follows-window', 'mode main']
@@ -111,7 +111,7 @@ s = ['move-node-to-workspace S --focus-follows-window', 'mode main']
 m = ['move-node-to-workspace M --focus-follows-window', 'mode main']
 n = ['move-node-to-workspace N --focus-follows-window', 'mode main']
 g = ['move-node-to-workspace G --focus-follows-window', 'mode main']
-b = ['move-node-to-workspace B --focus-follows-window', 'mode main']
+p = ['move-node-to-workspace P --focus-follows-window', 'mode main']
 o = ['move-node-to-workspace O --focus-follows-window', 'mode main']
 t = ['move-node-to-workspace T --focus-follows-window', 'mode main']
 i = ['move-node-to-workspace I --focus-follows-window', 'mode main']
@@ -182,10 +182,10 @@ run = ['move-node-to-workspace N', 'workspace N']
 if.app-id = 'com.google.Chrome.app.pommaclcbfghclhalboakcipcmmndhcj'
 run = ['move-node-to-workspace G', 'workspace G']
 
-# Issue Tracking - Linear (B)
+# Issue Tracking - Linear (P = Project)
 [[on-window-detected]]
 if.app-id = 'com.linear'
-run = ['move-node-to-workspace B', 'workspace B']
+run = ['move-node-to-workspace P', 'workspace P']
 
 # Notes - Obsidian (O)
 [[on-window-detected]]
