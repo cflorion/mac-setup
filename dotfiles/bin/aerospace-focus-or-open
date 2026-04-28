@@ -12,6 +12,8 @@ APP="$3"
 WS=$(aerospace list-windows --monitor all --app-bundle-id "$BUNDLE_ID" --format '%{workspace}' 2>/dev/null | head -1)
 
 if [ -n "$WS" ]; then
+    MOUSE_MON=$(aerospace list-monitors --mouse --format '%{monitor-id}')
+    aerospace move-workspace-to-monitor --workspace "$WS" "$MOUSE_MON" 2>/dev/null || true
     aerospace workspace "$WS"
 else
     open -a "$APP"
