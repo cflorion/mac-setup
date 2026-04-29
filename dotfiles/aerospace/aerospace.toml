@@ -89,6 +89,7 @@ cmd-ctrl-alt-shift-i = 'exec-and-forget aerospace-focus-or-open I com.cron.elect
 cmd-ctrl-alt-shift-p = 'exec-and-forget aerospace-focus-or-open P com.linear Linear'
 cmd-ctrl-alt-shift-y = 'exec-and-forget aerospace-focus-or-open Y com.sertacozercan.Kaset Kaset'
 cmd-ctrl-alt-shift-x = 'exec-and-forget aerospace-focus-or-open X com.google.Chrome "Google Chrome"'
+cmd-ctrl-alt-shift-b = 'exec-and-forget aerospace-focus-or-open B net.imput.helium Helium'
 
 # Free workspaces (1-5)
 cmd-ctrl-alt-shift-1 = 'workspace 1'
@@ -117,6 +118,7 @@ t = ['move-node-to-workspace T --focus-follows-window', 'mode main']
 i = ['move-node-to-workspace I --focus-follows-window', 'mode main']
 y = ['move-node-to-workspace Y --focus-follows-window', 'mode main']
 x = ['move-node-to-workspace X --focus-follows-window', 'mode main']
+b = ['move-node-to-workspace B --focus-follows-window', 'mode main']
 1 = ['move-node-to-workspace 1 --focus-follows-window', 'mode main']
 2 = ['move-node-to-workspace 2 --focus-follows-window', 'mode main']
 3 = ['move-node-to-workspace 3 --focus-follows-window', 'mode main']
@@ -211,6 +213,11 @@ run = ['move-node-to-workspace Y', 'workspace Y']
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome'
 run = ['move-node-to-workspace X', 'workspace X']
+
+# Browser - Helium (B)
+[[on-window-detected]]
+if.app-id = 'net.imput.helium'
+run = ['move-node-to-workspace B', 'workspace B']
 
 # Always floating (dialogs, utilities)
 [[on-window-detected]]
