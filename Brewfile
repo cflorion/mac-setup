@@ -96,6 +96,7 @@ cask "uhk-agent"
 cask "handy"
 cask "homerow"
 cask "sf-symbols"
+cask "finicky"
 
 # --- Fonts ---
 cask "font-jetbrains-mono-nerd-font"
