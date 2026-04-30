@@ -116,7 +116,11 @@
       "Bash(python3 *)",
       "Bash(make macos-keyboard *)",
       "Bash(mdls -name kMDItemCFBundleIdentifier \"/Applications/Notion Calendar.app\")",
-      "Bash(open -a Finicky)"
+      "Bash(open -a Finicky)",
+      "Bash(fc-list)",
+      "Bash(ps -A -o command)",
+      "Bash(xxd)",
+      "Bash(awk '/local checks = \\\\{/,/\\\\}/' /Users/ion/code/mac-setup/dotfiles/wezterm/wezterm.lua)"
     ]
   }
 }

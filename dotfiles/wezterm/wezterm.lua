@@ -84,46 +84,91 @@ config.inactive_pane_hsb = {
 -- =============================================================================
 
 config.enable_tab_bar = true
-config.use_fancy_tab_bar = false
+config.use_fancy_tab_bar = false -- retro: no per-tab close button
 config.tab_bar_at_bottom = true
 config.hide_tab_bar_if_only_one_tab = true
 config.tab_max_width = 32
 config.show_tab_index_in_tab_bar = true
+config.show_new_tab_button_in_tab_bar = false
 
--- Tab title formatting: dot indicator
-wezterm.on('format-tab-title', function(tab, tabs, panes, cfg, hover, max_width)
-  local title = tab.tab_title
-  if #title == 0 then
-    title = tab.active_pane.title
+-- Detect tool from foreground process path (substring match, more specific first)
+local function tab_icon(pane)
+  local raw = (pane.foreground_process_name or ''):lower()
+  local checks = {
+    { 'claude',  '󰚩' }, -- robot
+    { 'lazygit', '󰊢' }, -- github
+    { 'nvim',    '\u{e6ae}' }, -- neovim devicon
+    { 'vim',     '\u{e62b}' }, -- vim devicon
+    { 'docker',  '󰡨' },
+    { 'python',  '󰌠' },
+    { 'ruby',    '󰴭' },
+    { 'yazi',    '󰉋' },
+    { 'htop',    '󰍛' },
+    { 'btop',    '󰍛' },
+    { 'bun',     '󰟂' },
+    { 'node',    '󰎙' },
+    { 'ssh',     '󰒋' },
+    { 'git',     '󰊢' },
+    { 'fish',    '󰆍' },
+    { 'bash',    '󰆍' },
+    { 'zsh',     '󰆍' },
+    { 'make',    '󰒓' },
+  }
+  for _, c in ipairs(checks) do
+    if raw:find(c[1], 1, true) then return c[2] end
   end
+  return '󰆍' -- console-line
+end
+
+-- Title: user-set > cwd basename > pane title
+local function tab_title(tab)
+  if tab.tab_title and #tab.tab_title > 0 then return tab.tab_title end
+  local pane = tab.active_pane
+  local cwd = pane.current_working_dir
+  if cwd then
+    local path = cwd.file_path or tostring(cwd):gsub('^file://[^/]*', '')
+    local base = path:gsub('/$', ''):match('([^/]+)$')
+    if base and #base > 0 then return base end
+  end
+  return pane.title or 'shell'
+end
+
+-- Pure monochrome both modes — e-paper friendly, perfect mirror.
+local bar_bg      = is_dark and '#000000' or '#ffffff'
+local pill_bg     = is_dark and '#ffffff' or '#000000'
+local pill_fg     = is_dark and '#000000' or '#ffffff'
+local inactive_fg = is_dark and '#888888' or '#666666'
+
+wezterm.on('format-tab-title', function(tab, _tabs, _panes, _cfg, _hover, max_width)
+  local title = tab_title(tab)
+  local icon = tab_icon(tab.active_pane)
   if #title > max_width - 6 then
     title = title:sub(1, max_width - 7) .. '…'
   end
 
-  local index = tab.tab_index + 1
-  local dot = tab.is_active and '●' or '·'
-
-  if is_dark then
-    local fg = tab.is_active and '#ffffff' or '#a6adc8'
-    local dot_fg = tab.is_active and '#ffffff' or '#585b70'
+  if tab.is_active then
     return {
-      { Background = { Color = '#000000' } },
-      { Foreground = { Color = dot_fg } },
-      { Text = ' ' .. dot .. ' ' },
-      { Foreground = { Color = fg } },
-      { Text = index .. ': ' .. title .. ' ' },
-    }
-  else
-    local fg = tab.is_active and '#000000' or '#999999'
-    local dot_fg = tab.is_active and '#000000' or '#aaaaaa'
-    return {
-      { Background = { Color = '#ffffff' } },
-      { Foreground = { Color = dot_fg } },
-      { Text = ' ' .. dot .. ' ' },
-      { Foreground = { Color = fg } },
-      { Text = index .. ': ' .. title .. ' ' },
+      { Background = { Color = bar_bg } },
+      { Foreground = { Color = pill_bg } },
+      { Text = '' }, -- rounded left cap
+      { Background = { Color = pill_bg } },
+      { Foreground = { Color = pill_fg } },
+      { Attribute = { Intensity = 'Bold' } },
+      { Text = ' ' .. icon .. '  ' .. title .. ' ' },
+      { Background = { Color = bar_bg } },
+      { Foreground = { Color = pill_bg } },
+      { Text = '' }, -- rounded right cap
     }
   end
+
+  -- Inactive: icon in accent color (pops), title dim
+  return {
+    { Background = { Color = bar_bg } },
+    { Foreground = { Color = pill_bg } },
+    { Text = '  ' .. icon .. '  ' },
+    { Foreground = { Color = inactive_fg } },
+    { Text = title .. '  ' },
+  }
 end)
 
 -- =============================================================================
