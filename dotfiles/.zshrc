@@ -43,6 +43,7 @@ alias myip="curl http://ipecho.net/plain; echo"
 alias brewup="brew update; brew upgrade; brew cleanup; brew doctor"
 alias rm="trash"
 alias popina-pdf='popina-pdf'
+alias ms='cd ~/code/mac-setup && claude'
 
 # -------
 # fnm node version manager

@@ -3,6 +3,9 @@ defaults write NSGlobalDomain KeyRepeat -int 2
 defaults write NSGlobalDomain InitialKeyRepeat -int 15
 defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
+echo "==> Enabling press-and-hold for accented characters (É, À, Ç…)"
+defaults write -g ApplePressAndHoldEnabled -bool true
+
 echo "==> Disabling Fn key emoji picker"
 defaults write com.apple.HIToolbox AppleFnUsageType -int 0
 

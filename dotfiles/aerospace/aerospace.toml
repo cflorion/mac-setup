@@ -91,12 +91,10 @@ cmd-ctrl-alt-shift-y = 'exec-and-forget aerospace-focus-or-open Y com.sertacozer
 cmd-ctrl-alt-shift-x = 'exec-and-forget aerospace-focus-or-open X com.google.Chrome "Google Chrome"'
 cmd-ctrl-alt-shift-b = 'exec-and-forget aerospace-focus-or-open B net.imput.helium Helium'
 
-# Free workspaces (1-5)
-cmd-ctrl-alt-shift-1 = 'workspace 1'
-cmd-ctrl-alt-shift-2 = 'workspace 2'
-cmd-ctrl-alt-shift-3 = 'workspace 3'
+# Free workspaces (4-6)
 cmd-ctrl-alt-shift-4 = 'workspace 4'
 cmd-ctrl-alt-shift-5 = 'workspace 5'
+cmd-ctrl-alt-shift-6 = 'workspace 6'
 
 # Move window to workspace — via mode 'move' (hyper + d, puis lettre/chiffre)
 cmd-ctrl-alt-shift-d = 'mode move'
@@ -119,11 +117,9 @@ i = ['move-node-to-workspace I --focus-follows-window', 'mode main']
 y = ['move-node-to-workspace Y --focus-follows-window', 'mode main']
 x = ['move-node-to-workspace X --focus-follows-window', 'mode main']
 b = ['move-node-to-workspace B --focus-follows-window', 'mode main']
-1 = ['move-node-to-workspace 1 --focus-follows-window', 'mode main']
-2 = ['move-node-to-workspace 2 --focus-follows-window', 'mode main']
-3 = ['move-node-to-workspace 3 --focus-follows-window', 'mode main']
 4 = ['move-node-to-workspace 4 --focus-follows-window', 'mode main']
 5 = ['move-node-to-workspace 5 --focus-follows-window', 'mode main']
+6 = ['move-node-to-workspace 6 --focus-follows-window', 'mode main']
 esc = 'mode main'
 
 # ----------------------------

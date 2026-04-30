@@ -92,7 +92,31 @@
       "Bash(sips -Z 1500 /tmp/lightbar-top.png --out /tmp/lightbar-small.png)",
       "Bash(plutil -p ~/Library/Preferences/com.apple.CoreBrightness.plist)",
       "Bash(sketchybar --bar color=0xff0000ff)",
-      "Bash(defaults write *)"
+      "Bash(defaults write *)",
+      "Bash(dockutil --no-restart --add '__TRACKED_VAR__/Library/Mobile Documents/com~apple~CloudDocs/Documents/Notes de frais' --view grid --display folder)",
+      "Bash(dockutil --no-restart --remove all)",
+      "Bash(dockutil --no-restart --add __TRACKED_VAR__/Downloads --view grid --display stack)",
+      "Bash(dockutil --no-restart --add '__TRACKED_VAR__/Library/Mobile Documents/com~apple~CloudDocs/Documents/Notes de frais' --view grid --display stack)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('display:', d.get\\('display','main\\(default\\)'\\), 'topmost:', d['topmost']\\)\")",
+      "Bash(awk '{print $2}')",
+      "Bash(git *)",
+      "Bash(aerospace move-workspace-to-monitor *)",
+      "Bash(mdfind -name \"Helium\")",
+      "WebSearch",
+      "Bash(brew install *)",
+      "Bash(make link *)",
+      "Bash(osascript -e 'id of app \"Superhuman\"')",
+      "Bash(osascript -e 'id of app \"TickTick\"')",
+      "Bash(osascript -e 'id of app \"Linear\"')",
+      "Bash(osascript *)",
+      "Bash(launchctl list *)",
+      "Read(//Users/ion/**)",
+      "Bash(ps -p 52992 -o pid,command)",
+      "Bash(ps -A -o pid,command)",
+      "Bash(python3 *)",
+      "Bash(make macos-keyboard *)",
+      "Bash(mdls -name kMDItemCFBundleIdentifier \"/Applications/Notion Calendar.app\")",
+      "Bash(open -a Finicky)"
     ]
   }
 }

@@ -15,6 +15,7 @@ export default {
           "com.figma.Desktop", // Figma
           "com.anthropic.claudefordesktop", // Claude
           "notion.id", // Notion
+          "com.cron.electron", // Notion Calendar
           "dev.zed.Zed", // Zed
           "com.microsoft.VSCode", // Visual Studio Code
           "com.github.wez.wezterm", // WezTerm
