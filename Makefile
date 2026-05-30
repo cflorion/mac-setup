@@ -26,7 +26,7 @@ node:
 npm-global:
 	@echo "==> Installing global npm packages..."
 	@mkdir -p "$(HOME)/Library/pnpm"
-	@PNPM_HOME="$(HOME)/Library/pnpm" PATH="$(HOME)/Library/pnpm:$(PATH)" pnpm add -g @fveauvy/cli
+	@PNPM_HOME="$(HOME)/Library/pnpm" PATH="$(HOME)/Library/pnpm:$(PATH)" pnpm add -g @fveauvy/cli @openai/codex
 
 mas:
 	@echo "==> Installing App Store apps..."

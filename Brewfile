@@ -85,6 +85,7 @@ cask "breaktimer"
 # --- Window management & display ---
 cask "nikitabobko/tap/aerospace"
 cask "karabiner-elements"
+cask "ukelele"
 cask "betterdisplay"
 cask "jordanbaird-ice@beta"
 cask "stillcolor"

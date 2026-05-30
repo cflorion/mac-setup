@@ -27,7 +27,36 @@ local function scheme_for_appearance(appearance)
     return 'Catppuccin Mocha OLED'
   else
     local day = wezterm.color.get_builtin_schemes()['Tokyo Night Day']
-    day.background = '#ffffff'
+    -- Adapté pour e-ink couleur: contraste fort, couleurs saturées,
+    -- noir adouci (ANSI 0) pour que les fonds "noirs" peints par
+    -- certains TUI (lazygit, fzf, claude…) soient lisibles.
+    day.background       = '#ffffff'
+    day.foreground       = '#1a1a1a'
+    day.cursor_bg        = '#1a1a1a'
+    day.cursor_fg        = '#ffffff'
+    day.cursor_border    = '#1a1a1a'
+    day.selection_bg     = '#d8d8d8'
+    day.selection_fg     = '#1a1a1a'
+    day.ansi = {
+      '#2a2a2a', -- 0 black: gris foncé (anti-fond-noir)
+      '#c43d3d', -- 1 red
+      '#1f7a1f', -- 2 green
+      '#a06a00', -- 3 yellow (assombri pour fond blanc)
+      '#1a4faa', -- 4 blue
+      '#8a2d8a', -- 5 magenta
+      '#0e6e6e', -- 6 cyan
+      '#bfbfbf', -- 7 white (gris clair)
+    }
+    day.brights = {
+      '#4a4a4a', -- 8  bright black
+      '#d63d3d', -- 9  bright red
+      '#2f9a2f', -- 10 bright green
+      '#c08000', -- 11 bright yellow
+      '#2a6acc', -- 12 bright blue
+      '#9a3d9a', -- 13 bright magenta
+      '#1a9a9a', -- 14 bright cyan
+      '#1a1a1a', -- 15 bright white -> fg fort
+    }
     day.tab_bar.background = '#ffffff'
     day.tab_bar.inactive_tab.bg_color = '#f0f0f0'
     day.tab_bar.new_tab.bg_color = '#f0f0f0'
@@ -69,15 +98,13 @@ config.window_padding = {
   bottom = 0,
 }
 
--- Cursor
-config.default_cursor_style = 'BlinkingBar'
-config.cursor_blink_rate = 500
+-- Cursor: statique pour éviter le refresh partiel constant sur e-ink
+config.default_cursor_style = 'SteadyBar'
 
--- Dim inactive panes
-config.inactive_pane_hsb = {
-  saturation = 0.8,
-  brightness = 0.7,
-}
+-- Dim inactive panes: plus subtil en light mode pour ne pas griser le fond
+config.inactive_pane_hsb = is_dark
+  and { saturation = 0.8,  brightness = 0.7  }
+  or  { saturation = 0.85, brightness = 0.97 }
 
 -- =============================================================================
 -- TABS

@@ -6,7 +6,12 @@ export default {
 
   handlers: [
     {
-      match: ({ opener }) =>
+      match: "linear.app/*",
+      browser: "Linear",
+    },
+    {
+      match: (_, { opener }) =>
+        !opener?.bundleId || // CLI tools (gcloud, etc.)
         [
           "com.tinyspeck.slackmacgap", // Slack
           "com.superhuman.electron", // Superhuman
@@ -19,7 +24,7 @@ export default {
           "dev.zed.Zed", // Zed
           "com.microsoft.VSCode", // Visual Studio Code
           "com.github.wez.wezterm", // WezTerm
-        ].includes(opener.bundleId),
+        ].includes(opener?.bundleId),
       browser: "Helium",
     },
   ],
