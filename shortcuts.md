@@ -59,6 +59,17 @@
 
 ---
 
+## Raycast
+
+| Raccourci | Action |
+|---|---|
+| Hyper+) | Clipboard History |
+| Ctrl+^ | Search Emoji & Symbols |
+| Hyper+$ | Search Menu Bar Items |
+| Hyper+Ù | Toggle System Appearance |
+
+---
+
 ## WezTerm
 
 | Raccourci | Action |
