@@ -113,7 +113,11 @@ config.inactive_pane_hsb = is_dark
 config.enable_tab_bar = true
 config.use_fancy_tab_bar = false -- retro: no per-tab close button
 config.tab_bar_at_bottom = true
-config.hide_tab_bar_if_only_one_tab = true
+-- Garder la barre toujours visible: son apparition/disparition (1 vs N onglets)
+-- déclenche un bug de resize WezTerm où les TUI (lazygit, nvim) reçoivent une
+-- ligne de trop et dessinent leur bas SOUS la barre, jusqu'au prochain reload.
+-- Voir wezterm#3439 / #3705.
+config.hide_tab_bar_if_only_one_tab = false
 config.tab_max_width = 42
 config.show_tab_index_in_tab_bar = true
 config.show_new_tab_button_in_tab_bar = false
