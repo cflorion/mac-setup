@@ -62,36 +62,26 @@
 
 ## WezTerm
 
-### Onglets
 | Raccourci | Action |
 |---|---|
+| **Onglets** | |
 | Cmd+T | Nouvel onglet |
 | Cmd+W | Fermer onglet |
 | Cmd+← / → | Onglet précédent / suivant |
 | Cmd+1…9 | Onglet par numéro |
 | Cmd+Shift+E | Renommer onglet |
-
-### Panes
-| Raccourci | Action |
-|---|---|
+| **Panes** | |
 | Cmd+D | Split droite |
 | Cmd+Shift+D | Split bas |
 | Ctrl+H/J/K/L | Focus pane gauche/bas/haut/droite |
 | Ctrl+Shift+H/J/K/L | Redimensionner pane |
 | Cmd+Shift+Z | Zoom pane (toggle) |
 | Cmd+Shift+W | Fermer pane |
-
-### Workspaces (sessions)
-| Raccourci | Action |
-|---|---|
+| **Workspaces** | |
 | Cmd+Shift+S | Picker workspaces |
 | Cmd+Shift+N | Nouveau workspace |
-| Cmd+Shift+[ | Workspace précédent |
-| Cmd+Shift+] | Workspace suivant |
-
-### Divers
-| Raccourci | Action |
-|---|---|
+| Cmd+Shift+[ / ] | Workspace précédent / suivant |
+| **Divers** | |
 | Cmd+C / V | Copier / Coller |
 | Cmd+F | Recherche |
 | Cmd+P | Command palette |
