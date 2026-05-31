@@ -243,6 +243,13 @@ config.keys = {
   { key = '8', mods = 'SUPER',       action = act.ActivateTab(7) },
   { key = '9', mods = 'SUPER',       action = act.ActivateTab(8) },
   -- Rename tab
+  { key = 'e', mods = 'SUPER|SHIFT', action = act.PromptInputLine {
+      description = 'Rename tab:',
+      action = wezterm.action_callback(function(window, _, line)
+        if line then window:active_tab():set_title(line) end
+      end),
+    },
+  },
   { key = 'r', mods = 'LEADER',      action = act.PromptInputLine {
       description = 'Rename tab:',
       action = wezterm.action_callback(function(window, _, line)
