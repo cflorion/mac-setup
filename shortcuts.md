@@ -11,7 +11,7 @@
 |---|---|
 | CapsLock (maintenu) | Hyper (Cmd+Ctrl+Opt+Shift) |
 | CapsLock (tap) | Escape |
-| Cmd droit (tap) | Handy dictation (⌃⌥⌘D) |
+| Alt gauche ou droit (tap) | Handy dictation (⌃⌥⌘D) |
 
 ---
 
