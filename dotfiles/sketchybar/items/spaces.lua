@@ -138,9 +138,5 @@ space_listener:subscribe("aerospace_workspace_change", function(env)
   end
 end)
 
--- Also update on front_app_switched (window opened/closed may change workspace state)
--- Wrap to avoid passing env table as focused_hint
-space_listener:subscribe("front_app_switched", function(_) update_spaces() end)
-
 -- Initial update
 update_spaces()
