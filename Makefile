@@ -103,7 +103,11 @@ link:
 		fi; \
 	done
 	@# Link playbook repo into Obsidian vault (symlink so iCloud doesn't sync .git)
-	@ln -sfnv $(HOME)/code/playbook "$(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/Travail/Projects/Budget"
+	@if [ -d "$(HOME)/code/playbook" ]; then \
+		ln -sfnv $(HOME)/code/playbook "$(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/Travail/Projects/Budget"; \
+	else \
+		echo "  ~/code/playbook not found, skipping Obsidian playbook link"; \
+	fi
 
 # Copy Obsidian theme and plugins to vault (copy, not symlink, to avoid iCloud sync issues)
 obsidian:

@@ -1,3 +1,11 @@
 .DS_Store
 cache/
 backup/
+
+# Raycast rewrites its installed extensions into this dir via the
+# ~/.config/raycast symlink. They are not config — only the *.rayconfig
+# export is meaningful — so keep them out of git.
+dotfiles/raycast/extensions/
+
+# Karabiner-Elements auto-generates these on every config change.
+dotfiles/karabiner/automatic_backups/

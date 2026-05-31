@@ -9,7 +9,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 
 ## Key Commands
 
-- `make install` — Full setup for a new machine (brew, node, npm-global, link, sketchybar, obsidian, macos, raycast, mas, ollama)
+- `make install` — Full setup for a new machine (brew, node, npm-global, link, sketchybar, obsidian, macos, raycast, mas, ollama, pwa)
 - `make update` — Fast daily update (brew, node, link, macos)
 - `make backup` — Backup SSH keys before formatting
 - `make restore-ssh` — Restore SSH keys from most recent backup
@@ -26,12 +26,14 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - **bootstrap.sh** — Curl-runnable first-time script: installs Xcode CLT, Homebrew, clones repo, runs `make install`.
 - **macos-defaults.sh** — Runner that sources all modules from `macos/`. Some settings require manual steps (logged to stdout).
 - **macos/** — Individual `defaults write` modules: `finder.sh`, `dock.sh`, `keyboard.sh`, `trackpad.sh`, `mission-control.sh`, `desktop.sh`, `control-center.sh`, `pointer.sh`.
-- **raycast.sh** — Disables Spotlight shortcuts (freeing Cmd+Space for Raycast), opens extension install URLs, imports Raycast config.
+- **raycast.sh** — Disables Spotlight shortcuts (freeing Cmd+Space for Raycast), opens extension install URLs, imports the newest Raycast `*.rayconfig` export.
 - **apps-mas.sh** — Mac App Store installs via `mas`.
+- **pwa.sh** — Recreates Chrome PWA `.app` shortcuts (e.g. Google Chat) in `~/Applications/Chrome Apps.localized/`. Requires the PWA to already be synced into the Chrome profile.
+- **launchd/** — LaunchAgent templates (`__HOME__` placeholder is substituted at install time). `com.user.sketchybar-theme.plist` runs `dark-notify` to reload sketchybar on light/dark switch; installed by `make sketchybar`.
 - **dotfiles/** — Symlinked into `~` and `~/.config/` by `make link`:
-  - Hidden files (`.zshrc`, `.gitconfig`, `.gitignore_global`) → `~/`
-  - Directories (`nvim/`, `lazygit/`, `sketchybar/`, `atuin/`, `wezterm/`, `karabiner/`, `aerospace/`, `borders/`) → `~/.config/<name>/`
-  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`, `popina-pdf`)
+  - Hidden files (`.zshrc`, `.gitconfig`, `.gitignore_global`, `.finicky.js`) → `~/`
+  - Directories (`nvim/`, `lazygit/`, `sketchybar/`, `atuin/`, `wezterm/`, `karabiner/`, `aerospace/`, `raycast/`) → `~/.config/<name>/`
+  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`, `popina-pdf`, `aerospace-focus-or-open`, `aerospace-workspace-cycle`)
   - `starship.toml` → `~/.config/starship.toml`
   - `zed/settings.json` → `~/.config/zed/settings.json` (only settings, not full dir)
   - `sublime-text/` → `~/Library/Application Support/Sublime Text/Packages/User/`
@@ -46,4 +48,5 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - Backup directory (`backup/`) is gitignored and contains SSH key snapshots.
 - Sketchybar config is Lua-based (not shell). It has C event providers (`helpers/event_providers/`) that compile via `make` — run `make sketchybar` to rebuild after changes.
 - macOS defaults modules are sourced (not executed) by `macos-defaults.sh`, so they don't need their own shebang or `set -euo pipefail`.
-- The Raycast config file (`dotfiles/raycast/*.rayconfig`) is a binary export — update it by re-exporting from Raycast, not by hand-editing.
+- The `npm-global` target installs global packages via **pnpm** (`PNPM_HOME=~/Library/pnpm`), despite its name.
+- The Raycast config file (`dotfiles/raycast/*.rayconfig`) is a binary export — update it by re-exporting from Raycast, not by hand-editing. `dotfiles/raycast/extensions/` is gitignored: Raycast rewrites it via the `~/.config/raycast` symlink and it is not config.

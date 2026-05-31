@@ -41,13 +41,15 @@ open "https://raycast.com/raycast/google-workspace" # Google Workspace (Calendar
 
 echo "==> Importing Raycast settings..."
 
-RAYCAST_CONFIG="$HOME/.config/raycast/raycast.rayconfig"
+# Exports are named "Raycast YYYY-MM-DD HH.MM.SS.rayconfig" — pick the newest
+# by lexical sort (date-named, so lexical order == chronological order).
+RAYCAST_CONFIG="$(ls "$HOME"/.config/raycast/*.rayconfig 2>/dev/null | sort | tail -1)"
 
-if [[ -f "$RAYCAST_CONFIG" ]]; then
+if [[ -n "$RAYCAST_CONFIG" && -f "$RAYCAST_CONFIG" ]]; then
     open "raycast://extensions/raycast/raycast/import-settings-data?path=$(realpath "$RAYCAST_CONFIG")"
     echo "   Settings imported from $RAYCAST_CONFIG"
 else
-    echo "   No config found at $RAYCAST_CONFIG — skipping import"
+    echo "   No .rayconfig found in ~/.config/raycast — skipping import"
 fi
 
 # -----------------------------------------------------------------------------

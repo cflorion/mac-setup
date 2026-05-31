@@ -24,7 +24,12 @@ echo "==> Rebuilding Dock"
 if command -v dockutil >/dev/null 2>&1; then
   dockutil --no-restart --remove all
   dockutil --no-restart --add "$HOME/Downloads" --view grid --display stack
-  dockutil --no-restart --add "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/Notes de frais" --view grid --display stack
+  NOTES_DE_FRAIS="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/Notes de frais"
+  if [ -d "$NOTES_DE_FRAIS" ]; then
+    dockutil --no-restart --add "$NOTES_DE_FRAIS" --view grid --display stack
+  else
+    echo "    Notes de frais folder not found in iCloud, skipping that Dock item"
+  fi
 else
   echo "dockutil not installed, skipping Dock configuration"
 fi
