@@ -8,12 +8,18 @@ sbar.add("event", "aerospace_workspace_change")
 
 local spaces = {}
 
--- All possible AeroSpace workspaces
--- C=Claude, W=WezTerm, S=Safari, M=Superhuman, N=Slack, G=Gemini, V=Google Chat, P=Linear (Project), O=Obsidian, T=TickTick, I=Notion Calendar, Y=Kaset/YouTube Music, X=Google Chrome, B=Helium (Browser), E=Apple Mail (Email)
-local workspace_names = { "C", "W", "S", "M", "N", "G", "V", "P", "O", "T", "I", "Y", "X", "B", "E", "1", "2", "3" }
+-- C=Claude, W=WezTerm, S=Safari, M=Superhuman, N=Slack, G=Gemini, V=Google Chat, P=Linear (Project), O=Obsidian
+-- T=TickTick, I=Notion Calendar, Y=Kaset/YouTube Music, X=Google Chrome, H=Helium (Browser), E=Apple Mail
+local left_names  = { "C", "W", "S", "M", "N", "G", "V", "P", "O" }
+local right_names = { "T", "I", "Y", "X", "H", "E", "1", "2", "3" }
 
-for _, ws_name in ipairs(workspace_names) do
+local workspace_names = {}
+for _, ws in ipairs(left_names)  do workspace_names[#workspace_names + 1] = ws end
+for _, ws in ipairs(right_names) do workspace_names[#workspace_names + 1] = ws end
+
+local function create_space(ws_name, position)
   local space = sbar.add("item", "space." .. ws_name, {
+    position = position,
     icon = {
       drawing = false,
       width = 0,
@@ -26,31 +32,36 @@ for _, ws_name in ipairs(workspace_names) do
       color = colors.grey,
       highlight_color = colors.white,
       font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 13.0 },
-      background = {
-        drawing = false,
-      },
+      background = { drawing = false },
     },
     padding_right = 1,
     padding_left = 1,
-    background = {
-      drawing = false,
-    },
-    drawing = false, -- hidden by default, shown only when active
+    background = { drawing = false },
+    drawing = true,
   })
 
   spaces[ws_name] = space
 
-  -- Padding
   sbar.add("item", "space.padding." .. ws_name, {
+    position = position,
     script = "",
     width = settings.group_paddings,
-    drawing = false,
+    drawing = true,
   })
 
-  -- Click to switch workspace
   space:subscribe("mouse.clicked", function(env)
     sbar.exec("aerospace workspace " .. ws_name)
   end)
+end
+
+-- Left group: C → O, gauche vers droite
+for _, ws_name in ipairs(left_names) do
+  create_space(ws_name, "left")
+end
+
+-- Right group: ajoutés en ordre inverse pour s'afficher T → 3 de gauche à droite
+for i = #right_names, 1, -1 do
+  create_space(right_names[i], "right")
 end
 
 -- Update which workspaces are visible and which is focused.
@@ -72,12 +83,15 @@ local function update_spaces(focused_hint)
         local is_focused = ws_name == focused_ws
 
         if spaces[ws_name] then
+          local label_color = is_focused and colors.white
+            or is_active and colors.grey
+            or colors.grey
           spaces[ws_name]:set({
-            drawing = is_active,
+            drawing = true,
             icon = { highlight = is_focused },
             label = {
               highlight = is_focused,
-              color = is_focused and colors.white or colors.grey,
+              color = label_color,
             },
           })
         end
@@ -105,9 +119,11 @@ local function update_spaces(focused_hint)
               spaces[ws_name]:set({ label = icon_line })
             end
           )
+        else
+          spaces[ws_name]:set({ label = ws_name })
         end
 
-        sbar.set("space.padding." .. ws_name, { drawing = is_active })
+        sbar.set("space.padding." .. ws_name, { drawing = true })
       end
     end)
   end
