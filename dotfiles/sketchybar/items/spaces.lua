@@ -165,5 +165,19 @@ space_listener:subscribe("aerospace_workspace_change", function(env)
   end
 end)
 
+-- Refresh the per-workspace app list when the frontmost app changes.
+-- AeroSpace emits no "window closed" event, so quitting a floating app
+-- (e.g. ⌘Q on System Settings) wouldn't otherwise update the label — but
+-- it does change the front app, which fires front_app_switched.
+-- The immediate update catches already-settled changes; the deferred one
+-- handles the race where AeroSpace still lists a just-quit/opened window
+-- for ~0.5s after the front-app switch fires.
+space_listener:subscribe("front_app_switched", function()
+  update_spaces()
+  sbar.exec("sleep 0.6", function()
+    update_spaces()
+  end)
+end)
+
 -- Initial update
 update_spaces()
