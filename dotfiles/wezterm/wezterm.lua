@@ -77,8 +77,7 @@ local is_dark = get_appearance():find('Dark')
 config.unix_domains = {
   { name = 'unix' },
 }
--- Uncomment to auto-connect to mux server on launch:
--- config.default_gui_startup_args = { 'connect', 'unix' }
+config.default_gui_startup_args = { 'connect', 'unix' }
 
 -- =============================================================================
 -- APPEARANCE
