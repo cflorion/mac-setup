@@ -9,6 +9,43 @@
                 },
                 "rules": [
                     {
+                        "description": "Right ⌘ tap → Handy dictation (⌃⌥⌘D)",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "right_command",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "d",
+                                        "modifiers": ["left_control", "left_option", "left_command"]
+                                    }
+                                ],
+                                "to": [
+                                    { "key_code": "right_command" }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "left_command",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "d",
+                                        "modifiers": ["left_control", "left_option", "left_command"]
+                                    }
+                                ],
+                                "to": [
+                                    { "key_code": "left_command" }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "CapsLock → Hyper (Cmd+Ctrl+Opt+Shift) / tap → Escape",
                         "manipulators": [
                             {
