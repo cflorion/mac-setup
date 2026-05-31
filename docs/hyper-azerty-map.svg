@@ -1,0 +1,245 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1140" height="1052" viewBox="0 0 1140 1052" font-family="-apple-system, Helvetica, Arial, sans-serif">
+<rect width="1140" height="1052" fill="#ffffff"/>
+<text x="60" y="48" font-size="30" font-weight="800" fill="#0f172a">Carte Hyper — clavier AZERTY</text>
+<rect x="60" y="74" width="1020" height="72" rx="14" fill="#0f172a"/>
+<text x="82" y="118" font-size="26" font-weight="800" fill="#ffffff">⇪ CapsLock = HYPER</text>
+<text x="382" y="106" font-size="14" fill="#cbd5e1">maintenir → Hyper (⌘ ⌃ ⌥ ⇧)</text>
+<text x="382" y="128" font-size="14" fill="#cbd5e1">appui seul → Échap</text>
+<text x="1058" y="118" font-size="15" font-weight="600" text-anchor="end" fill="#94a3b8">Hyper + …</text>
+<g>
+<rect x="60" y="190" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="71" y="220" font-size="23" font-weight="700" fill="#ffffff">1</text>
+<text x="104.0" y="252" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Espace 1</text>
+</g>
+<g>
+<rect x="156" y="190" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="167" y="220" font-size="23" font-weight="700" fill="#ffffff">2</text>
+<text x="200.0" y="252" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Espace 2</text>
+</g>
+<g>
+<rect x="252" y="190" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="263" y="220" font-size="23" font-weight="700" fill="#ffffff">3</text>
+<text x="296.0" y="252" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Espace 3</text>
+</g>
+<g>
+<rect x="348" y="190" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="359" y="220" font-size="23" font-weight="700" fill="#94a3b8">4</text>
+</g>
+<g>
+<rect x="444" y="190" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="455" y="220" font-size="23" font-weight="700" fill="#94a3b8">5</text>
+</g>
+<g>
+<rect x="540" y="190" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="551" y="220" font-size="23" font-weight="700" fill="#94a3b8">6</text>
+</g>
+<g>
+<rect x="636" y="190" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="647" y="220" font-size="23" font-weight="700" fill="#94a3b8">7</text>
+</g>
+<g>
+<rect x="732" y="190" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="743" y="220" font-size="23" font-weight="700" fill="#94a3b8">8</text>
+</g>
+<g>
+<rect x="828" y="190" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="839" y="220" font-size="23" font-weight="700" fill="#94a3b8">9</text>
+</g>
+<g>
+<rect x="924" y="190" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="935" y="220" font-size="23" font-weight="700" fill="#94a3b8">0</text>
+</g>
+<g>
+<rect x="80" y="286" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="91" y="316" font-size="23" font-weight="700" fill="#ffffff">A</text>
+<text x="124.0" y="342" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Agenda</text>
+<text x="124.0" y="358" font-size="10.5" text-anchor="middle" fill="#e9d5ff">Notion Cal.</text>
+</g>
+<g>
+<rect x="176" y="286" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="187" y="316" font-size="23" font-weight="700" fill="#94a3b8">Z</text>
+</g>
+<g>
+<rect x="272" y="286" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="283" y="316" font-size="23" font-weight="700" fill="#94a3b8">E</text>
+</g>
+<g>
+<rect x="368" y="286" width="88" height="84" rx="11" fill="#0e7490" stroke="#00000022" stroke-width="1"/>
+<text x="379" y="316" font-size="23" font-weight="700" fill="#ffffff">R</text>
+<text x="412.0" y="342" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">mode Resize</text>
+<text x="412.0" y="358" font-size="10.5" text-anchor="middle" fill="#cffafe">h j k l</text>
+</g>
+<g>
+<rect x="464" y="286" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="475" y="316" font-size="23" font-weight="700" fill="#ffffff">T</text>
+<text x="508.0" y="348" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">TickTick</text>
+</g>
+<g>
+<rect x="560" y="286" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="571" y="316" font-size="23" font-weight="700" fill="#ffffff">Y</text>
+<text x="604.0" y="342" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">YouTube</text>
+<text x="604.0" y="358" font-size="10.5" text-anchor="middle" fill="#e9d5ff">Kaset</text>
+</g>
+<g>
+<rect x="656" y="286" width="88" height="84" rx="11" fill="#b45309" stroke="#00000022" stroke-width="1"/>
+<text x="667" y="316" font-size="23" font-weight="700" fill="#ffffff">U</text>
+<text x="700.0" y="342" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Homerow</text>
+<text x="700.0" y="358" font-size="10.5" text-anchor="middle" fill="#fde9c8">clic</text>
+</g>
+<g>
+<rect x="752" y="286" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="763" y="316" font-size="23" font-weight="700" fill="#94a3b8">I</text>
+</g>
+<g>
+<rect x="848" y="286" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="859" y="316" font-size="23" font-weight="700" fill="#ffffff">O</text>
+<text x="892.0" y="348" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Obsidian</text>
+</g>
+<g>
+<rect x="944" y="286" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="955" y="316" font-size="23" font-weight="700" fill="#94a3b8">P</text>
+</g>
+<g>
+<rect x="96" y="382" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="107" y="412" font-size="23" font-weight="700" fill="#94a3b8">Q</text>
+</g>
+<g>
+<rect x="192" y="382" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="203" y="412" font-size="23" font-weight="700" fill="#ffffff">S</text>
+<text x="236.0" y="444" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Slack</text>
+</g>
+<g>
+<rect x="288" y="382" width="88" height="84" rx="11" fill="#0e7490" stroke="#00000022" stroke-width="1"/>
+<text x="299" y="412" font-size="23" font-weight="700" fill="#ffffff">D</text>
+<text x="332.0" y="438" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">mode Move</text>
+<text x="332.0" y="454" font-size="10.5" text-anchor="middle" fill="#cffafe">→ lettre</text>
+</g>
+<g>
+<rect x="384" y="382" width="88" height="84" rx="11" fill="#0e7490" stroke="#00000022" stroke-width="1"/>
+<text x="395" y="412" font-size="23" font-weight="700" fill="#ffffff">F</text>
+<text x="428.0" y="444" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Fullscreen</text>
+</g>
+<g>
+<rect x="480" y="382" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="491" y="412" font-size="23" font-weight="700" fill="#ffffff">G</text>
+<text x="524.0" y="444" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Gemini</text>
+</g>
+<g>
+<rect x="576" y="382" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="587" y="412" font-size="23" font-weight="700" fill="#ffffff">H</text>
+<text x="620.0" y="444" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Helium</text>
+</g>
+<g>
+<rect x="672" y="382" width="88" height="84" rx="11" fill="#b45309" stroke="#00000022" stroke-width="1"/>
+<text x="683" y="412" font-size="23" font-weight="700" fill="#ffffff">J</text>
+<text x="716.0" y="438" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Homerow</text>
+<text x="716.0" y="454" font-size="10.5" text-anchor="middle" fill="#fde9c8">défil.</text>
+</g>
+<g>
+<rect x="768" y="382" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="779" y="412" font-size="23" font-weight="700" fill="#94a3b8">K</text>
+</g>
+<g>
+<rect x="864" y="382" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="875" y="412" font-size="23" font-weight="700" fill="#ffffff">L</text>
+<text x="908.0" y="444" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Linear</text>
+</g>
+<g>
+<rect x="960" y="382" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="971" y="412" font-size="23" font-weight="700" fill="#ffffff">M</text>
+<text x="1004.0" y="438" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Mail</text>
+<text x="1004.0" y="454" font-size="10.5" text-anchor="middle" fill="#e9d5ff">Superhuman</text>
+</g>
+<g>
+<rect x="112" y="478" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="123" y="508" font-size="23" font-weight="700" fill="#ffffff">W</text>
+<text x="156.0" y="540" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">WezTerm</text>
+</g>
+<g>
+<rect x="208" y="478" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="219" y="508" font-size="23" font-weight="700" fill="#94a3b8">X</text>
+</g>
+<g>
+<rect x="304" y="478" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="315" y="508" font-size="23" font-weight="700" fill="#ffffff">C</text>
+<text x="348.0" y="540" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Claude</text>
+</g>
+<g>
+<rect x="400" y="478" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="411" y="508" font-size="23" font-weight="700" fill="#ffffff">V</text>
+<text x="444.0" y="534" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Chat</text>
+<text x="444.0" y="550" font-size="10.5" text-anchor="middle" fill="#e9d5ff">Google Chat</text>
+</g>
+<g>
+<rect x="496" y="478" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="507" y="508" font-size="23" font-weight="700" fill="#ffffff">B</text>
+<text x="540.0" y="534" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Browser</text>
+<text x="540.0" y="550" font-size="10.5" text-anchor="middle" fill="#e9d5ff">Safari</text>
+</g>
+<g>
+<rect x="592" y="478" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
+<text x="603" y="508" font-size="23" font-weight="700" fill="#94a3b8">N</text>
+</g>
+<g>
+<rect x="688" y="478" width="88" height="84" rx="11" fill="#b45309" stroke="#00000022" stroke-width="1"/>
+<text x="699" y="508" font-size="23" font-weight="700" fill="#ffffff">,</text>
+<text x="732.0" y="540" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Raycast</text>
+</g>
+<g>
+<rect x="784" y="478" width="88" height="84" rx="11" fill="#b45309" stroke="#00000022" stroke-width="1"/>
+<text x="795" y="508" font-size="23" font-weight="700" fill="#ffffff">;</text>
+<text x="828.0" y="540" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Raycast</text>
+</g>
+<g>
+<rect x="880" y="478" width="88" height="84" rx="11" fill="#b45309" stroke="#00000022" stroke-width="1"/>
+<text x="891" y="508" font-size="23" font-weight="700" fill="#ffffff">:</text>
+<text x="924.0" y="540" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Raycast</text>
+</g>
+<g>
+<rect x="976" y="478" width="88" height="84" rx="11" fill="#b45309" stroke="#00000022" stroke-width="1"/>
+<text x="987" y="508" font-size="23" font-weight="700" fill="#ffffff">=</text>
+<text x="1020.0" y="540" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Raycast</text>
+</g>
+<g>
+<rect x="60" y="596" width="132" height="84" rx="11" fill="#0e7490" stroke="#00000022" stroke-width="1"/>
+<text x="71" y="626" font-size="23" font-weight="700" fill="#ffffff">Tab</text>
+<text x="126.0" y="652" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">mode Focus</text>
+<text x="126.0" y="668" font-size="10.5" text-anchor="middle" fill="#cffafe">h j k l</text>
+</g>
+<g>
+<rect x="204" y="596" width="200" height="84" rx="11" fill="#0e7490" stroke="#00000022" stroke-width="1"/>
+<text x="215" y="626" font-size="23" font-weight="700" fill="#ffffff">␣  Espace</text>
+<text x="304.0" y="658" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">flottant ⇄ pavé</text>
+</g>
+<g>
+<rect x="416" y="596" width="132" height="84" rx="11" fill="#0e7490" stroke="#00000022" stroke-width="1"/>
+<text x="427" y="626" font-size="23" font-weight="700" fill="#ffffff">← →</text>
+<text x="482.0" y="652" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">fenêtre →</text>
+<text x="482.0" y="668" font-size="10.5" text-anchor="middle" fill="#cffafe">moniteur</text>
+</g>
+<g>
+<rect x="560" y="596" width="132" height="84" rx="11" fill="#0e7490" stroke="#00000022" stroke-width="1"/>
+<text x="571" y="626" font-size="23" font-weight="700" fill="#ffffff">↑ ↓</text>
+<text x="626.0" y="652" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">cycler</text>
+<text x="626.0" y="668" font-size="10.5" text-anchor="middle" fill="#cffafe">espaces</text>
+</g>
+<text x="60" y="720" font-size="16" font-weight="700" fill="#0f172a">Légende</text>
+<rect x="60" y="732" width="20" height="20" rx="5" fill="#7c3aed" stroke="#00000022"/>
+<text x="88" y="747" font-size="13.5" fill="#334155">Application / espace</text>
+<rect x="294" y="732" width="20" height="20" rx="5" fill="#0e7490" stroke="#00000022"/>
+<text x="322" y="747" font-size="13.5" fill="#334155">Fenêtres &amp; disposition</text>
+<rect x="546" y="732" width="20" height="20" rx="5" fill="#b45309" stroke="#00000022"/>
+<text x="574" y="747" font-size="13.5" fill="#334155">Souris &amp; lanceur</text>
+<rect x="744" y="732" width="20" height="20" rx="5" fill="#f1f5f9" stroke="#00000022"/>
+<text x="772" y="747" font-size="13.5" fill="#334155">Libre</text>
+<text x="60" y="784" font-size="16" font-weight="700" fill="#0f172a">Modes (Hyper ouvre, puis…)</text>
+<text x="60" y="808" font-size="13.5" fill="#334155">Hyper + D  →  mode Move : tape la lettre de l’espace pour y envoyer la fenêtre (Échap annule)</text>
+<text x="60" y="830" font-size="13.5" fill="#334155">Hyper + Tab  →  mode Focus : h j k l = focus gauche / bas / haut / droite</text>
+<text x="60" y="852" font-size="13.5" fill="#334155">Hyper + R  →  mode Resize : h l = largeur ∓ · j k = hauteur ± </text>
+<text x="60" y="874" font-size="13.5" fill="#334155">Hyper + Espace  →  bascule flottant ⇄ pavé · Hyper + ← →  déplace la fenêtre vers l’autre moniteur</text>
+<text x="60" y="922" font-size="16" font-weight="700" fill="#0f172a">Notes</text>
+<text x="60" y="946" font-size="13.5" fill="#334155">Chiffres 1–3 : Hyper inclut ⇧, donc le chiffre est bien émis (pas @ &amp; «).</text>
+<text x="60" y="968" font-size="13.5" fill="#334155">Raycast ×4 : , ; : = lancent 4 commandes Raycast (config Raycast binaire, non détaillée ici).</text>
+<text x="60" y="990" font-size="13.5" fill="#334155">Hors-Hyper : un appui sur ⌥ (gauche ou droite) déclenche la dictée Handy (⌃⌥⌘D).</text>
+<text x="60" y="1012" font-size="13.5" fill="#334155">Apps dont la touche n’est pas l’initiale : B→Safari (Browser), M→Superhuman (Mail), Y→Kaset (YouTube), A→Notion Calendar (Agenda), V→Google Chat.</text>
+</svg>
