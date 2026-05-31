@@ -107,8 +107,15 @@ local function update_spaces(focused_hint)
         end
 
         if is_active and spaces[ws_name] then
+          -- AeroSpace briefly keeps listing a window whose app was just quit
+          -- (its model lags ~0.5s). Filter to windows whose owning PID is
+          -- still alive, so the label is correct immediately — no timing guess.
+          local list_cmd = "aerospace list-windows --workspace " .. ws_name
+            .. " --format '%{app-pid}|%{app-name}'"
+            .. " | while IFS='|' read -r pid name; do"
+            .. " kill -0 \"$pid\" 2>/dev/null && echo \"$name\"; done"
           sbar.exec(
-            "aerospace list-windows --workspace " .. ws_name .. " --format '%{app-name}'",
+            list_cmd,
             function(windows)
               local icon_line = ""
               local no_app = true
@@ -168,15 +175,10 @@ end)
 -- Refresh the per-workspace app list when the frontmost app changes.
 -- AeroSpace emits no "window closed" event, so quitting a floating app
 -- (e.g. ⌘Q on System Settings) wouldn't otherwise update the label — but
--- it does change the front app, which fires front_app_switched.
--- The immediate update catches already-settled changes; the deferred one
--- handles the race where AeroSpace still lists a just-quit/opened window
--- for ~0.5s after the front-app switch fires.
+-- it does change the front app, which fires front_app_switched. The dead-PID
+-- filter in update_spaces makes the just-quit app drop out immediately.
 space_listener:subscribe("front_app_switched", function()
   update_spaces()
-  sbar.exec("sleep 0.6", function()
-    update_spaces()
-  end)
 end)
 
 -- Initial update
