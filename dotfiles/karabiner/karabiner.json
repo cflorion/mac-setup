@@ -42,6 +42,43 @@
                         ]
                     },
                     {
+                        "description": "Hyper+, ; : = → Raycast ⌃⌥⌘ (strip Shift)",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "m",
+                                    "modifiers": { "mandatory": ["left_command", "left_control", "left_option", "left_shift"] }
+                                },
+                                "to": [{ "key_code": "m", "modifiers": ["left_control", "left_option", "left_command"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "comma",
+                                    "modifiers": { "mandatory": ["left_command", "left_control", "left_option", "left_shift"] }
+                                },
+                                "to": [{ "key_code": "comma", "modifiers": ["left_control", "left_option", "left_command"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "period",
+                                    "modifiers": { "mandatory": ["left_command", "left_control", "left_option", "left_shift"] }
+                                },
+                                "to": [{ "key_code": "period", "modifiers": ["left_control", "left_option", "left_command"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "slash",
+                                    "modifiers": { "mandatory": ["left_command", "left_control", "left_option", "left_shift"] }
+                                },
+                                "to": [{ "key_code": "slash", "modifiers": ["left_control", "left_option", "left_command"] }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "CapsLock → Hyper (Cmd+Ctrl+Opt+Shift) / tap → Escape",
                         "manipulators": [
                             {
