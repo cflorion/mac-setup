@@ -6,7 +6,6 @@ WORKSPACE_ORDER=(C W S M N G V P O T I Y X B E 1 2 3)
 
 CURRENT=$(aerospace list-workspaces --focused | tr -d '[:space:]')
 
-# Two calls instead of 17: covers both regular workspaces and Chrome PWAs
 ALL_OCCUPIED=$(
     aerospace list-workspaces --monitor all --empty no 2>/dev/null
     aerospace list-windows --all --format '%{workspace}' 2>/dev/null
@@ -14,7 +13,7 @@ ALL_OCCUPIED=$(
 
 ORDERED=()
 for ws in "${WORKSPACE_ORDER[@]}"; do
-    if [[ "$ws" == "$CURRENT" ]] || echo "$ALL_OCCUPIED" | grep -qx "$ws"; then
+    if [[ "$ws" == "$CURRENT" ]] || [[ $'\n'"$ALL_OCCUPIED"$'\n' == *$'\n'"$ws"$'\n'* ]]; then
         ORDERED+=("$ws")
     fi
 done
@@ -33,8 +32,6 @@ else
     TARGET=${ORDERED[$(( (CURRENT_IDX - 1 + COUNT) % COUNT ))]}
 fi
 
-# Pre-highlight the target in SketchyBar before the actual switch (~400ms)
-# spaces.lua reads FOCUSED_WORKSPACE from the event env to skip its own AeroSpace query
 sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$TARGET" PREV_WORKSPACE="$CURRENT"
 
 aerospace workspace "$TARGET"
