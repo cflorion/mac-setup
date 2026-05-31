@@ -8,41 +8,51 @@ sbar.add("event", "aerospace_workspace_change")
 
 local spaces = {}
 
--- W=WezTerm, M=Superhuman (MailPro), S=Slack, G=Gemini, C=Google Chat, L=Linear, O=Obsidian
--- T=TickTick, A=Notion Calendar (Agenda), Y=Kaset/YouTube Music, H=Helium (Browser), B=Safari (Browser)
--- Répartis selon le côté de l'encoche : apps à gauche / apps à droite
-local left_names  = { "W", "M", "S", "C", "L", "O", "T", "A", "H" }
-local right_names = { "B", "G", "Y", "1", "2", "3" }
-
--- Remappage des noms d'app affichés dans le label (nom AeroSpace -> nom affiché)
-local display_names = {
-  ["Google Chat"] = "Chat",
-  ["Notion Calendar"] = "Agenda",
-  ["Kaset"] = "YT Music",
-  ["Superhuman"] = "Mail Pro",
-  ["Safari"] = "B-Safari",
+-- Source unique de vérité pour les workspaces, dans l'ordre d'affichage.
+--   key   = nom du workspace AeroSpace (= raccourci Hyper)
+--   app   = nom d'app tel que rapporté par `aerospace list-windows` (nil = workspace libre)
+--   label = texte affiché dans SketchyBar
+--   side  = côté de l'encoche (gauche / droite)
+-- Tout le reste (left_names, right_names, display_names, workspace_labels) en est dérivé.
+local workspace_defs = {
+  { key = "W", app = "WezTerm",         label = "WezTerm",  side = "left" },
+  { key = "M", app = "Superhuman",      label = "Mail Pro", side = "left" },
+  { key = "S", app = "Slack",           label = "Slack",    side = "left" },
+  { key = "C", app = "Google Chat",     label = "Chat",     side = "left" },
+  { key = "L", app = "Linear",          label = "Linear",   side = "left" },
+  { key = "O", app = "Obsidian",        label = "Obsidian", side = "left" },
+  { key = "T", app = "TickTick",        label = "TickTick", side = "left" },
+  { key = "A", app = "Notion Calendar", label = "Agenda",   side = "left" },
+  { key = "H", app = "Helium",          label = "Helium",   side = "left" },
+  { key = "B", app = "Safari",          label = "B-Safari", side = "right" },
+  { key = "G", app = "Gemini",          label = "Gemini",   side = "right" },
+  { key = "Y", app = "Kaset",           label = "YT Music", side = "right" },
+  { key = "1", side = "right" },
+  { key = "2", side = "right" },
+  { key = "3", side = "right" },
 }
 
--- Nom d'app affiché par workspace, même quand l'app n'est pas ouverte.
--- Les workspaces absents (1/2/3) retombent sur leur lettre/chiffre.
-local workspace_labels = {
-  W = "WezTerm",
-  M = "Mail Pro",
-  S = "Slack",
-  C = "Chat",
-  L = "Linear",
-  O = "Obsidian",
-  T = "TickTick",
-  A = "Agenda",
-  H = "Helium",
-  B = "B-Safari",
-  G = "Gemini",
-  Y = "YT Music",
-}
-
+-- Dérivés de workspace_defs :
+--   left_names / right_names : ordre des items par côté de l'encoche
+--   display_names            : nom d'app AeroSpace -> label (app ouverte)
+--   workspace_labels         : key -> label (fallback quand l'app est fermée)
+local left_names, right_names = {}, {}
+local display_names, workspace_labels = {}, {}
 local workspace_names = {}
-for _, ws in ipairs(left_names)  do workspace_names[#workspace_names + 1] = ws end
-for _, ws in ipairs(right_names) do workspace_names[#workspace_names + 1] = ws end
+for _, def in ipairs(workspace_defs) do
+  if def.side == "right" then
+    right_names[#right_names + 1] = def.key
+  else
+    left_names[#left_names + 1] = def.key
+  end
+  workspace_names[#workspace_names + 1] = def.key
+  if def.label then
+    workspace_labels[def.key] = def.label
+    if def.app then
+      display_names[def.app] = def.label
+    end
+  end
+end
 
 local function create_space(ws_name, position)
   local space = sbar.add("item", "space." .. ws_name, {
