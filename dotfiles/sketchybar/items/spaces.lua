@@ -9,8 +9,8 @@ sbar.add("event", "aerospace_workspace_change")
 local spaces = {}
 
 -- All possible AeroSpace workspaces
--- C=Claude, W=WezTerm, S=Safari, M=Superhuman, N=Slack, G=Google Chat, P=Linear (Project), O=Obsidian, T=TickTick, I=Notion Calendar, Y=Kaset/YouTube Music, X=Google Chrome, B=Helium (Browser)
-local workspace_names = { "C", "W", "S", "M", "N", "G", "P", "O", "T", "I", "Y", "X", "B", "1", "2", "3" }
+-- C=Claude, W=WezTerm, S=Safari, M=Superhuman, N=Slack, G=Gemini, V=Google Chat, P=Linear (Project), O=Obsidian, T=TickTick, I=Notion Calendar, Y=Kaset/YouTube Music, X=Google Chrome, B=Helium (Browser), E=Apple Mail (Email)
+local workspace_names = { "C", "W", "S", "M", "N", "G", "V", "P", "O", "T", "I", "Y", "X", "B", "E", "1", "2", "3" }
 
 for _, ws_name in ipairs(workspace_names) do
   local space = sbar.add("item", "space." .. ws_name, {
@@ -53,13 +53,10 @@ for _, ws_name in ipairs(workspace_names) do
   end)
 end
 
--- Update which workspaces are visible and which is focused
-local function update_spaces()
-  -- Get focused workspace
-  sbar.exec("aerospace list-workspaces --focused", function(focused_ws)
-    focused_ws = focused_ws:gsub("%s+", "")
-
-    -- Get all workspaces with windows
+-- Update which workspaces are visible and which is focused.
+-- focused_hint: if provided, skips the AeroSpace query for instant pre-highlighting.
+local function update_spaces(focused_hint)
+  local function apply(focused_ws)
     sbar.exec("aerospace list-workspaces --monitor all --empty no", function(active_workspaces)
       local active_set = {}
       for ws in active_workspaces:gmatch("[^\r\n]+") do
@@ -74,7 +71,6 @@ local function update_spaces()
         local is_active = active_set[ws_name] == true
         local is_focused = ws_name == focused_ws
 
-        -- Show/hide workspace with underline on focused
         if spaces[ws_name] then
           spaces[ws_name]:set({
             drawing = is_active,
@@ -86,7 +82,6 @@ local function update_spaces()
           })
         end
 
-        -- Show app icons in workspace label
         if is_active and spaces[ws_name] then
           sbar.exec(
             "aerospace list-windows --workspace " .. ws_name .. " --format '%{app-name}'",
@@ -112,20 +107,36 @@ local function update_spaces()
           )
         end
 
-        -- Update padding visibility to match space
         sbar.set("space.padding." .. ws_name, { drawing = is_active })
       end
     end)
-  end)
+  end
+
+  if focused_hint and focused_hint ~= "" then
+    apply(focused_hint)
+  else
+    sbar.exec("aerospace list-workspaces --focused", function(focused_ws)
+      apply(focused_ws:gsub("%s+", ""))
+    end)
+  end
 end
 
--- Subscribe to aerospace workspace changes
+-- Subscribe to aerospace workspace changes.
+-- When FOCUSED_WORKSPACE is set in the event env (sent by the cycle script before
+-- the actual switch), use it directly to pre-highlight without an extra AeroSpace query.
 local space_listener = sbar.add("item", {
   drawing = false,
   updates = true,
 })
 
-space_listener:subscribe("aerospace_workspace_change", update_spaces)
+space_listener:subscribe("aerospace_workspace_change", function(env)
+  local hint = env and env.FOCUSED_WORKSPACE
+  if hint and hint:match("%S") then
+    update_spaces(hint:gsub("%s+", ""))
+  else
+    update_spaces()
+  end
+end)
 
 -- Also update on front_app_switched (window opened/closed may change workspace state)
 space_listener:subscribe("front_app_switched", update_spaces)
