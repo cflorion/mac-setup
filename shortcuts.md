@@ -20,7 +20,7 @@
 ### Navigation fenêtres
 | Raccourci | Action |
 |---|---|
-| Hyper+H/J/K/L | Focus fenêtre gauche/bas/haut/droite |
+| Hyper+Tab | Mode focus (puis H/J/K/L, Esc pour quitter) |
 | Hyper+← / → | Déplacer fenêtre vers moniteur gauche/droit |
 
 ### Layout
@@ -45,8 +45,7 @@
 | Hyper+C | Claude |
 | Hyper+W | WezTerm |
 | Hyper+S | Safari |
-| Hyper+X | Google Chrome |
-| Hyper+B | Helium |
+| Hyper+H | Helium |
 | Hyper+M | Superhuman |
 | Hyper+E | Mail |
 | Hyper+N | Slack |

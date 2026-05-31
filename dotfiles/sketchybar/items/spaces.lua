@@ -9,9 +9,9 @@ sbar.add("event", "aerospace_workspace_change")
 local spaces = {}
 
 -- C=Claude, W=WezTerm, S=Safari, M=Superhuman, N=Slack, G=Gemini, V=Google Chat, P=Linear (Project), O=Obsidian
--- T=TickTick, I=Notion Calendar, Y=Kaset/YouTube Music, X=Google Chrome, H=Helium (Browser), E=Apple Mail
+-- T=TickTick, I=Notion Calendar, Y=Kaset/YouTube Music, H=Helium (Browser), E=Apple Mail
 local left_names  = { "C", "W", "S", "M", "N", "G", "V", "P", "O" }
-local right_names = { "T", "I", "Y", "X", "H", "E", "1", "2", "3" }
+local right_names = { "T", "I", "Y", "H", "E", "1", "2", "3" }
 
 local workspace_names = {}
 for _, ws in ipairs(left_names)  do workspace_names[#workspace_names + 1] = ws end
