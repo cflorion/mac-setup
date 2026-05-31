@@ -87,7 +87,7 @@ config.unix_domains = {
 config.color_scheme = scheme_for_appearance(get_appearance())
 
 config.font = wezterm.font('JetBrainsMono Nerd Font', { weight = 'Regular' })
-config.font_size = 13.5
+config.font_size = 14.5
 config.line_height = 1.2
 
 -- Window
@@ -184,15 +184,11 @@ wezterm.on('format-tab-title', function(tab, _tabs, _panes, _cfg, _hover, max_wi
     }
   end
 
-  -- Inactive: number + title dim, icon full contrast
+  -- Inactive: everything dim
   return {
     { Background = { Color = bar_bg } },
     { Foreground = { Color = inactive_fg } },
-    { Text = '  ' .. num .. ' ' },
-    { Foreground = { Color = pill_bg } },
-    { Text = icon .. '  ' },
-    { Foreground = { Color = inactive_fg } },
-    { Text = title .. '  ' },
+    { Text = '  ' .. num .. ' ' .. icon .. '  ' .. title .. '  ' },
   }
 end)
 
@@ -232,6 +228,8 @@ config.keys = {
   -- -------------------------------------------------------------------------
   { key = 't', mods = 'SUPER',       action = act.SpawnTab 'CurrentPaneDomain' },
   { key = 'w', mods = 'SUPER',       action = act.CloseCurrentTab { confirm = false } },
+  { key = 'LeftArrow',  mods = 'SUPER', action = act.ActivateTabRelative(-1) },
+  { key = 'RightArrow', mods = 'SUPER', action = act.ActivateTabRelative(1) },
   { key = '1', mods = 'SUPER',       action = act.ActivateTab(0) },
   { key = '2', mods = 'SUPER',       action = act.ActivateTab(1) },
   { key = '3', mods = 'SUPER',       action = act.ActivateTab(2) },
