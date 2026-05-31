@@ -16,12 +16,14 @@
                                     "key_code": "right_option",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "key_code": "right_option" }],
                                 "to_if_alone": [
                                     {
                                         "key_code": "d",
                                         "modifiers": ["left_control", "left_option", "left_command"]
                                     }
+                                ],
+                                "to": [
+                                    { "key_code": "right_option" }
                                 ],
                                 "type": "basic"
                             },
@@ -30,22 +32,24 @@
                                     "key_code": "left_option",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "key_code": "left_option" }],
                                 "to_if_alone": [
                                     {
                                         "key_code": "d",
                                         "modifiers": ["left_control", "left_option", "left_command"]
                                     }
                                 ],
+                                "to": [
+                                    { "key_code": "left_option" }
+                                ],
                                 "type": "basic"
                             }
                         ]
                     },
                     {
-                        "description": "CapsLock → Hyper (Cmd+Ctrl+Opt+Shift) / tap → Escape",
+                        "description": "CapsLock → Hyper (Cmd+Ctrl+Opt+Shift) / tap → Caps Lock",
                         "manipulators": [
                             {
-                                "description": "CapsLock held → Hyper, tap → Escape",
+                                "description": "CapsLock held → Hyper, tap → Caps Lock",
                                 "from": {
                                     "key_code": "caps_lock",
                                     "modifiers": { "optional": ["any"] }
@@ -56,7 +60,7 @@
                                         "modifiers": ["left_command", "left_control", "left_option"]
                                     }
                                 ],
-                                "to_if_alone": [{ "key_code": "escape" }],
+                                "to_if_alone": [{ "shell_command": "touch /tmp/karabiner_test && osascript -e 'tell application \"System Events\" to key code 57'" }],
                                 "type": "basic"
                             }
                         ]
