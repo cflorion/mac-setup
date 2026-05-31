@@ -64,7 +64,7 @@
 | Hyper+, | Search Menu Bar Items |
 | Hyper+; | Toggle System Appearance |
 | Hyper+: | Search Emoji & Symbols |
-| Hyper+^ | Clipboard History |
+| Hyper+= | Clipboard History |
 
 ---
 
