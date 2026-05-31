@@ -23,6 +23,23 @@ local display_names = {
   ["Safari"] = "B-Safari",
 }
 
+-- Nom d'app affiché par workspace, même quand l'app n'est pas ouverte.
+-- Les workspaces absents (1/2/3) retombent sur leur lettre/chiffre.
+local workspace_labels = {
+  W = "WezTerm",
+  M = "Mail Pro",
+  S = "Slack",
+  C = "Chat",
+  L = "Linear",
+  O = "Obsidian",
+  T = "TickTick",
+  A = "Agenda",
+  H = "Helium",
+  B = "B-Safari",
+  G = "Gemini",
+  Y = "YT Music",
+}
+
 local workspace_names = {}
 for _, ws in ipairs(left_names)  do workspace_names[#workspace_names + 1] = ws end
 for _, ws in ipairs(right_names) do workspace_names[#workspace_names + 1] = ws end
@@ -132,13 +149,13 @@ local function update_spaces(focused_hint)
                 end
               end
               if no_app then
-                icon_line = "—"
+                icon_line = workspace_labels[ws_name] or ws_name
               end
               spaces[ws_name]:set({ label = icon_line })
             end
           )
         else
-          spaces[ws_name]:set({ label = ws_name })
+          spaces[ws_name]:set({ label = workspace_labels[ws_name] or ws_name })
         end
 
         sbar.set("space.padding." .. ws_name, { drawing = true })
