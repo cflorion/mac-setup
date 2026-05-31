@@ -161,11 +161,11 @@ local function tab_title(tab)
   return pane.title or 'shell'
 end
 
--- Pure monochrome both modes — e-paper friendly, perfect mirror.
 local bar_bg      = is_dark and '#000000' or '#ffffff'
 local pill_bg     = is_dark and '#ffffff' or '#000000'
 local pill_fg     = is_dark and '#000000' or '#ffffff'
 local inactive_fg = is_dark and '#888888' or '#666666'
+local accent      = is_dark and '#cba6f7' or '#7c3aed' -- Catppuccin mauve
 
 wezterm.on('format-tab-title', function(tab, _tabs, _panes, _cfg, _hover, max_width)
   local title = tab_title(tab)
@@ -180,7 +180,7 @@ wezterm.on('format-tab-title', function(tab, _tabs, _panes, _cfg, _hover, max_wi
       { Background = { Color = bar_bg } },
       { Foreground = { Color = pill_bg } },
       { Attribute = { Intensity = 'Bold' } },
-      { Text = '  ' .. num .. ' ' .. icon .. '  ' .. title .. '  ' },
+      { Text = ' ▍' .. num .. ' ' .. icon .. '  ' .. title .. '  ' },
     }
   end
 
