@@ -198,11 +198,14 @@ end)
 
 wezterm.on('update-right-status', function(window, pane)
   local workspace = window:active_workspace()
-  local date = wezterm.strftime '%H:%M'
+  if workspace == 'default' then
+    window:set_right_status ''
+    return
+  end
   local fg = is_dark and '#6c7086' or '#6172b0'
   window:set_right_status(wezterm.format {
     { Foreground = { Color = fg } },
-    { Text = ' ' .. workspace .. '  ' .. date .. ' ' },
+    { Text = ' ' .. workspace .. ' ' },
   })
 end)
 
