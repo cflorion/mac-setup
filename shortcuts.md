@@ -26,7 +26,6 @@
 ### Layout
 | Raccourci | Action |
 |---|---|
-| Hyper+, | Tiles horizontal ↔ vertical |
 | Hyper+. | Tiles vertical ↔ horizontal |
 | Hyper+F | Plein écran |
 | Hyper+Space | Floating ↔ Tiling |

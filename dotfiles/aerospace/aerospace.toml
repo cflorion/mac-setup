@@ -54,7 +54,6 @@ semicolon = 'comma'
 cmd-ctrl-alt-shift-tab = 'mode focus'
 
 # Layout
-cmd-ctrl-alt-shift-comma = 'layout tiles horizontal vertical'
 cmd-ctrl-alt-shift-period = 'layout tiles vertical horizontal'
 cmd-ctrl-alt-shift-f = 'fullscreen'
 cmd-ctrl-alt-shift-space = 'layout floating tiling'
