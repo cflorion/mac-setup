@@ -63,10 +63,10 @@
 
 | Raccourci | Action |
 |---|---|
-| Hyper+) | Clipboard History |
-| Ctrl+^ | Search Emoji & Symbols |
-| Hyper+$ | Search Menu Bar Items |
-| Hyper+Ù | Toggle System Appearance |
+| Hyper+, | Search Menu Bar Items |
+| Hyper+; | Toggle System Appearance |
+| Hyper+: | Search Emoji & Symbols |
+| Hyper+= | Clipboard History |
 
 ---
 
