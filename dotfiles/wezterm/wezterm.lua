@@ -88,6 +88,7 @@ config.color_scheme = scheme_for_appearance(get_appearance())
 
 config.font = wezterm.font('JetBrainsMono Nerd Font', { weight = 'Regular' })
 config.font_size = 13.5
+config.line_height = 1.2
 
 -- Window
 config.window_decorations = 'RESIZE' -- no macOS title bar
@@ -114,7 +115,7 @@ config.enable_tab_bar = true
 config.use_fancy_tab_bar = false -- retro: no per-tab close button
 config.tab_bar_at_bottom = true
 config.hide_tab_bar_if_only_one_tab = true
-config.tab_max_width = 32
+config.tab_max_width = 42
 config.show_tab_index_in_tab_bar = true
 config.show_new_tab_button_in_tab_bar = false
 
@@ -169,30 +170,27 @@ local inactive_fg = is_dark and '#888888' or '#666666'
 wezterm.on('format-tab-title', function(tab, _tabs, _panes, _cfg, _hover, max_width)
   local title = tab_title(tab)
   local icon = tab_icon(tab.active_pane)
-  if #title > max_width - 6 then
-    title = title:sub(1, max_width - 7) .. '…'
+  local num = tostring(tab.tab_index + 1)
+  if #title > max_width - 8 then
+    title = title:sub(1, max_width - 9) .. '…'
   end
 
   if tab.is_active then
     return {
       { Background = { Color = bar_bg } },
       { Foreground = { Color = pill_bg } },
-      { Text = '' }, -- rounded left cap
-      { Background = { Color = pill_bg } },
-      { Foreground = { Color = pill_fg } },
       { Attribute = { Intensity = 'Bold' } },
-      { Text = ' ' .. icon .. '  ' .. title .. ' ' },
-      { Background = { Color = bar_bg } },
-      { Foreground = { Color = pill_bg } },
-      { Text = '' }, -- rounded right cap
+      { Text = '  ' .. num .. ' ' .. icon .. '  ' .. title .. '  ' },
     }
   end
 
-  -- Inactive: icon in accent color (pops), title dim
+  -- Inactive: number + title dim, icon full contrast
   return {
     { Background = { Color = bar_bg } },
+    { Foreground = { Color = inactive_fg } },
+    { Text = '  ' .. num .. ' ' },
     { Foreground = { Color = pill_bg } },
-    { Text = '  ' .. icon .. '  ' },
+    { Text = icon .. '  ' },
     { Foreground = { Color = inactive_fg } },
     { Text = title .. '  ' },
   }
