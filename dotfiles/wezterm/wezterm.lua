@@ -215,7 +215,6 @@ end)
 -- Disable default keybindings and define our own
 config.disable_default_key_bindings = true
 
-config.leader = { key = 'Space', mods = 'CTRL', timeout_milliseconds = 1000 }
 
 config.keys = {
 
@@ -249,20 +248,11 @@ config.keys = {
       end),
     },
   },
-  { key = 'r', mods = 'LEADER',      action = act.PromptInputLine {
-      description = 'Rename tab:',
-      action = wezterm.action_callback(function(window, _, line)
-        if line then window:active_tab():set_title(line) end
-      end),
-    },
-  },
-
   -- -------------------------------------------------------------------------
   -- Panes / Splits
   -- -------------------------------------------------------------------------
-  -- Split
-  { key = '\\', mods = 'LEADER',     action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
-  { key = '-',  mods = 'LEADER',     action = act.SplitVertical   { domain = 'CurrentPaneDomain' } },
+  { key = 'd', mods = 'SUPER',       action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
+  { key = 'd', mods = 'SUPER|SHIFT', action = act.SplitVertical   { domain = 'CurrentPaneDomain' } },
 
   -- Navigate panes (vim-style)
   { key = 'h', mods = 'CTRL',        action = act.ActivatePaneDirection 'Left' },
@@ -276,16 +266,14 @@ config.keys = {
   { key = 'k', mods = 'CTRL|SHIFT',  action = act.AdjustPaneSize { 'Up',    5 } },
   { key = 'l', mods = 'CTRL|SHIFT',  action = act.AdjustPaneSize { 'Right', 5 } },
 
-  -- Zoom pane (toggle fullscreen for a single pane)
-  { key = 'z', mods = 'LEADER',      action = act.TogglePaneZoomState },
-
-  -- Close pane
-  { key = 'x', mods = 'LEADER',      action = act.CloseCurrentPane { confirm = false } },
+  -- Zoom / close pane
+  { key = 'z', mods = 'SUPER|SHIFT', action = act.TogglePaneZoomState },
+  { key = 'w', mods = 'SUPER|SHIFT', action = act.CloseCurrentPane { confirm = false } },
 
   -- -------------------------------------------------------------------------
   -- Copy mode (vim-style)
   -- -------------------------------------------------------------------------
-  { key = '[', mods = 'LEADER',      action = act.ActivateCopyMode },
+  { key = 'x', mods = 'SUPER|SHIFT', action = act.ActivateCopyMode },
 
   -- -------------------------------------------------------------------------
   -- Font size
@@ -302,9 +290,11 @@ config.keys = {
   { key = 'f', mods = 'SUPER',       action = act.Search { CaseSensitiveString = '' } },
   { key = 'p', mods = 'SUPER',       action = act.ActivateCommandPalette },
 
-  -- Workspaces (mux)
-  { key = 's', mods = 'LEADER',      action = act.ShowLauncherArgs { flags = 'WORKSPACES' } },
-  { key = 'n', mods = 'LEADER',      action = act.PromptInputLine {
+  -- -------------------------------------------------------------------------
+  -- Workspaces
+  -- -------------------------------------------------------------------------
+  { key = 's', mods = 'SUPER|SHIFT', action = act.ShowLauncherArgs { flags = 'WORKSPACES' } },
+  { key = 'n', mods = 'SUPER|SHIFT', action = act.PromptInputLine {
       description = 'New workspace name:',
       action = wezterm.action_callback(function(window, pane, line)
         if line then
@@ -313,7 +303,8 @@ config.keys = {
       end),
     },
   },
-  { key = 'Tab', mods = 'LEADER',    action = act.SwitchWorkspaceRelative(1) },
+  { key = '[', mods = 'SUPER|SHIFT', action = act.SwitchWorkspaceRelative(-1) },
+  { key = ']', mods = 'SUPER|SHIFT', action = act.SwitchWorkspaceRelative(1) },
 }
 
 -- Copy mode: vim keybindings
