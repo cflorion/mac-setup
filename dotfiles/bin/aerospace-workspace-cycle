@@ -2,7 +2,7 @@
 set -euo pipefail
 
 DIRECTION="${1:-next}"
-WORKSPACE_ORDER=(C W S M N G V P O T I Y X B E 1 2 3)
+WORKSPACE_ORDER=(W M S C L O T A H B G Y 1 2 3)
 
 CURRENT=$(aerospace list-workspaces --focused | tr -d '[:space:]')
 

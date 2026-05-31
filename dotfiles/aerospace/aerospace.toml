@@ -79,13 +79,12 @@ cmd-ctrl-alt-shift-r = 'mode resize'
 # ----------------------------
 
 # Switch to workspace (finds app window wherever it is) or launch app (on-window-detected handles workspace)
-cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C com.anthropic.claudefordesktop Claude'
 cmd-ctrl-alt-shift-w = 'exec-and-forget aerospace-focus-or-open W com.github.wez.wezterm WezTerm'
 cmd-ctrl-alt-shift-b = 'exec-and-forget aerospace-focus-or-open B com.apple.Safari Safari'
 cmd-ctrl-alt-shift-m = 'exec-and-forget aerospace-focus-or-open M com.superhuman.electron Superhuman'
 cmd-ctrl-alt-shift-s = 'exec-and-forget aerospace-focus-or-open S com.tinyspeck.slackmacgap Slack'
 cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.google.GeminiMacOS Gemini'
-cmd-ctrl-alt-shift-v = 'exec-and-forget aerospace-focus-or-open V com.google.Chrome.app.pommaclcbfghclhalboakcipcmmndhcj "$HOME/Applications/Chrome Apps.localized/Google Chat.app"'
+cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C com.google.Chrome.app.pommaclcbfghclhalboakcipcmmndhcj "$HOME/Applications/Chrome Apps.localized/Google Chat.app"'
 cmd-ctrl-alt-shift-o = 'exec-and-forget aerospace-focus-or-open O md.obsidian Obsidian'
 cmd-ctrl-alt-shift-t = 'exec-and-forget aerospace-focus-or-open T com.TickTick.task.mac TickTick'
 cmd-ctrl-alt-shift-a = 'exec-and-forget aerospace-focus-or-open A com.cron.electron "Notion Calendar"'
@@ -105,13 +104,12 @@ cmd-ctrl-alt-shift-d = 'mode move'
 # Enter: hyper+d, then type the workspace key
 # ----------------------------
 [mode.move.binding]
-c = ['move-node-to-workspace C --focus-follows-window', 'mode main']
 w = ['move-node-to-workspace W --focus-follows-window', 'mode main']
 s = ['move-node-to-workspace S --focus-follows-window', 'mode main']
 m = ['move-node-to-workspace M --focus-follows-window', 'mode main']
 b = ['move-node-to-workspace B --focus-follows-window', 'mode main']
 g = ['move-node-to-workspace G --focus-follows-window', 'mode main']
-v = ['move-node-to-workspace V --focus-follows-window', 'mode main']
+c = ['move-node-to-workspace C --focus-follows-window', 'mode main']
 l = ['move-node-to-workspace L --focus-follows-window', 'mode main']
 o = ['move-node-to-workspace O --focus-follows-window', 'mode main']
 t = ['move-node-to-workspace T --focus-follows-window', 'mode main']
@@ -158,11 +156,6 @@ esc = 'mode main'
 # Window rules: assign apps to workspaces
 # ----------------------------
 
-# AI - Claude (C)
-[[on-window-detected]]
-if.app-id = 'com.anthropic.claudefordesktop'
-run = ['move-node-to-workspace C', 'workspace C']
-
 # Terminal - WezTerm (W)
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
@@ -188,10 +181,10 @@ run = ['move-node-to-workspace S', 'workspace S']
 if.app-id = 'com.google.GeminiMacOS'
 run = ['move-node-to-workspace G', 'workspace G']
 
-# Google Chat PWA (V) — Chrome PWA
+# Google Chat PWA (C) — Chrome PWA
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome.app.pommaclcbfghclhalboakcipcmmndhcj'
-run = ['move-node-to-workspace V', 'workspace V']
+run = ['move-node-to-workspace C', 'workspace C']
 
 # Issue Tracking - Linear (L)
 [[on-window-detected]]

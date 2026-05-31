@@ -8,15 +8,15 @@ sbar.add("event", "aerospace_workspace_change")
 
 local spaces = {}
 
--- C=Claude, W=WezTerm, M=Superhuman (MailPro), S=Slack, G=Gemini, V=Google Chat, L=Linear, O=Obsidian
+-- W=WezTerm, M=Superhuman (MailPro), S=Slack, G=Gemini, C=Google Chat, L=Linear, O=Obsidian
 -- T=TickTick, A=Notion Calendar (Agenda), Y=Kaset/YouTube Music, H=Helium (Browser), B=Safari (Browser)
 -- Répartis selon le côté de l'encoche : apps à gauche / apps à droite
-local left_names  = { "C", "W", "M", "S", "V", "L", "O", "T", "A", "H" }
+local left_names  = { "W", "M", "S", "C", "L", "O", "T", "A", "H" }
 local right_names = { "B", "G", "Y", "1", "2", "3" }
 
 -- Remappage des noms d'app affichés dans le label (nom AeroSpace -> nom affiché)
 local display_names = {
-  ["Google Chat"] = "V Chat",
+  ["Google Chat"] = "Chat",
   ["Notion Calendar"] = "Agenda",
   ["Kaset"] = "Y Music",
   ["Superhuman"] = "Mail Pro",
