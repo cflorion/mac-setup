@@ -18,9 +18,9 @@ local right_names = { "B", "G", "Y", "1", "2", "3" }
 local display_names = {
   ["Google Chat"] = "Chat",
   ["Notion Calendar"] = "Agenda",
-  ["Kaset"] = "Y Music",
+  ["Kaset"] = "YT Music",
   ["Superhuman"] = "Mail Pro",
-  ["Safari"] = "B Safari",
+  ["Safari"] = "B-Safari",
 }
 
 local workspace_names = {}
