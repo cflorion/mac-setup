@@ -8,10 +8,20 @@ sbar.add("event", "aerospace_workspace_change")
 
 local spaces = {}
 
--- C=Claude, W=WezTerm, S=Safari, M=Superhuman, N=Slack, G=Gemini, V=Google Chat, P=Linear (Project), O=Obsidian
--- T=TickTick, I=Notion Calendar, Y=Kaset/YouTube Music, H=Helium (Browser), E=Apple Mail
-local left_names  = { "C", "W", "S", "M", "N", "G", "V", "P", "O" }
-local right_names = { "T", "I", "Y", "H", "E", "1", "2", "3" }
+-- C=Claude, W=WezTerm, M=Superhuman (MailPro), S=Slack, G=Gemini, V=Google Chat, L=Linear, O=Obsidian
+-- T=TickTick, A=Notion Calendar (Agenda), Y=Kaset/YouTube Music, H=Helium (Browser), B=Safari (Browser)
+-- Répartis selon le côté de l'encoche : apps à gauche / apps à droite
+local left_names  = { "C", "W", "M", "S", "V", "L", "O", "T", "A", "H" }
+local right_names = { "B", "G", "Y", "1", "2", "3" }
+
+-- Remappage des noms d'app affichés dans le label (nom AeroSpace -> nom affiché)
+local display_names = {
+  ["Google Chat"] = "V Chat",
+  ["Notion Calendar"] = "Agenda",
+  ["Kaset"] = "Y Music",
+  ["Superhuman"] = "Mail Pro",
+  ["Safari"] = "B Safari",
+}
 
 local workspace_names = {}
 for _, ws in ipairs(left_names)  do workspace_names[#workspace_names + 1] = ws end
@@ -27,8 +37,8 @@ local function create_space(ws_name, position)
       padding_right = 0,
     },
     label = {
-      padding_left = 10,
-      padding_right = 10,
+      padding_left = 6,
+      padding_right = 6,
       color = colors.grey,
       highlight_color = colors.white,
       font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 13.0 },
@@ -54,12 +64,12 @@ local function create_space(ws_name, position)
   end)
 end
 
--- Left group: C → O, gauche vers droite
+-- Left group: C → H, gauche vers droite
 for _, ws_name in ipairs(left_names) do
   create_space(ws_name, "left")
 end
 
--- Right group: ajoutés en ordre inverse pour s'afficher T → 3 de gauche à droite
+-- Right group: ajoutés en ordre inverse pour s'afficher B → 3 de gauche à droite
 for i = #right_names, 1, -1 do
   create_space(right_names[i], "right")
 end
@@ -104,6 +114,7 @@ local function update_spaces(focused_hint)
               local no_app = true
               for app in windows:gmatch("[^\r\n]+") do
                 local trimmed_app = app:gsub("^%s+", ""):gsub("%s+$", "")
+                trimmed_app = display_names[trimmed_app] or trimmed_app
                 if trimmed_app ~= "" then
                   no_app = false
                   if icon_line ~= "" then
