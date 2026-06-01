@@ -24,6 +24,7 @@ AZERTY = [
     ("R", "win", "mode Resize", "h j k l"), ("T", "app", "TickTick", ""),
     ("Y", "app", "YouTube", "Kaset"), ("U", "sys", "Homerow", "clic"),
     ("I", "none", "", ""), ("O", "app", "Obsidian", ""), ("P", "none", "", ""),
+    ("^", "win", "Focus", "← gauche"), ("$", "win", "Focus", "droite →"),
 ]
 QSDF = [
     ("Q", "none", "", ""), ("S", "app", "Slack", ""), ("D", "win", "mode Move", "→ lettre"),
@@ -77,7 +78,7 @@ def row(keys, ry, off):
         key(x, ry, cap, cat, l1, l2)
         x += PITCH
 
-W = 1140
+W = 1300
 H = 1052
 
 add(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" '
@@ -129,8 +130,9 @@ for cat, lbl in legend:
 my = PY + 64
 add(f'<text x="{LEFT}" y="{my}" font-size="16" font-weight="700" fill="#0f172a">Modes (Hyper ouvre, puis…)</text>')
 modes = [
+    "Hyper + ^ / $  →  focus fenêtre gauche / droite (touches à droite de P, direct sans mode)",
     "Hyper + D  →  mode Move : tape la lettre de l’espace pour y envoyer la fenêtre (Échap annule)",
-    "Hyper + Tab  →  mode Focus : h j k l = focus gauche / bas / haut / droite",
+    "Hyper + Tab  →  mode Focus (repli, h j k l) — Cmd+Tab est souvent capté par macOS",
     "Hyper + R  →  mode Resize : h l = largeur ∓ · j k = hauteur ± ",
     "Hyper + Espace  →  bascule flottant ⇄ pavé · Hyper + ← →  déplace la fenêtre vers l’autre moniteur",
 ]

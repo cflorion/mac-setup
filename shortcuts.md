@@ -20,7 +20,8 @@
 ### Navigation fenêtres
 | Raccourci | Action |
 |---|---|
-| Hyper+Tab | Mode focus (puis H/J/K/L, Esc pour quitter) |
+| Hyper+^ / $ | Focus fenêtre gauche / droite (touches à droite de P) |
+| Hyper+Tab | Mode focus (puis H/J/K/L, Esc) — *repli, capté par macOS Cmd+Tab* |
 | Hyper+← / → | Déplacer fenêtre vers moniteur gauche/droit |
 
 ### Layout
