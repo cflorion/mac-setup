@@ -74,7 +74,19 @@ local function create_space(ws_name, position)
     },
     padding_right = 1,
     padding_left = 1,
-    background = { drawing = false },
+    -- Active-workspace marker: a thin underline. Color luminance (white vs grey)
+    -- is indistinguishable on a 1-bit text-mode e-paper display, so the focused
+    -- item is flagged by shape instead. colors.white = black in light theme,
+    -- white in dark — so the underline always matches the active text color.
+    -- Toggled per-focus in update_spaces; geometry is set once here.
+    background = {
+      drawing = false,
+      height = 2,
+      corner_radius = 0,
+      border_width = 0,
+      color = colors.white,
+      y_offset = -10,
+    },
     drawing = true,
   })
 
@@ -131,6 +143,7 @@ local function update_spaces(focused_hint)
               highlight = is_focused,
               color = label_color,
             },
+            background = { drawing = is_focused },
           })
         end
 
