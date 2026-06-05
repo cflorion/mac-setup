@@ -95,7 +95,6 @@ cmd-ctrl-alt-shift-down = 'exec-and-forget aerospace-workspace-cycle next'
 cmd-ctrl-alt-shift-r = 'mode resize'
 
 # Service mode (reload config, flatten, close all) — not bound, accessible via CLI: aerospace reload-config
-# cmd-ctrl-alt-shift-v was here but freed for Google Chat (workspace V)
 
 
 # ----------------------------
