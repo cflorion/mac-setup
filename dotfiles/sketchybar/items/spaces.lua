@@ -114,26 +114,28 @@ for i = #right_names, 1, -1 do
   create_space(right_names[i], "right")
 end
 
--- The currently focused workspace. Cached so label refreshes never have to
--- re-query AeroSpace for focus: right after a switch that query lags ~0.5s and
--- returns the PREVIOUS workspace, which would bounce the highlight back (flicker).
+-- The currently focused workspace. Cached so label refreshes never need to
+-- re-query AeroSpace for focus, and so set_focus can early-return on no-ops.
 local current_focus = nil
 
--- Move the focus highlight (bold + underline) to `focused_ws`. Fully synchronous,
--- no subprocess between the event and the :set, so the active item updates
--- instantly. This is the ONLY place that writes icon/label highlight and the
--- underline (background.drawing) — never from an sbar.exec callback or a
--- `--focused` query, so a late-resolving callback can never move the highlight.
+-- Move the focus highlight (bold + underline) to `focused_ws`. The ONLY writer
+-- of icon/label highlight and the underline (background.drawing). It sets EVERY
+-- item explicitly (focused on, all others off) rather than just toggling the
+-- previous and new ones: apply_focus calls this from async exec callbacks that
+-- can interleave under rapid navigation, and "clear only the previous one" would
+-- then leave stale underlines lit. A full idempotent pass is self-correcting —
+-- after it, exactly one item is highlighted, whatever the prior state. Items
+-- already in the right state are not repainted, so there is no flicker.
 local function set_focus(focused_ws)
   if not focused_ws or focused_ws == "" or focused_ws == current_focus then
     return
   end
-  local prev = current_focus
   current_focus = focused_ws
 
-  local function style(ws_name, is_focused)
+  for _, ws_name in ipairs(workspace_names) do
     local space = spaces[ws_name]
     if space then
+      local is_focused = ws_name == focused_ws
       space:set({
         icon = { highlight = is_focused },
         label = { highlight = is_focused, color = is_focused and colors.white or colors.grey },
@@ -141,9 +143,6 @@ local function set_focus(focused_ws)
       })
     end
   end
-
-  if prev then style(prev, false) end
-  style(focused_ws, true)
 end
 
 -- Refresh each workspace's label text (app names for occupied spaces, the
@@ -189,33 +188,32 @@ local function refresh_labels()
   end)
 end
 
--- Subscribe to aerospace workspace changes.
--- When FOCUSED_WORKSPACE is set in the event env (sent by the cycle script before
--- the actual switch), use it directly to pre-highlight without an extra AeroSpace query.
+-- Move the highlight to the authoritative focused workspace, coalescing rapid
+-- calls. The aerospace_workspace_change event stream is noisy under fast
+-- navigation: AeroSpace emits duplicated and out-of-order FOCUSED_WORKSPACE
+-- hints (even backward ones), which, applied verbatim, make the highlight
+-- bounce. So we ignore the event payload and query the real focus instead
+-- (verified to reflect a committed switch immediately). A generation counter
+-- ensures only the most recently requested read is applied — an earlier read
+-- that resolves late is dropped, so the highlight can never jump backward.
+local focus_gen = 0
+local function apply_focus()
+  focus_gen = focus_gen + 1
+  local my_gen = focus_gen
+  sbar.exec("aerospace list-workspaces --focused", function(focused_ws)
+    if my_gen ~= focus_gen then return end
+    set_focus(focused_ws:gsub("%s+", ""))
+    refresh_labels()
+  end)
+end
+
 local space_listener = sbar.add("item", {
   drawing = false,
   updates = true,
 })
 
--- FOCUSED_WORKSPACE is set in the event env by AeroSpace's
--- exec-on-workspace-change hook, which fires after each switch commits in real
--- order. It is an authoritative env var, never a laggy query, so we move the
--- highlight straight from it.
-space_listener:subscribe("aerospace_workspace_change", function(env)
-  local hint = env and env.FOCUSED_WORKSPACE
-  if hint and hint:match("%S") then
-    set_focus(hint:gsub("%s+", ""))
-  elseif not current_focus then
-    -- Cold start with no hint: seed focus once (no switch in flight, so the
-    -- `--focused` query is not subject to the post-switch lag race).
-    sbar.exec("aerospace list-workspaces --focused", function(focused_ws)
-      set_focus(focused_ws:gsub("%s+", ""))
-      refresh_labels()
-    end)
-    return
-  end
-  -- Otherwise trust the cached focus (never re-query mid-transition).
-  refresh_labels()
+space_listener:subscribe("aerospace_workspace_change", function()
+  apply_focus()
 end)
 
 -- Refresh the per-workspace app list when the frontmost app changes.
@@ -223,13 +221,11 @@ end)
 -- (e.g. ⌘Q on System Settings) wouldn't otherwise update the label — but
 -- it does change the front app, which fires front_app_switched. The dead-PID
 -- filter in refresh_labels makes the just-quit app drop out immediately.
--- Labels only: focus is event-driven (set_focus), so it is never re-queried here.
+-- Labels only: focus is handled by apply_focus on workspace-change events, so a
+-- front-app switch must not move the highlight (it would fight that path).
 space_listener:subscribe("front_app_switched", function()
   refresh_labels()
 end)
 
--- Initial render: seed the focus highlight once, then fill in the labels.
-sbar.exec("aerospace list-workspaces --focused", function(focused_ws)
-  set_focus(focused_ws:gsub("%s+", ""))
-  refresh_labels()
-end)
+-- Initial render: highlight the focused workspace and fill in the labels.
+apply_focus()

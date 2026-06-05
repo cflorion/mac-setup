@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Serialize. Hyper+up/down bind this via `exec-and-forget`, which does not wait,
+# so spamming the key fast spawns several copies at once. Concurrent copies all
+# read the same stale focus and issue redundant/backward `aerospace workspace`
+# calls; AeroSpace then fires its workspace-change hooks out of order and the
+# SketchyBar highlight jumps around (the flicker). A single-holder lock makes
+# each press read the freshly-committed focus and advance exactly one step. A
+# press that lands while another copy is in flight is simply dropped — at machine
+# speed you cannot perceive the dropped step, but you would perceive the flicker.
+# Guard on shlock being present: if it ever isn't on PATH, degrade to running
+# without serialization (may flicker) rather than `|| exit 0`-ing every press
+# into a silent no-op, which would kill navigation entirely.
+LOCK="${TMPDIR:-/tmp}/aerospace-workspace-cycle.lock"
+if command -v shlock >/dev/null 2>&1; then
+    shlock -f "$LOCK" -p "$$" || exit 0
+    trap '/bin/rm -f "$LOCK"' EXIT
+fi
+
 DIRECTION="${1:-next}"
 
 # Cycle order = SketchyBar display order. Derive it straight from spaces.lua
@@ -18,10 +35,7 @@ done < <(grep -oE 'key = "[^"]+"' "$SPACES_LUA" | sed -E 's/.*"([^"]+)".*/\1/')
 
 CURRENT=$(aerospace list-workspaces --focused | tr -d '[:space:]')
 
-ALL_OCCUPIED=$(
-    aerospace list-workspaces --monitor all --empty no 2>/dev/null
-    aerospace list-windows --all --format '%{workspace}' 2>/dev/null
-)
+ALL_OCCUPIED=$(aerospace list-workspaces --monitor all --empty no 2>/dev/null)
 
 ORDERED=()
 for ws in "${WORKSPACE_ORDER[@]}"; do
