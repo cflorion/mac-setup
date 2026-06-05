@@ -197,10 +197,10 @@ local space_listener = sbar.add("item", {
   updates = true,
 })
 
--- FOCUSED_WORKSPACE is set in the event env by both the cycle script (sent
--- before the actual switch, for instant feedback) and AeroSpace's
--- exec-on-workspace-change hook. It is an authoritative env var, never a laggy
--- query, so we move the highlight straight from it.
+-- FOCUSED_WORKSPACE is set in the event env by AeroSpace's
+-- exec-on-workspace-change hook, which fires after each switch commits in real
+-- order. It is an authoritative env var, never a laggy query, so we move the
+-- highlight straight from it.
 space_listener:subscribe("aerospace_workspace_change", function(env)
   local hint = env and env.FOCUSED_WORKSPACE
   if hint and hint:match("%S") then

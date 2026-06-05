@@ -44,6 +44,9 @@ else
     TARGET=${ORDERED[$(( (CURRENT_IDX - 1 + COUNT) % COUNT ))]}
 fi
 
-sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$TARGET" PREV_WORKSPACE="$CURRENT"
-
+# NB: do not pre-trigger sketchybar with TARGET here. AeroSpace's
+# exec-on-workspace-change hook fires the highlight after the switch actually
+# commits, in real commit order. A predicted pre-highlight races ahead of those
+# events and, on rapid navigation, a late hook for an earlier switch yanks the
+# highlight backward (next → previous → next flicker). Let the hook drive it.
 aerospace workspace "$TARGET"
