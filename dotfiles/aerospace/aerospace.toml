@@ -29,6 +29,7 @@ after-startup-command = [
     'exec-and-forget open -g -b com.apple.Safari',                                # B Safari
     'exec-and-forget open -g -b com.google.GeminiMacOS',                          # G Gemini
     'exec-and-forget open -g -b com.sertacozercan.Kaset',                         # Y YT Music (Kaset)
+    'exec-and-forget open -g "$HOME/Applications/Chromium Apps.localized/Google Meet.app"',  # V Meet
 ]
 
 # Normalizations (recommended defaults)
@@ -116,6 +117,8 @@ cmd-ctrl-alt-shift-a = 'exec-and-forget aerospace-focus-or-open A com.cron.elect
 cmd-ctrl-alt-shift-l = 'exec-and-forget aerospace-focus-or-open L com.linear Linear'
 cmd-ctrl-alt-shift-y = 'exec-and-forget aerospace-focus-or-open Y com.sertacozercan.Kaset Kaset'
 cmd-ctrl-alt-shift-h = 'exec-and-forget aerospace-focus-or-open H net.imput.helium Helium'
+
+cmd-ctrl-alt-shift-v = 'exec-and-forget aerospace-focus-or-open V net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan "$HOME/Applications/Chromium Apps.localized/Google Meet.app"'
 # Free workspaces (1-3)
 cmd-ctrl-alt-shift-1 = 'workspace 1'
 cmd-ctrl-alt-shift-2 = 'workspace 2'
@@ -141,6 +144,7 @@ t = ['move-node-to-workspace T --focus-follows-window', 'mode main']
 a = ['move-node-to-workspace A --focus-follows-window', 'mode main']
 y = ['move-node-to-workspace Y --focus-follows-window', 'mode main']
 h = ['move-node-to-workspace H --focus-follows-window', 'mode main']
+v = ['move-node-to-workspace V --focus-follows-window', 'mode main']
 1 = ['move-node-to-workspace 1 --focus-follows-window', 'mode main']
 2 = ['move-node-to-workspace 2 --focus-follows-window', 'mode main']
 3 = ['move-node-to-workspace 3 --focus-follows-window', 'mode main']
@@ -240,6 +244,12 @@ run = ['move-node-to-workspace Y', 'workspace Y']
 [[on-window-detected]]
 if.app-id = 'net.imput.helium'
 run = ['move-node-to-workspace H', 'workspace H']
+
+# Google Meet - PWA Helium (V = visio). app-id distinct de net.imput.helium,
+# donc pas de conflit avec la règle Helium ci-dessus.
+[[on-window-detected]]
+if.app-id = 'net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan'
+run = ['move-node-to-workspace V', 'workspace V']
 
 # Always floating (dialogs, utilities)
 [[on-window-detected]]
