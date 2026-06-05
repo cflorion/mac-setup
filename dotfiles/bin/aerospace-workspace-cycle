@@ -2,7 +2,19 @@
 set -euo pipefail
 
 DIRECTION="${1:-next}"
-WORKSPACE_ORDER=(W M S C L O T A H B G Y 1 2 3)
+
+# Cycle order = SketchyBar display order. Derive it straight from spaces.lua
+# (the single source of truth for workspace definitions) so the cycle can never
+# drift from the bar when workspaces are added, removed, or reordered.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+SPACES_LUA="$SCRIPT_DIR/../sketchybar/items/spaces.lua"
+
+WORKSPACE_ORDER=()
+while IFS= read -r ws; do
+    WORKSPACE_ORDER+=("$ws")
+done < <(grep -oE 'key = "[^"]+"' "$SPACES_LUA" | sed -E 's/.*"([^"]+)".*/\1/')
+
+[[ ${#WORKSPACE_ORDER[@]} -eq 0 ]] && exit 0
 
 CURRENT=$(aerospace list-workspaces --focused | tr -d '[:space:]')
 
