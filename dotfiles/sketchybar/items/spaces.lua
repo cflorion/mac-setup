@@ -8,12 +8,12 @@ sbar.add("event", "aerospace_workspace_change")
 
 local spaces = {}
 
--- Source unique de vérité pour les workspaces, dans l'ordre d'affichage.
---   key   = nom du workspace AeroSpace (= raccourci Hyper)
---   app   = nom d'app tel que rapporté par `aerospace list-windows` (nil = workspace libre)
---   label = texte affiché dans SketchyBar
---   side  = côté de l'encoche (gauche / droite)
--- Tout le reste (left_names, right_names, display_names, workspace_labels) en est dérivé.
+-- Single source of truth for the workspaces, in display order.
+--   key   = AeroSpace workspace name (= Hyper shortcut)
+--   app   = app name as reported by `aerospace list-windows` (nil = free workspace)
+--   label = text shown in SketchyBar
+--   side  = side of the notch (left / right)
+-- Everything else (left_names, right_names, display_names, workspace_labels) is derived from it.
 local workspace_defs = {
   { key = "W", app = "WezTerm",         label = "WezTerm",  side = "left" },
   { key = "M", app = "Superhuman",      label = "Mail Pro", side = "left" },
@@ -33,10 +33,10 @@ local workspace_defs = {
   { key = "3", side = "right" },
 }
 
--- Dérivés de workspace_defs :
---   left_names / right_names : ordre des items par côté de l'encoche
---   display_names            : nom d'app AeroSpace -> label (app ouverte)
---   workspace_labels         : key -> label (fallback quand l'app est fermée)
+-- Derived from workspace_defs:
+--   left_names / right_names : item order per side of the notch
+--   display_names            : AeroSpace app name -> label (app open)
+--   workspace_labels         : key -> label (fallback when the app is closed)
 local left_names, right_names = {}, {}
 local display_names, workspace_labels = {}, {}
 local workspace_names = {}
@@ -92,12 +92,12 @@ local function create_space(ws_name, position)
   end)
 end
 
--- Left group: C → H, gauche vers droite
+-- Left group: C → H, left to right
 for _, ws_name in ipairs(left_names) do
   create_space(ws_name, "left")
 end
 
--- Right group: ajoutés en ordre inverse pour s'afficher B → 3 de gauche à droite
+-- Right group: added in reverse order so they show B → 3 from left to right
 for i = #right_names, 1, -1 do
   create_space(right_names[i], "right")
 end

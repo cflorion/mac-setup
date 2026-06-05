@@ -5,7 +5,7 @@ return {
   -- TypeScript / Node LSP + ESLint
   { import = "lazyvim.plugins.extras.lang.typescript" },
 
-  -- JSON avec schémas (package.json, tsconfig.json, etc.)
+  -- JSON with schemas (package.json, tsconfig.json, etc.)
   { import = "lazyvim.plugins.extras.lang.json" },
 
   -- Tailwind CSS

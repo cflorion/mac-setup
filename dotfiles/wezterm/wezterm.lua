@@ -27,9 +27,9 @@ local function scheme_for_appearance(appearance)
     return 'Catppuccin Mocha OLED'
   else
     local day = wezterm.color.get_builtin_schemes()['Tokyo Night Day']
-    -- Adapté pour e-ink couleur: contraste fort, couleurs saturées,
-    -- noir adouci (ANSI 0) pour que les fonds "noirs" peints par
-    -- certains TUI (lazygit, fzf, claude…) soient lisibles.
+    -- Tuned for color e-ink: strong contrast, saturated colors,
+    -- softened black (ANSI 0) so the "black" backgrounds painted by
+    -- some TUIs (lazygit, fzf, claude…) stay readable.
     day.background       = '#ffffff'
     day.foreground       = '#1a1a1a'
     day.cursor_bg        = '#1a1a1a'
@@ -38,7 +38,7 @@ local function scheme_for_appearance(appearance)
     day.selection_bg     = '#d8d8d8'
     day.selection_fg     = '#1a1a1a'
     day.ansi = {
-      '#2a2a2a', -- 0 black: gris foncé (anti-fond-noir)
+      '#2a2a2a', -- 0 black: dark gray (avoids pure-black backgrounds)
       '#c43d3d', -- 1 red
       '#1f7a1f', -- 2 green
       '#a06a00', -- 3 yellow (assombri pour fond blanc)
@@ -98,10 +98,10 @@ config.window_padding = {
   bottom = 0,
 }
 
--- Cursor: statique pour éviter le refresh partiel constant sur e-ink
+-- Cursor: static to avoid the constant partial refresh on e-ink
 config.default_cursor_style = 'SteadyBar'
 
--- Dim inactive panes: plus subtil en light mode pour ne pas griser le fond
+-- Dim inactive panes: subtler in light mode so the background isn't grayed out
 config.inactive_pane_hsb = is_dark
   and { saturation = 0.8,  brightness = 0.7  }
   or  { saturation = 0.85, brightness = 0.97 }
@@ -113,10 +113,10 @@ config.inactive_pane_hsb = is_dark
 config.enable_tab_bar = true
 config.use_fancy_tab_bar = false -- retro: no per-tab close button
 config.tab_bar_at_bottom = true
--- Garder la barre toujours visible: son apparition/disparition (1 vs N onglets)
--- déclenche un bug de resize WezTerm où les TUI (lazygit, nvim) reçoivent une
--- ligne de trop et dessinent leur bas SOUS la barre, jusqu'au prochain reload.
--- Voir wezterm#3439 / #3705.
+-- Keep the bar always visible: its appearing/disappearing (1 vs N tabs)
+-- triggers a WezTerm resize bug where TUIs (lazygit, nvim) get one extra
+-- line and draw their bottom UNDER the bar, until the next reload.
+-- See wezterm#3439 / #3705.
 config.hide_tab_bar_if_only_one_tab = false
 config.tab_max_width = 42
 config.show_tab_index_in_tab_bar = true

@@ -100,8 +100,8 @@ cmd-ctrl-alt-shift-r = 'mode resize'
 
 # ----------------------------
 # Named workspaces
-# Règle : raccourci = initiale de l'app = nom du workspace
-# Réservés (ne pas utiliser) : f r tab
+# Rule: shortcut = app initial = workspace name
+# Reserved (do not use): f r tab
 # ----------------------------
 
 # Switch to workspace (finds app window wherever it is) or launch app (on-window-detected handles workspace)
@@ -195,7 +195,7 @@ run = ['move-node-to-workspace W', 'workspace W']
 if.app-id = 'com.apple.Safari'
 run = ['move-node-to-workspace B', 'workspace B']
 
-# Mail - Superhuman (M, affiché « MailPro »)
+# Mail - Superhuman (M, shown as "Mail Pro")
 [[on-window-detected]]
 if.app-id = 'com.superhuman.electron'
 run = ['move-node-to-workspace M', 'workspace M']
@@ -245,8 +245,8 @@ run = ['move-node-to-workspace Y', 'workspace Y']
 if.app-id = 'net.imput.helium'
 run = ['move-node-to-workspace H', 'workspace H']
 
-# Google Meet - PWA Helium (V = visio). app-id distinct de net.imput.helium,
-# donc pas de conflit avec la règle Helium ci-dessus.
+# Google Meet - Helium PWA (V = visio). Its app-id differs from
+# net.imput.helium, so no conflict with the Helium rule above.
 [[on-window-detected]]
 if.app-id = 'net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan'
 run = ['move-node-to-workspace V', 'workspace V']
