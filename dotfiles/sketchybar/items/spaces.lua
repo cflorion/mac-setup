@@ -78,7 +78,7 @@ local function create_space(ws_name, position)
     -- is indistinguishable on a 1-bit text-mode e-paper display, so the focused
     -- item is flagged by shape instead. colors.white = black in light theme,
     -- white in dark — so the underline always matches the active text color.
-    -- Toggled per-focus in update_spaces; geometry is set once here.
+    -- Toggled per-focus in set_focus; geometry is set once here.
     background = {
       drawing = false,
       height = 2,
@@ -114,40 +114,52 @@ for i = #right_names, 1, -1 do
   create_space(right_names[i], "right")
 end
 
--- Update which workspaces are visible and which is focused.
--- focused_hint: if provided, skips the AeroSpace query for instant pre-highlighting.
-local function update_spaces(focused_hint)
-  local function apply(focused_ws)
-    sbar.exec("aerospace list-workspaces --monitor all --empty no", function(active_workspaces)
-      local active_set = {}
-      for ws in active_workspaces:gmatch("[^\r\n]+") do
-        local trimmed = ws:gsub("%s+", "")
-        active_set[trimmed] = true
-      end
+-- The currently focused workspace. Cached so label refreshes never have to
+-- re-query AeroSpace for focus: right after a switch that query lags ~0.5s and
+-- returns the PREVIOUS workspace, which would bounce the highlight back (flicker).
+local current_focus = nil
 
-      -- Always show focused workspace
-      active_set[focused_ws] = true
+-- Move the focus highlight (bold + underline) to `focused_ws`. Fully synchronous,
+-- no subprocess between the event and the :set, so the active item updates
+-- instantly. This is the ONLY place that writes icon/label highlight and the
+-- underline (background.drawing) — never from an sbar.exec callback or a
+-- `--focused` query, so a late-resolving callback can never move the highlight.
+local function set_focus(focused_ws)
+  if not focused_ws or focused_ws == "" or focused_ws == current_focus then
+    return
+  end
+  local prev = current_focus
+  current_focus = focused_ws
 
-      for _, ws_name in ipairs(workspace_names) do
-        local is_active = active_set[ws_name] == true
-        local is_focused = ws_name == focused_ws
+  local function style(ws_name, is_focused)
+    local space = spaces[ws_name]
+    if space then
+      space:set({
+        icon = { highlight = is_focused },
+        label = { highlight = is_focused, color = is_focused and colors.white or colors.grey },
+        background = { drawing = is_focused },
+      })
+    end
+  end
 
-        if spaces[ws_name] then
-          local label_color = is_focused and colors.white
-            or is_active and colors.grey
-            or colors.grey
-          spaces[ws_name]:set({
-            drawing = true,
-            icon = { highlight = is_focused },
-            label = {
-              highlight = is_focused,
-              color = label_color,
-            },
-            background = { drawing = is_focused },
-          })
-        end
+  if prev then style(prev, false) end
+  style(focused_ws, true)
+end
 
-        if is_active and spaces[ws_name] then
+-- Refresh each workspace's label text (app names for occupied spaces, the
+-- fallback name otherwise). Async; does NOT touch the focus highlight, so it
+-- can never fight set_focus or bounce the selection.
+local function refresh_labels()
+  sbar.exec("aerospace list-workspaces --monitor all --empty no", function(active_workspaces)
+    local active_set = {}
+    for ws in active_workspaces:gmatch("[^\r\n]+") do
+      active_set[ws:gsub("%s+", "")] = true
+    end
+    if current_focus then active_set[current_focus] = true end
+
+    for _, ws_name in ipairs(workspace_names) do
+      if spaces[ws_name] then
+        if active_set[ws_name] then
           -- AeroSpace briefly keeps listing a window whose app was just quit
           -- (its model lags ~0.5s). Filter to windows whose owning PID is
           -- still alive, so the label is correct immediately — no timing guess.
@@ -155,45 +167,26 @@ local function update_spaces(focused_hint)
             .. " --format '%{app-pid}|%{app-name}'"
             .. " | while IFS='|' read -r pid name; do"
             .. " kill -0 \"$pid\" 2>/dev/null && echo \"$name\"; done"
-          sbar.exec(
-            list_cmd,
-            function(windows)
-              local icon_line = ""
-              local no_app = true
-              for app in windows:gmatch("[^\r\n]+") do
-                local trimmed_app = app:gsub("^%s+", ""):gsub("%s+$", "")
-                trimmed_app = display_names[trimmed_app] or trimmed_app
-                if trimmed_app ~= "" then
-                  no_app = false
-                  if icon_line ~= "" then
-                    icon_line = icon_line .. "  " .. trimmed_app
-                  else
-                    icon_line = trimmed_app
-                  end
-                end
+          sbar.exec(list_cmd, function(windows)
+            local icon_line = ""
+            for app in windows:gmatch("[^\r\n]+") do
+              local trimmed_app = app:gsub("^%s+", ""):gsub("%s+$", "")
+              trimmed_app = display_names[trimmed_app] or trimmed_app
+              if trimmed_app ~= "" then
+                icon_line = icon_line == "" and trimmed_app or (icon_line .. "  " .. trimmed_app)
               end
-              if no_app then
-                icon_line = workspace_labels[ws_name] or ws_name
-              end
-              spaces[ws_name]:set({ label = icon_line })
             end
-          )
+            if icon_line == "" then icon_line = workspace_labels[ws_name] or ws_name end
+            spaces[ws_name]:set({ label = icon_line })
+          end)
         else
           spaces[ws_name]:set({ label = workspace_labels[ws_name] or ws_name })
         end
 
         sbar.set("space.padding." .. ws_name, { drawing = true })
       end
-    end)
-  end
-
-  if focused_hint and focused_hint ~= "" then
-    apply(focused_hint)
-  else
-    sbar.exec("aerospace list-workspaces --focused", function(focused_ws)
-      apply(focused_ws:gsub("%s+", ""))
-    end)
-  end
+    end
+  end)
 end
 
 -- Subscribe to aerospace workspace changes.
@@ -204,23 +197,39 @@ local space_listener = sbar.add("item", {
   updates = true,
 })
 
+-- FOCUSED_WORKSPACE is set in the event env by both the cycle script (sent
+-- before the actual switch, for instant feedback) and AeroSpace's
+-- exec-on-workspace-change hook. It is an authoritative env var, never a laggy
+-- query, so we move the highlight straight from it.
 space_listener:subscribe("aerospace_workspace_change", function(env)
   local hint = env and env.FOCUSED_WORKSPACE
   if hint and hint:match("%S") then
-    update_spaces(hint:gsub("%s+", ""))
-  else
-    update_spaces()
+    set_focus(hint:gsub("%s+", ""))
+  elseif not current_focus then
+    -- Cold start with no hint: seed focus once (no switch in flight, so the
+    -- `--focused` query is not subject to the post-switch lag race).
+    sbar.exec("aerospace list-workspaces --focused", function(focused_ws)
+      set_focus(focused_ws:gsub("%s+", ""))
+      refresh_labels()
+    end)
+    return
   end
+  -- Otherwise trust the cached focus (never re-query mid-transition).
+  refresh_labels()
 end)
 
 -- Refresh the per-workspace app list when the frontmost app changes.
 -- AeroSpace emits no "window closed" event, so quitting a floating app
 -- (e.g. ⌘Q on System Settings) wouldn't otherwise update the label — but
 -- it does change the front app, which fires front_app_switched. The dead-PID
--- filter in update_spaces makes the just-quit app drop out immediately.
+-- filter in refresh_labels makes the just-quit app drop out immediately.
+-- Labels only: focus is event-driven (set_focus), so it is never re-queried here.
 space_listener:subscribe("front_app_switched", function()
-  update_spaces()
+  refresh_labels()
 end)
 
--- Initial update
-update_spaces()
+-- Initial render: seed the focus highlight once, then fill in the labels.
+sbar.exec("aerospace list-workspaces --focused", function(focused_ws)
+  set_focus(focused_ws:gsub("%s+", ""))
+  refresh_labels()
+end)
