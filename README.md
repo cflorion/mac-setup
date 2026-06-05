@@ -1,116 +1,116 @@
 # mac-setup
 
-Configuration automatisée de mon Mac : installe les apps, applique mes réglages
-macOS, et lie tous mes fichiers de config (dotfiles) — pour repartir d'un Mac
-neuf en une commande.
+Automated configuration of my Mac: installs apps, applies my macOS
+settings, and symlinks all my config files (dotfiles) — so a fresh Mac is
+ready in one command.
 
 ---
 
-## 🚀 Installation sur un Mac neuf
+## 🚀 Install on a fresh Mac
 
-Une seule ligne à coller dans le Terminal :
+A single line to paste in Terminal:
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/cflorion/mac-setup/main/bootstrap.sh)"
 ```
 
-Elle installe les Command Line Tools + Homebrew, clone ce repo dans
-`~/code/mac-setup`, puis lance `make install` (tout le reste).
+It installs the Command Line Tools + Homebrew, clones this repo into
+`~/code/mac-setup`, then runs `make install` (everything else).
 
-> Certains réglages demandent une étape manuelle : elles s'affichent dans le
-> terminal avec le marqueur `⚠️  Manual step:`.
+> Some settings require a manual step: they are printed in the terminal
+> with the `⚠️  Manual step:` marker.
 
 ---
 
-## 🛠️ Commandes (`make`)
+## 🛠️ Commands (`make`)
 
-### Au quotidien
-| Commande | Effet |
+### Daily
+| Command | Effect |
 |---|---|
-| `make update` | Mise à jour rapide : Homebrew, Node, dotfiles, réglages macOS |
-| `make backup` | Sauvegarde les clés SSH avant de formater |
-| `make restore-ssh` | Restaure les clés SSH depuis la dernière sauvegarde |
+| `make update` | Fast update: Homebrew, Node, dotfiles, macOS settings |
+| `make backup` | Back up SSH keys before reformatting |
+| `make restore-ssh` | Restore SSH keys from the latest backup |
 
-### Installation complète
-| Commande | Effet |
+### Full install
+| Command | Effect |
 |---|---|
-| `make install` | Tout installer (machine neuve) — enchaîne tous les blocs ci-dessous |
+| `make install` | Install everything (fresh machine) — runs all the blocks below |
 
-### Bloc par bloc (utile pour rejouer une seule partie)
-| Commande | Effet |
+### Block by block (useful to re-run a single part)
+| Command | Effect |
 |---|---|
-| `make brew` | Installe les apps listées dans le `Brewfile` |
-| `make mas` | Installe les apps du Mac App Store |
-| `make node` | Installe Node.js LTS (via fnm) |
-| `make npm-global` | Installe les paquets globaux (via pnpm) |
-| `make link` | Crée les symlinks des dotfiles vers `~` et `~/.config/` |
-| `make macos` | Applique tous les réglages macOS |
-| `make macos-<module>` | Applique un seul réglage (voir la liste plus bas) |
-| `make raycast` | Configure Raycast (libère Cmd+Espace, importe la config) |
-| `make sketchybar` | Compile et démarre la barre de menu SketchyBar |
-| `make obsidian` | Copie le thème et les plugins Obsidian dans le coffre |
-| `make pwa` | Recrée les raccourcis des PWA Chrome (ex. Google Chat) |
-| `make ollama` | Télécharge les modèles Ollama |
+| `make brew` | Install the apps listed in `Brewfile` |
+| `make mas` | Install Mac App Store apps |
+| `make node` | Install Node.js LTS (via fnm) |
+| `make npm-global` | Install global packages (via pnpm) |
+| `make link` | Symlink dotfiles into `~` and `~/.config/` |
+| `make macos` | Apply all macOS settings |
+| `make macos-<module>` | Apply a single setting (see the list below) |
+| `make raycast` | Configure Raycast (frees Cmd+Space, imports the config) |
+| `make sketchybar` | Build and start the SketchyBar menu bar |
+| `make obsidian` | Copy the Obsidian theme and plugins into the vault |
+| `make pwa` | Recreate the Chrome PWA shortcuts (e.g. Google Chat) |
+| `make ollama` | Pull the Ollama models |
 
-Modules `make macos-<module>` :
+`make macos-<module>` modules:
 `finder` · `dock` · `keyboard` · `trackpad` · `mission-control` · `desktop` ·
 `control-center` · `pointer`
 
 ---
 
-## 📂 Arborescence
+## 📂 Layout
 
 ```
 mac-setup/
-├── Makefile              # Point d'entrée : toutes les commandes ci-dessus
-├── bootstrap.sh          # Script de 1ʳᵉ install (lancé via curl)
-├── Brewfile              # Liste des apps Homebrew (formules + casks)
+├── Makefile              # Entry point: all the commands above
+├── bootstrap.sh          # First-install script (run via curl)
+├── Brewfile              # Homebrew apps (formulae + casks)
 │
-├── apps-mas.sh           # Apps Mac App Store (via `mas`)
-├── macos-defaults.sh     # Lance tous les modules de macos/
-├── raycast.sh            # Config Raycast
-├── pwa.sh                # Recrée les PWA Chrome
-├── backup.sh             # Sauvegarde des clés SSH
-├── restore-ssh.sh        # Restauration des clés SSH
+├── apps-mas.sh           # Mac App Store apps (via `mas`)
+├── macos-defaults.sh     # Runs every module in macos/
+├── raycast.sh            # Raycast config
+├── pwa.sh                # Recreates Chrome PWAs
+├── backup.sh             # SSH key backup
+├── restore-ssh.sh        # SSH key restore
 │
-├── macos/                # Réglages macOS, un fichier par domaine
+├── macos/                # macOS settings, one file per domain
 │   ├── finder.sh         # Finder
-│   ├── dock.sh           # Dock + coins actifs
-│   ├── keyboard.sh       # Clavier (répétition, accents…)
+│   ├── dock.sh           # Dock + hot corners
+│   ├── keyboard.sh       # Keyboard (key repeat, accents…)
 │   ├── trackpad.sh       # Trackpad
 │   ├── mission-control.sh
-│   ├── desktop.sh        # Bureau
-│   ├── control-center.sh # Centre de contrôle / barre de menu
-│   └── pointer.sh        # Curseur + accessibilité
+│   ├── desktop.sh        # Desktop
+│   ├── control-center.sh # Control Center / menu bar
+│   └── pointer.sh        # Pointer + accessibility
 │
-├── dotfiles/             # Configs liées par symlink (`make link`)
-│   ├── .zshrc            # → ~/            (fichiers cachés vers la maison)
+├── dotfiles/             # Configs symlinked by `make link`
+│   ├── .zshrc            # → ~/            (dotfiles into the home dir)
 │   ├── .gitconfig        # → ~/
-│   ├── .finicky.js       # → ~/            (routeur de liens vers navigateurs)
+│   ├── .finicky.js       # → ~/            (link router to browsers)
 │   ├── nvim/             # → ~/.config/nvim/    (Neovim / LazyVim)
 │   ├── wezterm/          # → ~/.config/wezterm/ (terminal)
-│   ├── aerospace/        # → ~/.config/aerospace/ (gestionnaire de fenêtres)
-│   ├── sketchybar/       # → ~/.config/sketchybar/ (barre de menu, en Lua)
-│   ├── karabiner/        # → ~/.config/karabiner/ (remaps clavier, ex. Hyper)
+│   ├── aerospace/        # → ~/.config/aerospace/ (window manager)
+│   ├── sketchybar/       # → ~/.config/sketchybar/ (menu bar, in Lua)
+│   ├── karabiner/        # → ~/.config/karabiner/ (key remaps, e.g. Hyper)
 │   ├── atuin/ lazygit/ zed/ starship.toml …
-│   ├── bin/              # → ~/.local/bin/  (scripts perso : commit, pr…)
-│   ├── raycast/          # Export de config Raycast (*.rayconfig)
-│   ├── obsidian/         # Thème + plugins (copiés, pas symlinkés)
+│   ├── bin/              # → ~/.local/bin/  (scripts: commit, pr, aerospace-*…)
+│   ├── raycast/          # Raycast config export (*.rayconfig)
+│   ├── obsidian/         # Theme + plugins (copied, not symlinked)
 │   └── sublime-text/     # → ~/Library/.../Sublime Text/
 │
-├── launchd/              # LaunchAgents (ex. recharger SketchyBar au thème système)
-├── documents/            # Modèles (ex. Typst) copiés dans ~/templates/
-├── wallpapers/           # Fonds d'écran
+├── launchd/              # LaunchAgents (e.g. reload SketchyBar on theme change)
+├── documents/            # Templates (e.g. Typst) copied into ~/templates/
+├── wallpapers/           # Wallpapers
 │
-├── shortcuts.md          # Tous mes raccourcis clavier (AeroSpace, Raycast, WezTerm…)
-└── CLAUDE.md             # Notes pour l'assistant IA travaillant sur ce repo
+├── shortcuts.md          # All my keyboard shortcuts (AeroSpace, Raycast, WezTerm…)
+└── CLAUDE.md             # Notes for the AI assistant working on this repo
 ```
 
-> Le dossier `backup/` (clés SSH) est ignoré par git.
+> The `backup/` folder (SSH keys) is gitignored.
 
 ---
 
-## 📖 Pour aller plus loin
+## 📖 Going further
 
-- **[shortcuts.md](shortcuts.md)** — la liste complète de mes raccourcis clavier.
-- **[CLAUDE.md](CLAUDE.md)** — l'architecture détaillée et les conventions du repo.
+- **[shortcuts.md](shortcuts.md)** — the full list of my keyboard shortcuts.
+- **[CLAUDE.md](CLAUDE.md)** — detailed architecture and repo conventions.

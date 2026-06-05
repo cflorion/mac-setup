@@ -33,7 +33,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - **dotfiles/** — Symlinked into `~` and `~/.config/` by `make link`:
   - Hidden files (`.zshrc`, `.gitconfig`, `.gitignore_global`, `.finicky.js`) → `~/`
   - Directories (`nvim/`, `lazygit/`, `sketchybar/`, `atuin/`, `wezterm/`, `karabiner/`, `aerospace/`, `raycast/`) → `~/.config/<name>/`
-  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`, `popina-pdf`, `aerospace-focus-or-open`, `aerospace-workspace-cycle`)
+  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`, `popina-pdf`, `aerospace-focus-or-open`, `aerospace-workspace-cycle`, `claude`)
   - `starship.toml` → `~/.config/starship.toml`
   - `zed/settings.json` → `~/.config/zed/settings.json` (only settings, not full dir)
   - `sublime-text/` → `~/Library/Application Support/Sublime Text/Packages/User/`
