@@ -1,66 +1,65 @@
-# Raccourcis clavier
+# Keyboard shortcuts
 
-> **Hyper** = CapsLock maintenu = Cmd+Ctrl+Opt+Shift
-> **CapsLock** tapé seul = Escape
+> **Hyper** = hold CapsLock = Cmd+Ctrl+Opt+Shift
+> **CapsLock** tapped alone = Escape
 
 ---
 
 ## Karabiner
 
-| Touche | Action |
+| Key | Action |
 |---|---|
-| CapsLock (maintenu) | Hyper (Cmd+Ctrl+Opt+Shift) |
+| CapsLock (hold) | Hyper (Cmd+Ctrl+Opt+Shift) |
 | CapsLock (tap) | Escape |
-| Alt gauche ou droit (tap) | Handy dictation (⌃⌥⌘D) |
+| Left or right Alt (tap) | Handy dictation (⌃⌥⌘D) |
 
 ---
 
 ## AeroSpace — Window Manager
 
-### Navigation fenêtres
-| Raccourci | Action |
+### Window navigation
+| Shortcut | Action |
 |---|---|
-| Hyper+^ / $ | Focus fenêtre gauche / droite (touches à droite de P) |
-| Hyper+Tab | Mode focus (puis H/J/K/L, Esc) — *repli, capté par macOS Cmd+Tab* |
-| Hyper+← / → | Déplacer fenêtre vers moniteur gauche/droit |
+| Hyper+^ / $ | Focus window left / right (keys right of P) |
+| Hyper+Tab | Focus mode (then H/J/K/L, Esc) — *fallback, Cmd+Tab is caught by macOS* |
+| Hyper+← / → | Move window to left/right monitor |
 
 ### Layout
-| Raccourci | Action |
+| Shortcut | Action |
 |---|---|
-| Hyper+F | Plein écran |
+| Hyper+F | Fullscreen |
 | Hyper+Space | Floating ↔ Tiling |
 
 ### Workspaces
-| Raccourci | Action |
+| Shortcut | Action |
 |---|---|
-| Hyper+↑ / ↓ | Workspace précédent / suivant |
-| Hyper+R | Mode resize (puis H/J/K/L, Esc pour quitter) |
-| Hyper+D | Mode move (puis lettre/chiffre pour envoyer la fenêtre) |
-| Hyper+1 / 2 / 3 | Workspace libre |
+| Hyper+↑ / ↓ | Previous / next workspace |
+| Hyper+R | Resize mode (then H/J/K/L, Esc to exit) |
+| Hyper+D | Move mode (then a letter/digit to send the window there) |
+| Hyper+1 / 2 / 3 | Free workspace |
 
-### Focus ou lancer app (initiale = workspace)
-| Raccourci | App |
+### Focus or launch app (key = workspace)
+| Shortcut | App |
 |---|---|
-| Hyper+C | Claude |
 | Hyper+W | WezTerm |
-| Hyper+S | Safari |
-| Hyper+H | Helium |
-| Hyper+M | Superhuman |
-| Hyper+E | Mail |
-| Hyper+N | Slack |
-| Hyper+V | Google Chat |
-| Hyper+G | Gemini |
+| Hyper+M | Superhuman (Mail) |
+| Hyper+S | Slack |
+| Hyper+C | Google Chat |
+| Hyper+L | Linear |
 | Hyper+O | Obsidian |
 | Hyper+T | TickTick |
-| Hyper+I | Notion Calendar |
-| Hyper+P | Linear |
-| Hyper+Y | Kaset |
+| Hyper+A | Notion Calendar (Agenda) |
+| Hyper+H | Helium |
+| Hyper+V | Google Meet (Visio) |
+| Hyper+B | Safari (Browser) |
+| Hyper+G | Gemini |
+| Hyper+Y | Kaset (YouTube Music) |
 
 ---
 
 ## Raycast
 
-| Raccourci | Action |
+| Shortcut | Action |
 |---|---|
 | Hyper+, | Search Menu Bar Items |
 | Hyper+; | Toggle System Appearance |
@@ -71,31 +70,31 @@
 
 ## WezTerm
 
-| Raccourci | Action |
+| Shortcut | Action |
 |---|---|
-| **Onglets** | |
-| Cmd+T | Nouvel onglet |
-| Cmd+W | Fermer onglet |
-| Cmd+← / → | Onglet précédent / suivant |
-| Cmd+1…9 | Onglet par numéro |
-| Cmd+Shift+E | Renommer onglet |
+| **Tabs** | |
+| Cmd+T | New tab |
+| Cmd+W | Close tab |
+| Cmd+← / → | Previous / next tab |
+| Cmd+1…9 | Tab by number |
+| Cmd+Shift+E | Rename tab |
 | **Panes** | |
-| Cmd+D | Split droite |
-| Cmd+Shift+D | Split bas |
-| Ctrl+H/J/K/L | Focus pane gauche/bas/haut/droite |
-| Ctrl+Shift+H/J/K/L | Redimensionner pane |
+| Cmd+D | Split right |
+| Cmd+Shift+D | Split down |
+| Ctrl+H/J/K/L | Focus pane left/down/up/right |
+| Ctrl+Shift+H/J/K/L | Resize pane |
 | Cmd+Shift+Z | Zoom pane (toggle) |
-| Cmd+Shift+W | Fermer pane |
+| Cmd+Shift+W | Close pane |
 | **Workspaces** | |
-| Cmd+Shift+S | Picker workspaces |
-| Cmd+Shift+N | Nouveau workspace |
-| Cmd+Shift+[ / ] | Workspace précédent / suivant |
-| **Divers** | |
-| Cmd+C / V | Copier / Coller |
-| Cmd+F | Recherche |
+| Cmd+Shift+S | Workspace picker |
+| Cmd+Shift+N | New workspace |
+| Cmd+Shift+[ / ] | Previous / next workspace |
+| **Misc** | |
+| Cmd+C / V | Copy / Paste |
+| Cmd+F | Search |
 | Cmd+P | Command palette |
-| Cmd++ / Cmd+- / Cmd+0 | Taille police +/−/reset |
-| Cmd+Shift+R | Recharger config |
-| Cmd+Enter | Plein écran |
-| Cmd+Q | Quitter |
+| Cmd++ / Cmd+- / Cmd+0 | Font size +/−/reset |
+| Cmd+Shift+R | Reload config |
+| Cmd+Enter | Fullscreen |
+| Cmd+Q | Quit |
 | Cmd+Shift+X | Copy mode (vim) |

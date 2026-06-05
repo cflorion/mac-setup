@@ -7,42 +7,42 @@ from html import escape
 
 # ---- palette -------------------------------------------------------------
 CAT = {
-    "app":  {"fill": "#7c3aed", "fg": "#ffffff", "sub": "#e9d5ff"},  # apps / espaces
-    "win":  {"fill": "#0e7490", "fg": "#ffffff", "sub": "#cffafe"},  # fenêtres / layout
-    "sys":  {"fill": "#b45309", "fg": "#ffffff", "sub": "#fde9c8"},  # souris / lanceur
-    "none": {"fill": "#f1f5f9", "fg": "#94a3b8", "sub": "#cbd5e1"},  # libre
+    "app":  {"fill": "#7c3aed", "fg": "#ffffff", "sub": "#e9d5ff"},  # apps / spaces
+    "win":  {"fill": "#0e7490", "fg": "#ffffff", "sub": "#cffafe"},  # windows / layout
+    "sys":  {"fill": "#b45309", "fg": "#ffffff", "sub": "#fde9c8"},  # mouse / launcher
+    "none": {"fill": "#f1f5f9", "fg": "#94a3b8", "sub": "#cbd5e1"},  # free
 }
 
 # ---- key data: (cap, category, line1, line2) -----------------------------
 NUMBERS = [
-    ("1", "app", "Espace 1", ""), ("2", "app", "Espace 2", ""), ("3", "app", "Espace 3", ""),
+    ("1", "app", "Space 1", ""), ("2", "app", "Space 2", ""), ("3", "app", "Space 3", ""),
     ("4", "none", "", ""), ("5", "none", "", ""), ("6", "none", "", ""),
     ("7", "none", "", ""), ("8", "none", "", ""), ("9", "none", "", ""), ("0", "none", "", ""),
 ]
 AZERTY = [
     ("A", "app", "Agenda", "Notion Cal."), ("Z", "none", "", ""), ("E", "none", "", ""),
-    ("R", "win", "mode Resize", "h j k l"), ("T", "app", "TickTick", ""),
-    ("Y", "app", "YouTube", "Kaset"), ("U", "sys", "Homerow", "clic"),
+    ("R", "win", "Resize mode", "h j k l"), ("T", "app", "TickTick", ""),
+    ("Y", "app", "YouTube", "Kaset"), ("U", "sys", "Homerow", "click"),
     ("I", "none", "", ""), ("O", "app", "Obsidian", ""), ("P", "none", "", ""),
-    ("^", "win", "Focus", "← gauche"), ("$", "win", "Focus", "droite →"),
+    ("^", "win", "Focus", "← left"), ("$", "win", "Focus", "right →"),
 ]
 QSDF = [
-    ("Q", "none", "", ""), ("S", "app", "Slack", ""), ("D", "win", "mode Move", "→ lettre"),
+    ("Q", "none", "", ""), ("S", "app", "Slack", ""), ("D", "win", "Move mode", "→ letter"),
     ("F", "win", "Fullscreen", ""), ("G", "app", "Gemini", ""), ("H", "app", "Helium", ""),
-    ("J", "sys", "Homerow", "défil."), ("K", "none", "", ""), ("L", "app", "Linear", ""),
+    ("J", "sys", "Homerow", "scroll"), ("K", "none", "", ""), ("L", "app", "Linear", ""),
     ("M", "app", "Mail", "Superhuman"),
 ]
 WXCV = [
-    ("W", "app", "WezTerm", ""), ("X", "none", "", ""), ("C", "app", "Claude", ""),
-    ("V", "app", "Chat", "Google Chat"), ("B", "app", "Browser", "Safari"),
+    ("W", "app", "WezTerm", ""), ("X", "none", "", ""), ("C", "app", "Chat", "Google Chat"),
+    ("V", "app", "Meet", "Google Meet"), ("B", "app", "Browser", "Safari"),
     ("N", "none", "", ""), (",", "sys", "Raycast", ""), (";", "sys", "Raycast", ""),
     (":", "sys", "Raycast", ""), ("=", "sys", "Raycast", ""),
 ]
 SPECIAL = [  # (cap, cat, line1, line2, width)
-    ("Tab", "win", "mode Focus", "h j k l", 132),
-    ("␣  Espace", "win", "flottant ⇄ pavé", "", 200),
-    ("← →", "win", "fenêtre →", "moniteur", 132),
-    ("↑ ↓", "win", "cycler", "espaces", 132),
+    ("Tab", "win", "Focus mode", "h j k l", 132),
+    ("␣  Space", "win", "floating ⇄ tiling", "", 200),
+    ("← →", "win", "window →", "monitor", 132),
+    ("↑ ↓", "win", "cycle", "spaces", 132),
 ]
 
 # ---- geometry ------------------------------------------------------------
@@ -87,7 +87,7 @@ add(f'<rect width="{W}" height="{H}" fill="#ffffff"/>')
 
 # title
 add(f'<text x="{LEFT}" y="48" font-size="30" font-weight="800" fill="#0f172a">'
-    f'Carte Hyper — clavier AZERTY</text>')
+    f'Hyper map — AZERTY keyboard</text>')
 
 # hero: CapsLock = Hyper
 add(f'<rect x="{LEFT}" y="74" width="{W-2*LEFT}" height="72" rx="14" '
@@ -95,9 +95,9 @@ add(f'<rect x="{LEFT}" y="74" width="{W-2*LEFT}" height="72" rx="14" '
 add(f'<text x="{LEFT+22}" y="118" font-size="26" font-weight="800" fill="#ffffff">'
     f'⇪ CapsLock = HYPER</text>')
 add(f'<text x="{LEFT+322}" y="106" font-size="14" fill="#cbd5e1">'
-    f'maintenir → Hyper (⌘ ⌃ ⌥ ⇧)</text>')
+    f'hold → Hyper (⌘ ⌃ ⌥ ⇧)</text>')
 add(f'<text x="{LEFT+322}" y="128" font-size="14" fill="#cbd5e1">'
-    f'appui seul → Échap</text>')
+    f'tap alone → Escape</text>')
 add(f'<text x="{W-LEFT-22}" y="118" font-size="15" font-weight="600" '
     f'text-anchor="end" fill="#94a3b8">Hyper + …</text>')
 
@@ -116,9 +116,9 @@ for cap, cat, l1, l2, w in SPECIAL:
 # ---- bottom panels -------------------------------------------------------
 PY = 720
 # legend
-add(f'<text x="{LEFT}" y="{PY}" font-size="16" font-weight="700" fill="#0f172a">Légende</text>')
-legend = [("app", "Application / espace"), ("win", "Fenêtres & disposition"),
-          ("sys", "Souris & lanceur"), ("none", "Libre")]
+add(f'<text x="{LEFT}" y="{PY}" font-size="16" font-weight="700" fill="#0f172a">Legend</text>')
+legend = [("app", "App / space"), ("win", "Windows & layout"),
+          ("sys", "Mouse & launcher"), ("none", "Free")]
 lx = LEFT
 for cat, lbl in legend:
     add(f'<rect x="{lx}" y="{PY+12}" width="20" height="20" rx="5" fill="{CAT[cat]["fill"]}" '
@@ -128,13 +128,13 @@ for cat, lbl in legend:
 
 # modes sub-panel
 my = PY + 64
-add(f'<text x="{LEFT}" y="{my}" font-size="16" font-weight="700" fill="#0f172a">Modes (Hyper ouvre, puis…)</text>')
+add(f'<text x="{LEFT}" y="{my}" font-size="16" font-weight="700" fill="#0f172a">Modes (Hyper opens, then…)</text>')
 modes = [
-    "Hyper + ^ / $  →  focus fenêtre gauche / droite (touches à droite de P, direct sans mode)",
-    "Hyper + D  →  mode Move : tape la lettre de l’espace pour y envoyer la fenêtre (Échap annule)",
-    "Hyper + Tab  →  mode Focus (repli, h j k l) — Cmd+Tab est souvent capté par macOS",
-    "Hyper + R  →  mode Resize : h l = largeur ∓ · j k = hauteur ± ",
-    "Hyper + Espace  →  bascule flottant ⇄ pavé · Hyper + ← →  déplace la fenêtre vers l’autre moniteur",
+    "Hyper + ^ / $  →  focus window left / right (keys right of P, direct, no mode)",
+    "Hyper + D  →  Move mode: type the space's letter to send the window there (Esc cancels)",
+    "Hyper + Tab  →  Focus mode (fallback, h j k l) — Cmd+Tab is often caught by macOS",
+    "Hyper + R  →  Resize mode: h l = width ∓ · j k = height ±",
+    "Hyper + Space  →  toggle floating ⇄ tiling · Hyper + ← →  move window to the other monitor",
 ]
 for i, m in enumerate(modes):
     add(f'<text x="{LEFT}" y="{my+24+i*22}" font-size="13.5" fill="#334155">{escape(m)}</text>')
@@ -143,11 +143,11 @@ for i, m in enumerate(modes):
 fy = my + 24 + len(modes) * 22 + 26
 add(f'<text x="{LEFT}" y="{fy}" font-size="16" font-weight="700" fill="#0f172a">Notes</text>')
 notes = [
-    "Chiffres 1–3 : Hyper inclut ⇧, donc le chiffre est bien émis (pas @ & «).",
-    "Raycast ×4 : , ; : = lancent 4 commandes Raycast (config Raycast binaire, non détaillée ici).",
-    "Hors-Hyper : un appui sur ⌥ (gauche ou droite) déclenche la dictée Handy (⌃⌥⌘D).",
-    "Apps dont la touche n’est pas l’initiale : B→Safari (Browser), M→Superhuman (Mail), "
-    "Y→Kaset (YouTube), A→Notion Calendar (Agenda), V→Google Chat.",
+    "Digits 1–3: Hyper includes ⇧, so the digit is emitted (not @ & «).",
+    "Raycast ×4: , ; : = launch 4 Raycast commands (Raycast config is binary, not detailed here).",
+    "Outside Hyper: tapping ⌥ (left or right) triggers Handy dictation (⌃⌥⌘D).",
+    "Apps whose key isn't the initial: B→Safari (Browser), M→Superhuman (Mail), "
+    "Y→Kaset (YouTube), A→Notion Calendar (Agenda), V→Google Meet (Visio).",
 ]
 for i, n in enumerate(notes):
     add(f'<text x="{LEFT}" y="{fy+24+i*22}" font-size="13.5" fill="#334155">{escape(n)}</text>')
