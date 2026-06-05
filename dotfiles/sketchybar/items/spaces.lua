@@ -85,7 +85,7 @@ local function create_space(ws_name, position)
       corner_radius = 0,
       border_width = 0,
       color = colors.white,
-      y_offset = -10,
+      y_offset = -11,
     },
     drawing = true,
   })
