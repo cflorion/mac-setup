@@ -82,6 +82,9 @@ cask "cleanshot"
 cask "pixelsnap"
 cask "breaktimer"
 
+# --- Media / streaming ---
+cask "obs"
+
 # --- Window management & display ---
 cask "nikitabobko/tap/aerospace"
 cask "karabiner-elements"

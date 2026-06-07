@@ -16,6 +16,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - `make link` — Symlink dotfiles only
 - `make brew` — Install Homebrew packages only
 - `make macos` — Apply all macOS defaults
+- `make fuji-webcam` — Install FUJIFILM X Webcam from the bundled `.pkg` (no Homebrew cask exists; needs sudo, restart after)
 - `make macos-<module>` — Apply a single module (finder, dock, keyboard, trackpad, mission-control, desktop, control-center, pointer)
 - Bootstrap on a fresh Mac: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/cflorion/mac-setup/main/bootstrap.sh)"`
 
@@ -28,6 +29,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - **macos/** — Individual `defaults write` modules: `finder.sh`, `dock.sh`, `keyboard.sh`, `trackpad.sh`, `mission-control.sh`, `desktop.sh`, `control-center.sh`, `pointer.sh`.
 - **raycast.sh** — Disables Spotlight shortcuts (freeing Cmd+Space for Raycast), opens extension install URLs, imports the newest Raycast `*.rayconfig` export.
 - **apps-mas.sh** — Mac App Store installs via `mas`.
+- **installers/** — Vendor `.pkg` installers with no Homebrew cask (e.g. `XWebcamIns220.pkg` for FUJIFILM X Webcam). Installed by the `fuji-webcam` Makefile target via `sudo installer -pkg … -target /`, guarded so it skips when the app already exists.
 - **pwa.sh** — Recreates Chrome PWA `.app` shortcuts (e.g. Google Chat) in `~/Applications/Chrome Apps.localized/`. Requires the PWA to already be synced into the Chrome profile.
 - **launchd/** — LaunchAgent templates (`__HOME__` placeholder is substituted at install time). `com.user.sketchybar-theme.plist` runs `dark-notify` to reload sketchybar on light/dark switch; installed by `make sketchybar`.
 - **dotfiles/** — Symlinked into `~` and `~/.config/` by `make link`:

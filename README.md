@@ -40,6 +40,7 @@ It installs the Command Line Tools + Homebrew, clones this repo into
 | Command | Effect |
 |---|---|
 | `make brew` | Install the apps listed in `Brewfile` |
+| `make fuji-webcam` | Install FUJIFILM X Webcam from the bundled `.pkg` (needs sudo) |
 | `make mas` | Install Mac App Store apps |
 | `make node` | Install Node.js LTS (via fnm) |
 | `make npm-global` | Install global packages (via pnpm) |
@@ -65,6 +66,7 @@ mac-setup/
 ├── Makefile              # Entry point: all the commands above
 ├── bootstrap.sh          # First-install script (run via curl)
 ├── Brewfile              # Homebrew apps (formulae + casks)
+├── installers/           # Vendor .pkg files with no Homebrew cask (Fuji X Webcam)
 │
 ├── apps-mas.sh           # Mac App Store apps (via `mas`)
 ├── macos-defaults.sh     # Runs every module in macos/

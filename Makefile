@@ -2,13 +2,13 @@ DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/Travail/.obsidian
 
-.PHONY: all install update link brew npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama pwa \
+.PHONY: all install update link brew fuji-webcam npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama pwa \
 	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer
 
 all: install
 
 # Full setup for a new machine
-install: brew node npm-global link sketchybar obsidian macos raycast mas ollama pwa
+install: brew fuji-webcam node npm-global link sketchybar obsidian macos raycast mas ollama pwa
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -18,6 +18,16 @@ update: brew node link macos
 brew:
 	@echo "==> Installing from Brewfile..."
 	@brew bundle --file Brewfile
+
+# Install FUJIFILM X Webcam — no Homebrew cask exists, so the .pkg is bundled
+# in installers/. Needs sudo; restart afterwards to load the camera plugin.
+fuji-webcam:
+	@if [ -d "/Applications/FUJIFILM X Webcam 2.app" ]; then \
+		echo "==> FUJIFILM X Webcam already installed, skipping"; \
+	else \
+		echo "==> Installing FUJIFILM X Webcam (needs sudo; restart afterwards)..."; \
+		sudo installer -pkg installers/XWebcamIns220.pkg -target /; \
+	fi
 
 node:
 	@echo "==> Installing Node.js LTS via fnm..."
