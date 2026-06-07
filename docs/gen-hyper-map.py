@@ -87,7 +87,7 @@ add(f'<rect width="{W}" height="{H}" fill="#ffffff"/>')
 
 # title
 add(f'<text x="{LEFT}" y="48" font-size="30" font-weight="800" fill="#0f172a">'
-    f'Hyper map — AZERTY keyboard</text>')
+    f'Hyper &amp; Meh map — AZERTY keyboard</text>')
 
 # hero: CapsLock = Hyper
 add(f'<rect x="{LEFT}" y="74" width="{W-2*LEFT}" height="72" rx="14" '
@@ -151,6 +151,34 @@ notes = [
 ]
 for i, n in enumerate(notes):
     add(f'<text x="{LEFT}" y="{fy+24+i*22}" font-size="13.5" fill="#334155">{escape(n)}</text>')
+
+# ---- Meh / OBS panel (right column) --------------------------------------
+# Second layer: hold right ⌘ = Meh (⌃⌥⇧), emits clean F-keys that OBS listens
+# for. Cameras "show one source + hide the rest" in one shot; E/R switch scenes.
+MX, MY = 720, 612
+OBS = "#0d9488"
+add(f'<rect x="{MX-16}" y="{MY-28}" width="{W-LEFT-(MX-16)}" height="288" rx="14" '
+    f'fill="#f0fdfa" stroke="{OBS}55"/>')
+add(f'<text x="{MX}" y="{MY}" font-size="16" font-weight="700" fill="#0f172a">'
+    f'Meh layer — right ⌘  (OBS / visio)</text>')
+add(f'<text x="{MX}" y="{MY+20}" font-size="12.5" fill="#475569">'
+    f'hold right ⌘ = Meh (⌃⌥⇧) · tap = ⌘ · emits F-keys (no key clash)</text>')
+meh = [
+    ("Meh + 1", "Caméra Facetime", "F19"),
+    ("Meh + 2", "Caméra Brio", "F20"),
+    ("Meh + 3", "Caméra ionPhone", "F16"),
+    ("Meh + 4", "Caméra Fuji", "F13"),
+    ("Meh + E", "Scène Écran (incrustation)", "F18"),
+    ("Meh + R", "Scène Régie", "F17"),
+]
+for i, (combo, label, fkey) in enumerate(meh):
+    ry = MY + 58 + i * 34
+    add(f'<rect x="{MX}" y="{ry-18}" width="92" height="26" rx="7" fill="{OBS}"/>')
+    add(f'<text x="{MX+46}" y="{ry}" font-size="13" font-weight="700" '
+        f'text-anchor="middle" fill="#ffffff">{escape(combo)}</text>')
+    add(f'<text x="{MX+106}" y="{ry}" font-size="13.5" fill="#334155">{escape(label)}</text>')
+    add(f'<text x="{W-LEFT-12}" y="{ry}" font-size="11.5" text-anchor="end" '
+        f'fill="#94a3b8">{escape(fkey)}</text>')
 
 add('</svg>')
 

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1300" height="1052" viewBox="0 0 1300 1052" font-family="-apple-system, Helvetica, Arial, sans-serif">
 <rect width="1300" height="1052" fill="#ffffff"/>
-<text x="60" y="48" font-size="30" font-weight="800" fill="#0f172a">Hyper map — AZERTY keyboard</text>
+<text x="60" y="48" font-size="30" font-weight="800" fill="#0f172a">Hyper &amp; Meh map — AZERTY keyboard</text>
 <rect x="60" y="74" width="1180" height="72" rx="14" fill="#0f172a"/>
 <text x="82" y="118" font-size="26" font-weight="800" fill="#ffffff">⇪ CapsLock = HYPER</text>
 <text x="382" y="106" font-size="14" fill="#cbd5e1">hold → Hyper (⌘ ⌃ ⌥ ⇧)</text>
@@ -256,4 +256,31 @@
 <text x="60" y="990" font-size="13.5" fill="#334155">Raycast ×4: , ; : = launch 4 Raycast commands (Raycast config is binary, not detailed here).</text>
 <text x="60" y="1012" font-size="13.5" fill="#334155">Outside Hyper: tapping ⌥ (left or right) triggers Handy dictation (⌃⌥⌘D).</text>
 <text x="60" y="1034" font-size="13.5" fill="#334155">Apps whose key isn&#x27;t the initial: B→Safari (Browser), M→Superhuman (Mail), Y→Kaset (YouTube), A→Notion Calendar (Agenda), V→Google Meet (Visio).</text>
+<rect x="704" y="584" width="536" height="288" rx="14" fill="#f0fdfa" stroke="#0d948855"/>
+<text x="720" y="612" font-size="16" font-weight="700" fill="#0f172a">Meh layer — right ⌘  (OBS / visio)</text>
+<text x="720" y="632" font-size="12.5" fill="#475569">hold right ⌘ = Meh (⌃⌥⇧) · tap = ⌘ · emits F-keys (no key clash)</text>
+<rect x="720" y="652" width="92" height="26" rx="7" fill="#0d9488"/>
+<text x="766" y="670" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">Meh + 1</text>
+<text x="826" y="670" font-size="13.5" fill="#334155">Caméra Facetime</text>
+<text x="1228" y="670" font-size="11.5" text-anchor="end" fill="#94a3b8">F19</text>
+<rect x="720" y="686" width="92" height="26" rx="7" fill="#0d9488"/>
+<text x="766" y="704" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">Meh + 2</text>
+<text x="826" y="704" font-size="13.5" fill="#334155">Caméra Brio</text>
+<text x="1228" y="704" font-size="11.5" text-anchor="end" fill="#94a3b8">F20</text>
+<rect x="720" y="720" width="92" height="26" rx="7" fill="#0d9488"/>
+<text x="766" y="738" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">Meh + 3</text>
+<text x="826" y="738" font-size="13.5" fill="#334155">Caméra ionPhone</text>
+<text x="1228" y="738" font-size="11.5" text-anchor="end" fill="#94a3b8">F16</text>
+<rect x="720" y="754" width="92" height="26" rx="7" fill="#0d9488"/>
+<text x="766" y="772" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">Meh + 4</text>
+<text x="826" y="772" font-size="13.5" fill="#334155">Caméra Fuji</text>
+<text x="1228" y="772" font-size="11.5" text-anchor="end" fill="#94a3b8">F13</text>
+<rect x="720" y="788" width="92" height="26" rx="7" fill="#0d9488"/>
+<text x="766" y="806" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">Meh + E</text>
+<text x="826" y="806" font-size="13.5" fill="#334155">Scène Écran (incrustation)</text>
+<text x="1228" y="806" font-size="11.5" text-anchor="end" fill="#94a3b8">F18</text>
+<rect x="720" y="822" width="92" height="26" rx="7" fill="#0d9488"/>
+<text x="766" y="840" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">Meh + R</text>
+<text x="826" y="840" font-size="13.5" fill="#334155">Scène Régie</text>
+<text x="1228" y="840" font-size="11.5" text-anchor="end" fill="#94a3b8">F17</text>
 </svg>

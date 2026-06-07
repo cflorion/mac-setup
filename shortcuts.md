@@ -2,6 +2,7 @@
 
 > **Hyper** = hold CapsLock = Cmd+Ctrl+Opt+Shift
 > **CapsLock** tapped alone = Escape
+> **Meh** = hold right ⌘ = Ctrl+Opt+Shift (OBS / video-call layer)
 
 ---
 
@@ -11,7 +12,28 @@
 |---|---|
 | CapsLock (hold) | Hyper (Cmd+Ctrl+Opt+Shift) |
 | CapsLock (tap) | Escape |
+| Right ⌘ (hold) | Meh (Ctrl+Opt+Shift) |
+| Right ⌘ (tap) | Right Cmd |
 | Left or right Alt (tap) | Handy dictation (⌃⌥⌘D) |
+
+> ⚠️ Right ⌘ is now a Meh modifier: normal ⌘ shortcuts (copy/paste…) must use the **left** ⌘.
+
+---
+
+## Meh — OBS / video calls
+
+Meh keys emit F-keys (F13–F20) that have no physical key on the keyboard, so they
+never clash with anything. OBS listens for those F-keys (Settings → Hotkeys).
+Each camera key shows one source and hides the others in one shot.
+
+| Shortcut | Emits | OBS action |
+|---|---|---|
+| Meh+1 | F19 | Camera **Facetime** |
+| Meh+2 | F20 | Camera **Brio** |
+| Meh+3 | F16 | Camera **ionPhone** |
+| Meh+4 | F13 | Camera **Fuji** |
+| Meh+E | F18 | Scene **Écran** (incrustation) |
+| Meh+R | F17 | Scene **Régie** |
 
 ---
 
