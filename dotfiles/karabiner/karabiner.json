@@ -100,49 +100,36 @@
                         ]
                     },
                     {
-                        "description": "Meh + 1/2/3/4/E/R → OBS hotkeys (F-keys, no physical key on the keyboard)",
+                        "description": "fn + 1/2/3/4/E/R → OBS hotkeys (F-keys, no physical key on the keyboard)",
                         "manipulators": [
                             {
-                                "from": { "key_code": "1", "modifiers": { "mandatory": ["left_control", "left_option", "left_shift"] } },
+                                "from": { "key_code": "1", "modifiers": { "mandatory": ["fn"] } },
                                 "to": [{ "key_code": "f19" }],
                                 "type": "basic"
                             },
                             {
-                                "from": { "key_code": "2", "modifiers": { "mandatory": ["left_control", "left_option", "left_shift"] } },
+                                "from": { "key_code": "2", "modifiers": { "mandatory": ["fn"] } },
                                 "to": [{ "key_code": "f20" }],
                                 "type": "basic"
                             },
                             {
-                                "from": { "key_code": "3", "modifiers": { "mandatory": ["left_control", "left_option", "left_shift"] } },
+                                "from": { "key_code": "3", "modifiers": { "mandatory": ["fn"] } },
                                 "to": [{ "key_code": "f16" }],
                                 "type": "basic"
                             },
                             {
-                                "from": { "key_code": "4", "modifiers": { "mandatory": ["left_control", "left_option", "left_shift"] } },
+                                "from": { "key_code": "4", "modifiers": { "mandatory": ["fn"] } },
                                 "to": [{ "key_code": "f13" }],
                                 "type": "basic"
                             },
                             {
-                                "from": { "key_code": "e", "modifiers": { "mandatory": ["left_control", "left_option", "left_shift"] } },
+                                "from": { "key_code": "e", "modifiers": { "mandatory": ["fn"] } },
                                 "to": [{ "key_code": "f18" }],
                                 "type": "basic"
                             },
                             {
-                                "from": { "key_code": "r", "modifiers": { "mandatory": ["left_control", "left_option", "left_shift"] } },
+                                "from": { "key_code": "r", "modifiers": { "mandatory": ["fn"] } },
                                 "to": [{ "key_code": "f17" }],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "Meh + ⌫ (Ctrl+Opt+Shift+Backspace) → ⌘⌫ (delete line)",
-                        "manipulators": [
-                            {
-                                "from": {
-                                    "key_code": "delete_or_backspace",
-                                    "modifiers": { "mandatory": ["left_control", "left_option", "left_shift"] }
-                                },
-                                "to": [{ "key_code": "delete_or_backspace", "modifiers": ["left_command"] }],
                                 "type": "basic"
                             }
                         ]
@@ -163,25 +150,6 @@
                                     }
                                 ],
                                 "to_if_alone": [{ "key_code": "escape" }],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "Right ⌘ → Meh (Ctrl+Opt+Shift) / tap → Right Cmd",
-                        "manipulators": [
-                            {
-                                "from": {
-                                    "key_code": "right_command",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_control", "left_option"]
-                                    }
-                                ],
-                                "to_if_alone": [{ "key_code": "right_command" }],
                                 "type": "basic"
                             }
                         ]
