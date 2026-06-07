@@ -5522,7 +5522,7 @@
                 {
                   "keyActionType": "keystroke",
                   "type": "basic",
-                  "modifierMask": 15
+                  "scancode": 57
                 },
                 {
                   "keyActionType": "keystroke",
