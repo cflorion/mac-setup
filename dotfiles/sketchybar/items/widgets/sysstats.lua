@@ -7,14 +7,15 @@ local config_dir = os.getenv("CONFIG_DIR")
   or (os.getenv("HOME") .. "/.config/sketchybar")
 local stats_script = config_dir .. "/helpers/sysstats.sh"
 
--- Compact, monochrome system stats: "CPU 23%  RAM 52%  ↓1K ↑26K".
+-- Compact, monochrome, fixed-width system stats: "CPU 23%  RAM 52%".
 -- Single text item (no icon, no graph, no color) so it stays legible on the
--- 1-bit text-mode e-paper readout. All computation lives in helpers/sysstats.sh.
+-- 1-bit text-mode e-paper readout. Sits just left of the date/time (see the
+-- require order in items/init.lua). All computation lives in helpers/sysstats.sh.
 local sysstats = sbar.add("item", "widgets.sysstats", {
   position = "right",
   icon = { drawing = false },
   label = {
-    string = "CPU --%  RAM --%  ↓-- ↑--",
+    string = "CPU --%  RAM --%",
     font = {
       family = settings.font.numbers,
       style = settings.font.style_map["Bold"],
