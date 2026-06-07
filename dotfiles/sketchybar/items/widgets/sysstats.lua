@@ -8,20 +8,26 @@ local config_dir = os.getenv("CONFIG_DIR")
 local stats_script = config_dir .. "/helpers/sysstats.sh"
 
 -- Compact, monochrome, fixed-width system stats: "CPU 23%  RAM 52%".
--- Single text item (no icon, no graph, no color) so it stays legible on the
--- 1-bit text-mode e-paper readout. Sits just left of the date/time (see the
--- require order in items/init.lua). All computation lives in helpers/sysstats.sh.
+-- Styled to match the adjacent clock (grey text, no background/bracket) so it
+-- blends into the bar instead of standing out as a boxed button. Single text
+-- item (no icon/graph/color) so it stays legible on the 1-bit e-paper readout.
+-- Sits just left of the date/time (see require order in items/init.lua).
+-- All computation lives in helpers/sysstats.sh.
 local sysstats = sbar.add("item", "widgets.sysstats", {
   position = "right",
   icon = { drawing = false },
   label = {
     string = "CPU --%  RAM --%",
+    color = colors.grey,
+    padding_right = 10,
     font = {
       family = settings.font.numbers,
       style = settings.font.style_map["Bold"],
-      size = 12.0,
+      size = 14.0,
     },
   },
+  padding_right = 1,
+  background = { drawing = false },
   update_freq = 5,
 })
 
@@ -37,12 +43,3 @@ end)
 sysstats:subscribe("mouse.clicked", function()
   sbar.exec("open -a 'Activity Monitor'")
 end)
-
-sbar.add("bracket", "widgets.sysstats.bracket", { sysstats.name }, {
-  background = { color = colors.bg1 },
-})
-
-sbar.add("item", "widgets.sysstats.padding", {
-  position = "right",
-  width = settings.group_paddings,
-})
