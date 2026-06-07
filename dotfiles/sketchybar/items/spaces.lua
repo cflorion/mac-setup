@@ -33,6 +33,13 @@ local workspace_defs = {
   { key = "3", side = "right" },
 }
 
+-- Background apps never shown in a workspace label, even when present in it
+-- (e.g. OBS runs in the background, driven by global hotkeys). Matched on the
+-- raw aerospace app-name, before display_names mapping.
+local hidden_apps = {
+  ["OBS Studio"] = true,
+}
+
 -- Derived from workspace_defs:
 --   left_names / right_names : item order per side of the notch
 --   display_names            : AeroSpace app name -> label (app open)
@@ -170,9 +177,11 @@ local function refresh_labels()
             local icon_line = ""
             for app in windows:gmatch("[^\r\n]+") do
               local trimmed_app = app:gsub("^%s+", ""):gsub("%s+$", "")
-              trimmed_app = display_names[trimmed_app] or trimmed_app
-              if trimmed_app ~= "" then
-                icon_line = icon_line == "" and trimmed_app or (icon_line .. "  " .. trimmed_app)
+              if not hidden_apps[trimmed_app] then
+                trimmed_app = display_names[trimmed_app] or trimmed_app
+                if trimmed_app ~= "" then
+                  icon_line = icon_line == "" and trimmed_app or (icon_line .. "  " .. trimmed_app)
+                end
               end
             end
             if icon_line == "" then icon_line = workspace_labels[ws_name] or ws_name end
