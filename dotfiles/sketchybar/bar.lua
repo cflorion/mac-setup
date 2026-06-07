@@ -6,6 +6,6 @@ sbar.bar({
 	drawing = true,
 	height = 32,
 	color = colors.bar.bg,
-	padding_right = 2,
+	padding_right = 20, -- room for the macOS camera/mic-in-use green dot
 	padding_left = 5,
 })
