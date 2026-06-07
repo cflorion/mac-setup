@@ -266,3 +266,10 @@ run = 'layout floating'
 [[on-window-detected]]
 if.app-id = 'com.raycast.macos'
 run = 'layout floating'
+
+# OBS Studio — background app driven entirely by global hotkeys (fn+1/2/3/4/E/R,
+# see karabiner). Never focused/tiled, so it gets no named workspace nor a
+# SketchyBar slot; float it so its window never disrupts the tiling layout.
+[[on-window-detected]]
+if.app-id = 'com.obsproject.obs-studio'
+run = 'layout floating'
