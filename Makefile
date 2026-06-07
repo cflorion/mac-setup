@@ -2,7 +2,9 @@ DOTFILES_DIR := $(shell pwd)/dotfiles
 CONFIG_DIR := $(HOME)/.config
 OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/Travail/.obsidian
 
-.PHONY: all install update link brew fuji-webcam npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama pwa \
+UHK_AGENT_DIR := $(HOME)/Library/Application Support/uhk-agent
+
+.PHONY: all install update link brew fuji-webcam npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama pwa uhk-backup \
 	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer
 
 all: install
@@ -172,6 +174,17 @@ pwa:
 ollama:
 	@echo "==> Pulling Ollama models..."
 	@ollama list | grep -q mistral-small3.2 || ollama pull mistral-small3.2 || true
+
+# Snapshot the live UHK Agent user-config into the repo (re-imported manually via Agent)
+uhk-backup:
+	@echo "==> Backing up UHK config..."
+	@latest=$$(ls -t "$(UHK_AGENT_DIR)"/*.json 2>/dev/null | head -1); \
+	if [ -n "$$latest" ]; then \
+		cp "$$latest" $(DOTFILES_DIR)/uhk/uhk-config.json; \
+		echo "  Saved $$latest -> dotfiles/uhk/uhk-config.json"; \
+	else \
+		echo "  No UHK Agent config found (open UHK Agent at least once first)"; \
+	fi
 
 # Backup SSH keys before formatting
 backup:
