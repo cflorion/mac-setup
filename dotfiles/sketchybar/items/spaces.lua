@@ -38,6 +38,7 @@ local workspace_defs = {
 -- raw aerospace app-name, before display_names mapping.
 local hidden_apps = {
   ["OBS Studio"] = true,
+  ["Antinote"] = true,
 }
 
 -- Derived from workspace_defs:
