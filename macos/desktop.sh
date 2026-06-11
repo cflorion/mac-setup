@@ -12,9 +12,15 @@ echo "==> Setting wallpaper"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 osascript <<EOF
 tell application "System Events"
-  tell every desktop
-    set picture to "$SCRIPT_DIR/wallpapers/black-white-dynamic.heic"
-  end tell
+  set desktopCount to count of desktops
+  repeat with i from 1 to desktopCount
+    set displayName to display name of desktop i
+    if displayName contains "intégré" or displayName contains "Built-in" then
+      set picture of desktop i to "$SCRIPT_DIR/wallpapers/black.png"
+    else
+      set picture of desktop i to "$SCRIPT_DIR/wallpapers/white.png"
+    end if
+  end repeat
 end tell
 EOF
 
