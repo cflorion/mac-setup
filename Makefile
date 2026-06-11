@@ -5,7 +5,7 @@ OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/
 UHK_AGENT_DIR := $(HOME)/Library/Application Support/uhk-agent
 
 .PHONY: all install update link brew fuji-webcam npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama pwa uhk-backup \
-	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer
+	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer macos-e-ink
 
 all: install
 
@@ -71,6 +71,9 @@ macos-control-center:
 
 macos-pointer:
 	@bash -euo pipefail -c 'source ./macos/pointer.sh'
+
+macos-e-ink:
+	@bash -euo pipefail -c 'source ./macos/e-ink.sh && killall Finder || true'
 
 raycast:
 	@echo "==> Configuring Raycast..."

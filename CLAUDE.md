@@ -18,7 +18,8 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - `make macos` — Apply all macOS defaults
 - `make fuji-webcam` — Install FUJIFILM X Webcam from the bundled `.pkg` (no Homebrew cask exists; needs sudo, restart after)
 - `make uhk-backup` — Snapshot the live UHK Agent user-config into `dotfiles/uhk/uhk-config.json` (commit the diff afterwards)
-- `make macos-<module>` — Apply a single module (finder, dock, keyboard, trackpad, mission-control, desktop, control-center, pointer)
+- `make macos-<module>` — Apply a single module (finder, dock, keyboard, trackpad, mission-control, desktop, control-center, pointer, e-ink)
+- `make macos-e-ink` — Apply e-ink display optimizations (font smoothing off, reduce transparency, increase contrast)
 - Bootstrap on a fresh Mac: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/cflorion/mac-setup/main/bootstrap.sh)"`
 
 ## Architecture

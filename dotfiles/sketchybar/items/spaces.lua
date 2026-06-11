@@ -75,7 +75,7 @@ local function create_space(ws_name, position)
     label = {
       padding_left = 6,
       padding_right = 6,
-      color = colors.grey,
+      color = colors.inactive,
       highlight_color = colors.white,
       font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 13.0 },
       background = { drawing = false },
@@ -146,7 +146,7 @@ local function set_focus(focused_ws)
       local is_focused = ws_name == focused_ws
       space:set({
         icon = { highlight = is_focused },
-        label = { highlight = is_focused, color = is_focused and colors.white or colors.grey },
+        label = { highlight = is_focused, color = is_focused and colors.white or colors.inactive },
         background = { drawing = is_focused },
       })
     end
@@ -189,7 +189,11 @@ local function refresh_labels()
             spaces[ws_name]:set({ label = icon_line })
           end)
         else
-          spaces[ws_name]:set({ label = workspace_labels[ws_name] or ws_name })
+          -- Empty AND unfocused: collapse to just the key letter to keep the bar
+          -- compact (16 full-word labels overflow and collide in the middle).
+          -- The focused workspace is force-added to active_set above, so a focused
+          -- empty space still falls into the active branch and shows its full label.
+          spaces[ws_name]:set({ label = ws_name })
         end
 
         sbar.set("space.padding." .. ws_name, { drawing = true })

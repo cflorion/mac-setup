@@ -23,6 +23,7 @@ local dark = {
 	orange = 0xfffab387,
 	magenta = 0xffcba6f7,
 	grey = 0xff666666,        -- inactive text (dark grey on dark)
+	inactive = 0xff666666,    -- workspace inactive label
 	dark_gray = 0xff1e1e2e,
 	transparent = 0x00000000,
 
@@ -49,6 +50,7 @@ local light = {
 	orange = 0xffcc5500,
 	magenta = 0xff8800aa,
 	grey = 0xffaaaaaa,        -- inactive text (light grey on light)
+	inactive = 0xff000000,    -- workspace inactive label: pure black, underline marks active
 	dark_gray = 0xfff5f5f5,
 	transparent = 0x00000000,
 
