@@ -32,6 +32,11 @@ brew "starship"
 brew "atuin"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"
+brew "yazi"
+brew "ffmpegthumbnailer"
+brew "unar"
+brew "poppler"
+brew "imagemagick"
 
 # --- System tools ---
 brew "mas"

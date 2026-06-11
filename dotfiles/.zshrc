@@ -69,3 +69,17 @@ export OLLAMA_DEFAULT_MODEL="mistral-small3.2"
 # LM Studio CLI
 export PATH="$PATH:$HOME/.lmstudio/bin"
 
+# -------
+# yazi — cd on exit
+# -------
+
+function y() {
+  local tmp cwd
+  tmp="$(mktemp -t yazi-cwd.XXXXXX)"
+  yazi "$@" --cwd-file="$tmp"
+  if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+    builtin cd -- "$cwd"
+  fi
+  rm -f -- "$tmp"
+}
+
