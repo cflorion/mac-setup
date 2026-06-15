@@ -49,13 +49,14 @@ Each camera key shows one source and hides the others in one shot.
 | Meh+F | Fullscreen |
 | Meh+Space | Floating ↔ Tiling |
 | Meh+← / → | Move window to left/right monitor |
+| Meh+↑ / ↓ | Move window to monitor above/below |
 | Meh+R | Resize mode (then H/J/K/L, Esc to exit) |
-| Meh+D | Move mode (then a letter/digit to send the window there) |
+| Meh+M | Move mode (then a letter/digit to send the window there) |
 
 ### Workspaces
 | Shortcut | Action |
 |---|---|
-| Hyper+↑ / ↓ | Previous / next workspace |
+| Hyper+← / → | Previous / next workspace |
 | Hyper+1 / 2 / 3 | Free workspace |
 
 ### Focus or launch app (key = workspace)

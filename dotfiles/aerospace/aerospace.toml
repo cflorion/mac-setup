@@ -82,12 +82,14 @@ ctrl-alt-shift-f = 'fullscreen'
 ctrl-alt-shift-space = 'layout floating tiling'
 
 # Move window to another monitor — Meh
-ctrl-alt-shift-left = 'move-node-to-monitor --wrap-around left'
+ctrl-alt-shift-left  = 'move-node-to-monitor --wrap-around left'
 ctrl-alt-shift-right = 'move-node-to-monitor --wrap-around right'
+ctrl-alt-shift-up    = 'move-node-to-monitor --wrap-around up'
+ctrl-alt-shift-down  = 'move-node-to-monitor --wrap-around down'
 
 # Cycle workspaces (linear, matches SketchyBar order) — Hyper
-cmd-ctrl-alt-shift-up   = 'exec-and-forget aerospace-workspace-cycle prev'
-cmd-ctrl-alt-shift-down = 'exec-and-forget aerospace-workspace-cycle next'
+cmd-ctrl-alt-shift-left  = 'exec-and-forget aerospace-workspace-cycle prev'
+cmd-ctrl-alt-shift-right = 'exec-and-forget aerospace-workspace-cycle next'
 
 # Resize mode — Meh
 ctrl-alt-shift-r = 'mode resize'
@@ -121,8 +123,8 @@ cmd-ctrl-alt-shift-1 = 'workspace 1'
 cmd-ctrl-alt-shift-2 = 'workspace 2'
 cmd-ctrl-alt-shift-3 = 'workspace 3'
 
-# Move window to workspace — via mode 'move' (Meh+D, puis lettre/chiffre)
-ctrl-alt-shift-d = 'mode move'
+# Move window to workspace — via mode 'move' (Meh+M, puis lettre/chiffre)
+ctrl-alt-shift-m = 'mode move'
 
 # ----------------------------
 # Move mode (send window to workspace)
