@@ -2,7 +2,7 @@
 
 > **Hyper** = hold CapsLock = Cmd+Ctrl+Opt+Shift
 > **CapsLock** tapped alone = Escape
-> **Meh** = hold right ⌘ = Ctrl+Opt+Shift (OBS / video-call layer)
+> **Meh** = hold fn = Ctrl+Opt+Shift (OBS / video-call layer)
 
 ---
 
@@ -12,11 +12,9 @@
 |---|---|
 | CapsLock (hold) | Hyper (Cmd+Ctrl+Opt+Shift) |
 | CapsLock (tap) | Escape |
-| Right ⌘ (hold) | Meh (Ctrl+Opt+Shift) |
-| Right ⌘ (tap) | Right Cmd |
+| fn (hold) | Meh (Ctrl+Opt+Shift) |
+| fn (tap) | fn (normal) |
 | Left or right Alt (tap) | Handy dictation (⌃⌥⌘D) |
-
-> ⚠️ Right ⌘ is now a Meh modifier: normal ⌘ shortcuts (copy/paste…) must use the **left** ⌘.
 
 ---
 
@@ -32,8 +30,8 @@ Each camera key shows one source and hides the others in one shot.
 | Meh+2 | F20 | Camera **Brio** |
 | Meh+3 | F16 | Camera **ionPhone** |
 | Meh+4 | F13 | Camera **Fuji** |
-| Meh+E | F18 | Scene **Écran** (incrustation) |
-| Meh+R | F17 | Scene **Régie** |
+| Meh+Z | F18 | Scene **Écran** (incrustation) |
+| Meh+A | F17 | Scene **Régie** |
 
 ---
 
@@ -42,28 +40,29 @@ Each camera key shows one source and hides the others in one shot.
 ### Window navigation
 | Shortcut | Action |
 |---|---|
-| Hyper+^ / $ | Focus window left / right (keys right of P) |
-| Hyper+Tab | Focus mode (then H/J/K/L, Esc) — *fallback, Cmd+Tab is caught by macOS* |
-| Hyper+← / → | Move window to left/right monitor |
+| Meh+H / L | Focus window left / right |
+| Meh+J / K | Focus window down / up |
 
-### Layout
+### Layout — Meh (Ctrl+Opt+Shift)
 | Shortcut | Action |
 |---|---|
-| Hyper+F | Fullscreen |
-| Hyper+Space | Floating ↔ Tiling |
+| Meh+F | Fullscreen |
+| Meh+Space | Floating ↔ Tiling |
+| Meh+← / → | Move window to left/right monitor |
+| Meh+R | Resize mode (then H/J/K/L, Esc to exit) |
+| Meh+D | Move mode (then a letter/digit to send the window there) |
 
 ### Workspaces
 | Shortcut | Action |
 |---|---|
 | Hyper+↑ / ↓ | Previous / next workspace |
-| Hyper+R | Resize mode (then H/J/K/L, Esc to exit) |
-| Hyper+D | Move mode (then a letter/digit to send the window there) |
 | Hyper+1 / 2 / 3 | Free workspace |
 
 ### Focus or launch app (key = workspace)
 | Shortcut | App |
 |---|---|
 | Hyper+W | WezTerm |
+| Hyper+F | yazi (Files) |
 | Hyper+M | Superhuman (Mail) |
 | Hyper+S | Slack |
 | Hyper+C | Google Chat |

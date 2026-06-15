@@ -71,28 +71,26 @@ semicolon = 'comma'
 # ----------------------------
 [mode.main.binding]
 
-# Focus mode (Tab is swallowed by macOS Cmd+Tab, kept as fallback)
-cmd-ctrl-alt-shift-tab = 'mode focus'
+# Focus — Meh (ctrl-alt-shift)
+ctrl-alt-shift-h = 'focus --boundaries-action wrap-around-the-workspace left'
+ctrl-alt-shift-j = 'focus --boundaries-action wrap-around-the-workspace down'
+ctrl-alt-shift-k = 'focus --boundaries-action wrap-around-the-workspace up'
+ctrl-alt-shift-l = 'focus --boundaries-action wrap-around-the-workspace right'
 
-# Direct directional focus — ^ and $ keys (right of P on AZERTY)
-# leftSquareBracket = ^ key, rightSquareBracket = $ key (physical key codes)
-cmd-ctrl-alt-shift-leftSquareBracket  = 'focus --boundaries-action wrap-around-the-workspace left'
-cmd-ctrl-alt-shift-rightSquareBracket = 'focus --boundaries-action wrap-around-the-workspace right'
+# Layout — Meh (ctrl-alt-shift)
+ctrl-alt-shift-f = 'fullscreen'
+ctrl-alt-shift-space = 'layout floating tiling'
 
-# Layout
-cmd-ctrl-alt-shift-f = 'fullscreen'
-cmd-ctrl-alt-shift-space = 'layout floating tiling'
+# Move window to another monitor — Meh
+ctrl-alt-shift-left = 'move-node-to-monitor --wrap-around left'
+ctrl-alt-shift-right = 'move-node-to-monitor --wrap-around right'
 
-# Move window to another monitor
-cmd-ctrl-alt-shift-left = 'move-node-to-monitor --wrap-around left'
-cmd-ctrl-alt-shift-right = 'move-node-to-monitor --wrap-around right'
-
-# Cycle workspaces (linear, matches SketchyBar order)
+# Cycle workspaces (linear, matches SketchyBar order) — Hyper
 cmd-ctrl-alt-shift-up   = 'exec-and-forget aerospace-workspace-cycle prev'
 cmd-ctrl-alt-shift-down = 'exec-and-forget aerospace-workspace-cycle next'
 
-# Resize mode
-cmd-ctrl-alt-shift-r = 'mode resize'
+# Resize mode — Meh
+ctrl-alt-shift-r = 'mode resize'
 
 # Service mode (reload config, flatten, close all) — not bound, accessible via CLI: aerospace reload-config
 
@@ -100,7 +98,6 @@ cmd-ctrl-alt-shift-r = 'mode resize'
 # ----------------------------
 # Named workspaces
 # Rule: shortcut = app initial = workspace name
-# Reserved (do not use): f r tab
 # ----------------------------
 
 # Switch to workspace (finds app window wherever it is) or launch app (on-window-detected handles workspace)
@@ -116,6 +113,7 @@ cmd-ctrl-alt-shift-a = 'exec-and-forget aerospace-focus-or-open A com.cron.elect
 cmd-ctrl-alt-shift-l = 'exec-and-forget aerospace-focus-or-open L com.linear Linear'
 cmd-ctrl-alt-shift-y = 'exec-and-forget aerospace-focus-or-open Y com.sertacozercan.Kaset Kaset'
 cmd-ctrl-alt-shift-h = 'exec-and-forget aerospace-focus-or-open H net.imput.helium Helium'
+cmd-ctrl-alt-shift-f = 'exec-and-forget yazi-focus-or-open'
 
 cmd-ctrl-alt-shift-v = 'exec-and-forget aerospace-focus-or-open V net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan "$HOME/Applications/Chromium Apps.localized/Google Meet.app"'
 # Free workspaces (1-3)
@@ -123,8 +121,8 @@ cmd-ctrl-alt-shift-1 = 'workspace 1'
 cmd-ctrl-alt-shift-2 = 'workspace 2'
 cmd-ctrl-alt-shift-3 = 'workspace 3'
 
-# Move window to workspace — via mode 'move' (hyper + d, puis lettre/chiffre)
-cmd-ctrl-alt-shift-d = 'mode move'
+# Move window to workspace — via mode 'move' (Meh+D, puis lettre/chiffre)
+ctrl-alt-shift-d = 'mode move'
 
 # ----------------------------
 # Move mode (send window to workspace)
@@ -148,17 +146,6 @@ v = ['move-node-to-workspace V --focus-follows-window', 'mode main']
 2 = ['move-node-to-workspace 2 --focus-follows-window', 'mode main']
 3 = ['move-node-to-workspace 3 --focus-follows-window', 'mode main']
 esc = 'mode main'
-
-# ----------------------------
-# Focus mode
-# ----------------------------
-[mode.focus.binding]
-h = 'focus --boundaries-action wrap-around-the-workspace left'
-j = 'focus --boundaries-action wrap-around-the-workspace down'
-k = 'focus --boundaries-action wrap-around-the-workspace up'
-l = 'focus --boundaries-action wrap-around-the-workspace right'
-esc = 'mode main'
-enter = 'mode main'
 
 # ----------------------------
 # Resize mode
