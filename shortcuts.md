@@ -2,7 +2,7 @@
 
 > **Hyper** = hold CapsLock = Cmd+Ctrl+Opt+Shift
 > **CapsLock** tapped alone = Escape
-> **Meh** = hold right ⌥ = Ctrl+Opt+Shift (OBS / video-call layer)
+> **Meh** = hold right ⇧ = Ctrl+Opt+Shift (OBS / video-call layer)
 
 ---
 
@@ -12,8 +12,8 @@
 |---|---|
 | CapsLock (hold) | Hyper (Cmd+Ctrl+Opt+Shift) |
 | CapsLock (tap) | Escape |
-| Right ⌥ (hold) | Meh (Ctrl+Opt+Shift) |
-| Right ⌥ (tap) | Handy dictation (⌃⌥⌘D) |
+| Right ⇧ (hold) | Meh (Ctrl+Opt+Shift) |
+| Right ⇧ (tap) | Shift |
 | Left ⌥ (tap) | Handy dictation (⌃⌥⌘D) |
 
 ---

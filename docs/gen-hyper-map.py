@@ -145,7 +145,7 @@ add(f'<text x="{LEFT}" y="{fy}" font-size="16" font-weight="700" fill="#0f172a">
 notes = [
     "Digits 1–3: Hyper includes ⇧, so the digit is emitted (not @ & «).",
     "Raycast ×4: , ; : = launch 4 Raycast commands (Raycast config is binary, not detailed here).",
-    "Outside Hyper: tapping ⌥ (left or right) triggers Handy dictation (⌃⌥⌘D).",
+    "Outside Hyper: tapping ⌥ (left or right) triggers Handy dictation (⌃⌥⌘D). Right ⇧ (hold) = Meh.",
     "Apps whose key isn't the initial: B→Safari (Browser), M→Superhuman (Mail), "
     "Y→Kaset (YouTube), A→Notion Calendar (Agenda), V→Google Meet (Visio).",
 ]
@@ -153,16 +153,16 @@ for i, n in enumerate(notes):
     add(f'<text x="{LEFT}" y="{fy+24+i*22}" font-size="13.5" fill="#334155">{escape(n)}</text>')
 
 # ---- Meh / OBS panel (right column) --------------------------------------
-# Second layer: hold right ⌘ = Meh (⌃⌥⇧), emits clean F-keys that OBS listens
+# Second layer: hold right ⇧ = Meh (⌃⌥⇧), emits clean F-keys that OBS listens
 # for. Cameras "show one source + hide the rest" in one shot; E/R switch scenes.
 MX, MY = 720, 612
 OBS = "#0d9488"
 add(f'<rect x="{MX-16}" y="{MY-28}" width="{W-LEFT-(MX-16)}" height="288" rx="14" '
     f'fill="#f0fdfa" stroke="{OBS}55"/>')
 add(f'<text x="{MX}" y="{MY}" font-size="16" font-weight="700" fill="#0f172a">'
-    f'Meh layer — right ⌘  (OBS / visio)</text>')
+    f'Meh layer — right ⇧  (OBS / visio)</text>')
 add(f'<text x="{MX}" y="{MY+20}" font-size="12.5" fill="#475569">'
-    f'hold right ⌘ = Meh (⌃⌥⇧) · tap = ⌘ · emits F-keys (no key clash)</text>')
+    f'hold right ⇧ = Meh (⌃⌥⇧) · tap = ⇧ · emits F-keys (no key clash)</text>')
 meh = [
     ("Meh + 1", "Caméra Facetime", "F19"),
     ("Meh + 2", "Caméra Brio", "F20"),
