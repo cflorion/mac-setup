@@ -20,7 +20,7 @@ after-startup-command = [
     'exec-and-forget open -g -b com.github.wez.wezterm',                          # W WezTerm
     'exec-and-forget open -g -b com.superhuman.electron',                         # M Mail Pro
     'exec-and-forget open -g -b com.tinyspeck.slackmacgap',                       # S Slack
-    'exec-and-forget open -g "$HOME/Applications/Chrome Apps.localized/Google Chat.app"',  # C Chat
+    'exec-and-forget open -g "$HOME/Applications/Chromium Apps.localized/Google Chat.app"',  # C Chat
     'exec-and-forget open -g -b com.linear',                                      # L Linear
     'exec-and-forget open -g -b md.obsidian',                                     # O Obsidian
     'exec-and-forget open -g -b com.TickTick.task.mac',                           # T TickTick
@@ -108,7 +108,7 @@ cmd-ctrl-alt-shift-b = 'exec-and-forget aerospace-focus-or-open B com.apple.Safa
 cmd-ctrl-alt-shift-m = 'exec-and-forget aerospace-focus-or-open M com.superhuman.electron Superhuman'
 cmd-ctrl-alt-shift-s = 'exec-and-forget aerospace-focus-or-open S com.tinyspeck.slackmacgap Slack'
 cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.google.GeminiMacOS Gemini'
-cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C com.google.Chrome.app.pommaclcbfghclhalboakcipcmmndhcj "$HOME/Applications/Chrome Apps.localized/Google Chat.app"'
+cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C net.imput.helium.app.pommaclcbfghclhalboakcipcmmndhcj "$HOME/Applications/Chromium Apps.localized/Google Chat.app"'
 cmd-ctrl-alt-shift-o = 'exec-and-forget aerospace-focus-or-open O md.obsidian Obsidian'
 cmd-ctrl-alt-shift-t = 'exec-and-forget aerospace-focus-or-open T com.TickTick.task.mac TickTick'
 cmd-ctrl-alt-shift-a = 'exec-and-forget aerospace-focus-or-open A com.cron.electron "Notion Calendar"'
@@ -198,9 +198,10 @@ run = ['move-node-to-workspace S', 'workspace S']
 if.app-id = 'com.google.GeminiMacOS'
 run = ['move-node-to-workspace G', 'workspace G']
 
-# Google Chat PWA (C) — Chrome PWA
+# Google Chat - Helium PWA (C). Its app-id differs from
+# net.imput.helium, so no conflict with the Helium rule below.
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.pommaclcbfghclhalboakcipcmmndhcj'
+if.app-id = 'net.imput.helium.app.pommaclcbfghclhalboakcipcmmndhcj'
 run = ['move-node-to-workspace C', 'workspace C']
 
 # Issue Tracking - Linear (L)

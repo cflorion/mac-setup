@@ -9,7 +9,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 
 ## Key Commands
 
-- `make install` — Full setup for a new machine (brew, node, npm-global, link, sketchybar, obsidian, macos, raycast, mas, ollama, pwa)
+- `make install` — Full setup for a new machine (brew, node, npm-global, link, sketchybar, obsidian, macos, raycast, mas, ollama, pwa-helium)
 - `make update` — Fast daily update (brew, node, link, macos)
 - `make backup` — Backup SSH keys before formatting
 - `make restore-ssh` — Restore SSH keys from most recent backup
@@ -32,7 +32,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - **raycast.sh** — Disables Spotlight shortcuts (freeing Cmd+Space for Raycast), opens extension install URLs, imports the newest Raycast `*.rayconfig` export.
 - **apps-mas.sh** — Mac App Store installs via `mas`.
 - **installers/** — Vendor `.pkg` installers with no Homebrew cask (e.g. `XWebcamIns220.pkg` for FUJIFILM X Webcam). Installed by the `fuji-webcam` Makefile target via `sudo installer -pkg … -target /`, guarded so it skips when the app already exists.
-- **pwa.sh** — Recreates Chrome PWA `.app` shortcuts (e.g. Google Chat) in `~/Applications/Chrome Apps.localized/`. Requires the PWA to already be synced into the Chrome profile.
+- **pwa-helium.sh** — Recreates *native* Helium PWA `.app` shortcuts (Google Chat, Google Meet) in `~/Applications/Chromium Apps.localized/` by launching `Helium --app-id=<id>` (same trick as Chrome's `--app-id`, which regenerates the shortcut on disk). Used for Google web apps: they open external links via their parent browser process, bypassing the default browser, so Finicky can't route those clicks — running them *inside* Helium makes their links open in Helium. Each PWA must be installed once via Helium's ⋮ menu > "Install app…" (registers it in the Helium profile); the script regenerates it on re-runs. Installed by `make pwa-helium`. Note: the very first launch after regeneration triggers a Helium "rebuild" cycle that may not open a window — just launch it again.
 - **launchd/** — LaunchAgent templates (`__HOME__` placeholder is substituted at install time). `com.user.sketchybar-theme.plist` runs `dark-notify` to reload sketchybar on light/dark switch; installed by `make sketchybar`.
 - **dotfiles/** — Symlinked into `~` and `~/.config/` by `make link`:
   - Hidden files (`.zshrc`, `.gitconfig`, `.gitignore_global`, `.finicky.js`) → `~/`

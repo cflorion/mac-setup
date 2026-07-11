@@ -4,13 +4,13 @@ OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/
 
 UHK_AGENT_DIR := $(HOME)/Library/Application Support/uhk-agent
 
-.PHONY: all install update link brew fuji-webcam npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama pwa uhk-backup \
+.PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama pwa-helium uhk-backup wezterm \
 	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer macos-e-ink
 
 all: install
 
 # Full setup for a new machine
-install: brew fuji-webcam node npm-global link sketchybar obsidian macos raycast mas ollama pwa
+install: brew fuji-webcam open-pdf-studio node npm-global link sketchybar obsidian macos raycast mas ollama pwa-helium wezterm
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -29,6 +29,19 @@ fuji-webcam:
 	else \
 		echo "==> Installing FUJIFILM X Webcam (needs sudo; restart afterwards)..."; \
 		sudo installer -pkg installers/XWebcamIns220.pkg -target /; \
+	fi
+
+# Install Open PDF Studio — no Homebrew cask; downloads latest DMG from GitHub releases.
+open-pdf-studio:
+	@if [ -d "/Applications/Open PDF Studio.app" ]; then \
+		echo "==> Open PDF Studio already installed, skipping"; \
+	else \
+		echo "==> Downloading Open PDF Studio..."; \
+		gh release download --repo OpenAEC-Foundation/open-pdf-studio --pattern "*universal.dmg" --output /tmp/open-pdf-studio.dmg --clobber; \
+		VOLUME=$$(hdiutil attach /tmp/open-pdf-studio.dmg -nobrowse | tail -1 | awk '{print $$NF}'); \
+		cp -r "$$VOLUME/Open PDF Studio.app" /Applications/; \
+		hdiutil detach "$$VOLUME" -quiet; \
+		rm /tmp/open-pdf-studio.dmg; \
 	fi
 
 node:
@@ -169,9 +182,28 @@ sketchybar:
 	@brew services start sketchybar 2>/dev/null || true
 	@echo "  Sketchybar ready!"
 
-# Install Chrome-based PWAs (Google Chat, etc.)
-pwa:
-	@bash ./pwa.sh
+# Install WezTerm login helpers
+# Cleans any stale unix-domain socket then daemonizes the mux server at login,
+# so it is ready before WezTerm connects (avoids the "after spawning server
+# failed to connect" notification caused by a boot-time race condition).
+wezterm:
+	@echo "==> Installing WezTerm login helpers..."
+	@mkdir -p $(HOME)/Library/LaunchAgents
+	@# Migrate: remove old socket-cleaner-only agent if present
+	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.wezterm-clean-socket.plist 2>/dev/null || true
+	@/bin/rm -f $(HOME)/Library/LaunchAgents/com.user.wezterm-clean-socket.plist
+	@# Install mux-server agent (cleans socket then starts server atomically)
+	@sed "s|__HOME__|$(HOME)|g" launchd/com.user.wezterm-mux-server.plist > $(HOME)/Library/LaunchAgents/com.user.wezterm-mux-server.plist
+	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.wezterm-mux-server.plist 2>/dev/null || true
+	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.wezterm-mux-server.plist
+	@echo "  WezTerm mux server registered!"
+
+# Install Helium PWAs — native Helium web apps (Google Chat, Google Meet).
+# Their links open inside Helium instead of the default browser (unlike Chrome PWAs,
+# whose external links bypass Finicky). Requires each PWA to be installed once via
+# Helium's ⋮ menu > "Install app…"; the script regenerates the .app on re-runs.
+pwa-helium:
+	@bash ./pwa-helium.sh
 
 # Pull Ollama models
 ollama:

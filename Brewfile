@@ -48,6 +48,7 @@ brew "cormacrelf/tap/dark-notify"
 
 # --- AI ---
 brew "opencode"
+brew "herdr"
 brew "ollama"
 
 # --- Dev apps ---
@@ -80,9 +81,10 @@ cask "obsidian"
 cask "antinote"
 cask "notion"
 cask "notion-calendar"
-cask "linear-linear"
+cask "linear"
 cask "figma"
 cask "pdf-expert"
+cask "skim"
 cask "microsoft-excel"
 cask "cleanshot"
 cask "pixelsnap"
@@ -101,6 +103,7 @@ cask "stillcolor"
 cask "displaylink"
 
 # --- Utilities ---
+cask "android-platform-tools"
 cask "keycastr"
 cask "uhk-agent"
 cask "handy"

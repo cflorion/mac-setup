@@ -4,6 +4,7 @@
 
 local wezterm = require 'wezterm'
 local act = wezterm.action
+local mux = wezterm.mux
 local config = wezterm.config_builder()
 
 -- Detect system light/dark appearance (auto-reloads on change)
@@ -73,11 +74,36 @@ local is_dark = get_appearance():find('Dark')
 -- MUX SERVER (persistent sessions)
 -- =============================================================================
 
--- Connect to the mux server on startup so sessions survive WezTerm restarts
+-- unix domain: mux server survives WezTerm GUI restarts (live processes keep running)
+-- gui-startup below handles the connection instead of default_gui_startup_args
 config.unix_domains = {
   { name = 'unix' },
 }
-config.default_gui_startup_args = { 'connect', 'unix' }
+
+-- =============================================================================
+-- SESSION PERSISTENCE (survives reboots via resurrect.wezterm)
+-- =============================================================================
+local resurrect = wezterm.plugin.require('https://github.com/MLFlexer/resurrect.wezterm')
+
+-- Auto-save every 5 minutes
+resurrect.state_manager.periodic_save()
+
+-- Final save of all workspaces on quit
+wezterm.on('gui-shutdown', function()
+  resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
+end)
+
+-- On startup: connect to unix domain.
+-- After reboot (fresh mux): auto-restore last saved session.
+-- After simple restart (live mux): close the extra empty window we spawned.
+wezterm.on('gui-startup', function(cmd)
+  local tab, _, window = mux.spawn_window(cmd or { domain = { DomainName = 'unix' } })
+  if #mux.all_windows() == 1 then
+    resurrect.state_manager.resurrect_on_gui_startup()
+  else
+    tab:close()
+  end
+end)
 
 -- =============================================================================
 -- APPEARANCE
@@ -293,6 +319,18 @@ config.keys = {
   { key = 'r', mods = 'SUPER|SHIFT', action = act.ReloadConfiguration },
   { key = 'f', mods = 'SUPER',       action = act.Search { CaseSensitiveString = '' } },
   { key = 'p', mods = 'SUPER',       action = act.ActivateCommandPalette },
+
+  -- -------------------------------------------------------------------------
+  -- Session save / restore  (Ctrl+Cmd+S / Ctrl+Cmd+R)
+  -- -------------------------------------------------------------------------
+  { key = 's', mods = 'CTRL|SUPER', action = wezterm.action_callback(function(win, _)
+      resurrect.save_state(win:active_workspace())
+    end)
+  },
+  { key = 'r', mods = 'CTRL|SUPER', action = wezterm.action_callback(function(win, pane)
+      resurrect.resurrect(win)
+    end)
+  },
 
   -- -------------------------------------------------------------------------
   -- Workspaces

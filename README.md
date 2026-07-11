@@ -51,6 +51,7 @@ It installs the Command Line Tools + Homebrew, clones this repo into
 | `make sketchybar` | Build and start the SketchyBar menu bar |
 | `make obsidian` | Copy the Obsidian theme and plugins into the vault |
 | `make pwa` | Recreate the Chrome PWA shortcuts (e.g. Google Chat) |
+| `make pwa-helium` | Create Helium app-window wrappers (links open in Helium) |
 | `make ollama` | Pull the Ollama models |
 
 `make macos-<module>` modules:
@@ -72,6 +73,7 @@ mac-setup/
 ├── macos-defaults.sh     # Runs every module in macos/
 ├── raycast.sh            # Raycast config
 ├── pwa.sh                # Recreates Chrome PWAs
+├── pwa-helium.sh         # Creates Helium app-window wrappers
 ├── backup.sh             # SSH key backup
 ├── restore-ssh.sh        # SSH key restore
 │

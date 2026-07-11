@@ -21,7 +21,6 @@ format = """
 $hostname\
 $directory\
 $container\
-$sudo\
 $git_branch\
 $git_status\
 $git_metrics\
@@ -109,7 +108,7 @@ format = "[$hostname]($style) "
 style = "#f38ba8 bold"
 
 [sudo]
-disabled = false
+disabled = true
 format = '[$symbol]($style) '
 style = 'fg:red'
 symbol = ''
