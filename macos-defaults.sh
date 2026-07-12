@@ -3,6 +3,26 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+MANUAL_STEPS_FILE="$(mktemp)"
+manual_step() {
+  local line
+  for line in "$@"; do
+    echo "$line"
+    echo "$line" >> "$MANUAL_STEPS_FILE"
+  done
+}
+show_manual_steps() {
+  if [[ -s "$MANUAL_STEPS_FILE" ]]; then
+    echo ""
+    echo "════════════════════════════════════════════"
+    echo "  Manual steps to complete:"
+    echo "════════════════════════════════════════════"
+    cat "$MANUAL_STEPS_FILE"
+  fi
+  rm -f "$MANUAL_STEPS_FILE"
+}
+trap show_manual_steps EXIT
+
 source "$SCRIPT_DIR/macos/finder.sh"
 source "$SCRIPT_DIR/macos/dock.sh"
 source "$SCRIPT_DIR/macos/keyboard.sh"

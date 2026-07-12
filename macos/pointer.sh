@@ -5,6 +5,8 @@ defaults write NSGlobalDomain CGDisableCursorLocationMagnification -bool true
 sudo defaults write com.apple.universalaccess mouseDriverCursorSize -float 1.5
 
 echo "==> Accessibility settings"
-echo "    ⚠️  Manual step: System Settings > Accessibility > Display"
-echo "    - Increase contrast: ON"
-echo "    - Reduce transparency: ON"
+type manual_step &>/dev/null || manual_step() { local l; for l in "$@"; do echo "$l"; done; }
+manual_step \
+  "    ⚠️  Manual step: System Settings > Accessibility > Display" \
+  "    - Increase contrast: ON" \
+  "    - Reduce transparency: ON"
