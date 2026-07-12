@@ -71,7 +71,7 @@ cask "lm-studio"
 # --- Productivity ---
 cask "raycast"
 cask "google-chrome"
-cask "helium"
+cask "helium-browser"
 cask "slack"
 cask "superhuman"
 cask "zoom"
