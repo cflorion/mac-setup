@@ -20,6 +20,7 @@ export default {
           "com.figma.Desktop", // Figma
           "com.anthropic.claudefordesktop", // Claude
           "notion.id", // Notion
+          "com.openai.codex", // ChatGPT
           "com.cron.electron", // Notion Calendar
           "dev.zed.Zed", // Zed
           "com.microsoft.VSCode", // Visual Studio Code
