@@ -11,27 +11,6 @@ exec-on-workspace-change = ['/bin/bash', '-c',
     'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE PREV_WORKSPACE=$AEROSPACE_PREV_WORKSPACE'
 ]
 
-# Launch every workspace app at startup; the on-window-detected rules below
-# route each window to its space. `open -g` launches in the background to limit
-# focus stealing during the burst. `open` is idempotent (no-op if already running).
-# Order = SketchyBar display order. The focused workspace settles on whichever
-# window appears last (window detection is async), so it is not deterministic.
-after-startup-command = [
-    'exec-and-forget open -g -b com.github.wez.wezterm',                          # W WezTerm
-    'exec-and-forget open -g -b com.superhuman.electron',                         # M Mail Pro
-    'exec-and-forget open -g -b com.tinyspeck.slackmacgap',                       # S Slack
-    'exec-and-forget open -g "$HOME/Applications/Chromium Apps.localized/Google Chat.app"',  # C Chat
-    'exec-and-forget open -g -b com.linear',                                      # L Linear
-    'exec-and-forget open -g -b md.obsidian',                                     # O Obsidian
-    'exec-and-forget open -g -b com.TickTick.task.mac',                           # T TickTick
-    'exec-and-forget open -g -b com.cron.electron',                               # A Agenda (Notion Calendar)
-    'exec-and-forget open -g -b net.imput.helium',                               # H Helium
-    'exec-and-forget open -g -b com.apple.Safari',                                # B Safari
-    'exec-and-forget open -g -b com.google.GeminiMacOS',                          # G Gemini
-    'exec-and-forget open -g -b com.sertacozercan.Kaset',                         # Y YT Music (Kaset)
-    'exec-and-forget open -g "$HOME/Applications/Chromium Apps.localized/Google Meet.app"',  # V Meet
-]
-
 # Normalizations (recommended defaults)
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
