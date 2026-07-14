@@ -95,12 +95,14 @@ end)
 
 -- On startup: connect to unix domain.
 -- After reboot (fresh mux): auto-restore last saved session.
--- After simple restart (live mux): close the extra empty window we spawned.
+-- Close the bootstrap window when another window is available, either from
+-- the live mux or from the restored session. Keep it when restoration fails.
 wezterm.on('gui-startup', function(cmd)
-  local tab, _, window = mux.spawn_window(cmd or { domain = { DomainName = 'unix' } })
+  local tab = mux.spawn_window(cmd or { domain = { DomainName = 'unix' } })
   if #mux.all_windows() == 1 then
     resurrect.state_manager.resurrect_on_gui_startup()
-  else
+  end
+  if #mux.all_windows() > 1 then
     tab:close()
   end
 end)

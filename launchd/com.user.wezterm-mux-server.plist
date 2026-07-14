@@ -8,7 +8,7 @@
 	<array>
 		<string>/bin/zsh</string>
 		<string>-c</string>
-		<string>rm -f "$HOME/Library/Application Support/com.github.wez.wezterm"/sock* && exec /opt/homebrew/bin/wezterm cli list 2>/dev/null || true</string>
+		<string>unset WEZTERM_UNIX_SOCKET; setopt NULL_GLOB; /opt/homebrew/bin/wezterm cli --prefer-mux --no-auto-start list || { /bin/rm -f "$HOME/.local/share/wezterm"/sock* "$HOME/Library/Application Support/com.github.wez.wezterm"/sock*; exec /opt/homebrew/bin/wezterm cli --prefer-mux list || true; }</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>

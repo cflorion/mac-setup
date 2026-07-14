@@ -183,16 +183,16 @@ sketchybar:
 	@echo "  Sketchybar ready!"
 
 # Install WezTerm login helpers
-# Cleans any stale unix-domain socket then daemonizes the mux server at login,
-# so it is ready before WezTerm connects (avoids the "after spawning server
-# failed to connect" notification caused by a boot-time race condition).
+# Reuses a responsive mux server, or cleans stale unix-domain sockets before
+# daemonizing a new one at login. This avoids both disrupting a live mux and
+# the "after spawning server failed to connect" boot-time race notification.
 wezterm:
 	@echo "==> Installing WezTerm login helpers..."
 	@mkdir -p $(HOME)/Library/LaunchAgents
 	@# Migrate: remove old socket-cleaner-only agent if present
 	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.wezterm-clean-socket.plist 2>/dev/null || true
 	@/bin/rm -f $(HOME)/Library/LaunchAgents/com.user.wezterm-clean-socket.plist
-	@# Install mux-server agent (cleans socket then starts server atomically)
+	@# Install mux-server agent (reuse live mux, otherwise clean stale sockets and start it)
 	@sed "s|__HOME__|$(HOME)|g" launchd/com.user.wezterm-mux-server.plist > $(HOME)/Library/LaunchAgents/com.user.wezterm-mux-server.plist
 	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.wezterm-mux-server.plist 2>/dev/null || true
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.wezterm-mux-server.plist
