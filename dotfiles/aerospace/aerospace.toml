@@ -25,7 +25,7 @@ inner.horizontal = 8
 inner.vertical = 8
 outer.left = 0
 outer.bottom = 0
-outer.top = [{ monitor.'Built-in Retina Display' = 2 }, 33]
+outer.top = [{ monitor.'Built-in Retina Display' = 0 }, 32]
 outer.right = 0
 
 # Ensure Homebrew binaries are available in exec commands
