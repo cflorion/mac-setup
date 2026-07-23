@@ -1,6 +1,9 @@
 # AeroSpace - tiling window manager
 # Docs: https://nikitabobko.github.io/AeroSpace/guide
 
+# Configuration format with current AeroSpace defaults and deprecation behavior.
+config-version = 2
+
 start-at-login = true
 
 # Move mouse to the center of the focused window
