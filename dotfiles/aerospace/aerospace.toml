@@ -89,7 +89,7 @@ cmd-ctrl-alt-shift-w = 'exec-and-forget aerospace-focus-or-open W com.github.wez
 cmd-ctrl-alt-shift-b = 'exec-and-forget aerospace-focus-or-open B com.apple.Safari Safari'
 cmd-ctrl-alt-shift-m = 'exec-and-forget aerospace-focus-or-open M com.superhuman.electron Superhuman'
 cmd-ctrl-alt-shift-s = 'exec-and-forget aerospace-focus-or-open S com.tinyspeck.slackmacgap Slack'
-cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.google.GeminiMacOS Gemini'
+cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.openai.codex ChatGPT'
 cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C net.imput.helium.app.pommaclcbfghclhalboakcipcmmndhcj "$HOME/Applications/Chromium Apps.localized/Google Chat.app"'
 cmd-ctrl-alt-shift-o = 'exec-and-forget aerospace-focus-or-open O md.obsidian Obsidian'
 cmd-ctrl-alt-shift-t = 'exec-and-forget aerospace-focus-or-open T com.TickTick.task.mac TickTick'
@@ -175,9 +175,9 @@ run = ['move-node-to-workspace M', 'workspace M']
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = ['move-node-to-workspace S', 'workspace S']
 
-# AI - Gemini (G)
+# AI - ChatGPT (G = GPT)
 [[on-window-detected]]
-if.app-id = 'com.google.GeminiMacOS'
+if.app-id = 'com.openai.codex'
 run = ['move-node-to-workspace G', 'workspace G']
 
 # Google Chat - Helium PWA (C). Its app-id differs from

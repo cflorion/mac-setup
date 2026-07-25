@@ -26,7 +26,7 @@ local workspace_defs = {
   { key = "H", app = "Helium",          label = "Helium",   side = "left" },
   { key = "V", app = "Google Meet",     label = "Meet (V)",  side = "left" },
   { key = "B", app = "Safari",          label = "Safari (B)", side = "right" },
-  { key = "G", app = "Gemini",          label = "Gemini",   side = "right" },
+  { key = "G", app = "ChatGPT",         label = "ChatGPT",  side = "right" },
   { key = "Y", app = "Kaset",           label = "YT Music", side = "right" },
   { key = "1", side = "right" },
   { key = "2", side = "right" },
