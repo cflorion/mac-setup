@@ -11,13 +11,14 @@ local spaces = {}
 -- Single source of truth for the workspaces, in display order.
 --   key   = AeroSpace workspace name (= Hyper shortcut)
 --   app   = app name as reported by `aerospace list-windows` (nil = free workspace)
---   label = text shown in SketchyBar
+--   label = text shown in SketchyBar; append " (KEY)" when it does not start with key
 --   side  = side of the notch (left / right)
 -- Everything else (left_names, right_names, display_names, workspace_labels) is derived from it.
 local workspace_defs = {
   { key = "W", app = "WezTerm",         label = "WezTerm",  side = "left" },
   { key = "M", app = "Superhuman",      label = "Mail Pro", side = "left" },
   { key = "S", app = "Slack",           label = "Slack",    side = "left" },
+  { key = "P", app = "‎WhatsApp",       label = "WhatsApp (P)", side = "left" },
   { key = "C", app = "Google Chat",     label = "Chat",     side = "left" },
   { key = "L", app = "Linear",          label = "Linear",   side = "left" },
   { key = "O", app = "Obsidian",        label = "Obsidian", side = "left" },
@@ -167,6 +168,9 @@ local function refresh_labels()
     for _, ws_name in ipairs(workspace_names) do
       if spaces[ws_name] then
         if active_set[ws_name] then
+          spaces[ws_name]:set({ drawing = true })
+          sbar.set("space.padding." .. ws_name, { drawing = true })
+
           -- AeroSpace briefly keeps listing a window whose app was just quit
           -- (its model lags ~0.5s). Filter to windows whose owning PID is
           -- still alive, so the label is correct immediately — no timing guess.
@@ -189,14 +193,11 @@ local function refresh_labels()
             spaces[ws_name]:set({ label = icon_line })
           end)
         else
-          -- Empty AND unfocused: collapse to just the key letter to keep the bar
-          -- compact (16 full-word labels overflow and collide in the middle).
-          -- The focused workspace is force-added to active_set above, so a focused
-          -- empty space still falls into the active branch and shows its full label.
-          spaces[ws_name]:set({ label = ws_name })
+          -- Hide empty, unfocused workspaces entirely. The focused workspace is
+          -- force-added to active_set above, so it always remains visible.
+          spaces[ws_name]:set({ drawing = false })
+          sbar.set("space.padding." .. ws_name, { drawing = false })
         end
-
-        sbar.set("space.padding." .. ws_name, { drawing = true })
       end
     end
   end)

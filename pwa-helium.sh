@@ -18,13 +18,25 @@ set -euo pipefail
 HELIUM_BIN="/Applications/Helium.app/Contents/MacOS/Helium"
 HELIUM_DATA="$HOME/Library/Application Support/net.imput.helium"
 SHORTCUTS_DIR="$HOME/Applications/Chromium Apps.localized"
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+
+register_pwa() {
+  local name="$1" app_path="$2"
+
+  # Helium can recreate the bundle without registering it with LaunchServices.
+  # In that state `open -a /path/to/App.app` fails with kLSNoExecutableErr even
+  # though app_mode_loader exists and the bundle signature is valid.
+  "$LSREGISTER" -f "$app_path"
+  echo "  ✓ ${name}.app registered with LaunchServices."
+}
 
 install_pwa() {
   local name="$1" app_id="$2"
   local app_path="$SHORTCUTS_DIR/${name}.app"
 
   if [ -d "$app_path" ]; then
-    echo "  ${name}.app already present, skipping."
+    echo "  ${name}.app already present."
+    register_pwa "$name" "$app_path"
     return 0
   fi
 
@@ -55,6 +67,7 @@ install_pwa() {
 
   if [ -d "$app_path" ]; then
     echo "  ✓ ${name}.app created."
+    register_pwa "$name" "$app_path"
   else
     echo "  ✗ Failed to create ${name}.app within 15s."
   fi

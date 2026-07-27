@@ -1,0 +1,4 @@
+interface:
+  display_name: "Space Shortcut Labels"
+  short_description: "Keep SketchyBar space shortcuts visible"
+  default_prompt: "Use $keep-space-label-shortcuts when adding or renaming an AeroSpace workspace."

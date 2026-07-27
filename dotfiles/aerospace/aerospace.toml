@@ -89,6 +89,7 @@ cmd-ctrl-alt-shift-w = 'exec-and-forget aerospace-focus-or-open W com.github.wez
 cmd-ctrl-alt-shift-b = 'exec-and-forget aerospace-focus-or-open B com.apple.Safari Safari'
 cmd-ctrl-alt-shift-m = 'exec-and-forget aerospace-focus-or-open M com.superhuman.electron Superhuman'
 cmd-ctrl-alt-shift-s = 'exec-and-forget aerospace-focus-or-open S com.tinyspeck.slackmacgap Slack'
+cmd-ctrl-alt-shift-p = 'exec-and-forget aerospace-focus-or-open P net.whatsapp.WhatsApp WhatsApp'
 cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.openai.codex ChatGPT'
 cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C net.imput.helium.app.pommaclcbfghclhalboakcipcmmndhcj "$HOME/Applications/Chromium Apps.localized/Google Chat.app"'
 cmd-ctrl-alt-shift-o = 'exec-and-forget aerospace-focus-or-open O md.obsidian Obsidian'
@@ -115,6 +116,7 @@ ctrl-alt-shift-m = 'mode move'
 [mode.move.binding]
 w = ['move-node-to-workspace W --focus-follows-window', 'mode main']
 s = ['move-node-to-workspace S --focus-follows-window', 'mode main']
+p = ['move-node-to-workspace P --focus-follows-window', 'mode main']
 m = ['move-node-to-workspace M --focus-follows-window', 'mode main']
 b = ['move-node-to-workspace B --focus-follows-window', 'mode main']
 g = ['move-node-to-workspace G --focus-follows-window', 'mode main']
@@ -174,6 +176,11 @@ run = ['move-node-to-workspace M', 'workspace M']
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = ['move-node-to-workspace S', 'workspace S']
+
+# Messaging - WhatsApp (P)
+[[on-window-detected]]
+if.app-id = 'net.whatsapp.WhatsApp'
+run = ['move-node-to-workspace P', 'workspace P']
 
 # AI - ChatGPT (G = GPT)
 [[on-window-detected]]
