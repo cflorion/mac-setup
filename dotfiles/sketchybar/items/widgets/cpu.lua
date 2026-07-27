@@ -1,70 +1,77 @@
-local icons = require("icons")
 local colors = require("colors")
 local settings = require("settings")
 
--- Execute the event provider binary which provides the event "cpu_update" for
--- the cpu load data, which is fired every 2.0 seconds.
--- Kill existing instance and start fresh
+-- The native helper publishes the total CPU load every two seconds.
 sbar.exec("pgrep -x cpu_load >/dev/null && killall cpu_load; sleep 0.1; nohup $CONFIG_DIR/helpers/event_providers/cpu_load/bin/cpu_load cpu_update 2.0 >/dev/null 2>&1 &")
 
-local cpu = sbar.add("graph", "widgets.cpu" , 42, {
+local compact_label = {
+  font = {
+    family = settings.font.numbers,
+    style = settings.font.style_map["Semibold"],
+    size = 11.0,
+  },
+  color = colors.inactive,
+}
+
+local cpu = sbar.add("item", "widgets.cpu", {
   position = "right",
-  graph = { color = colors.blue },
-  background = {
-    height = 22,
-    color = { alpha = 0 },
-    border_color = { alpha = 0 },
-    drawing = true,
-  },
-  icon = { string = icons.cpu },
+  width = 66,
+  icon = { drawing = false },
   label = {
-    string = "cpu ??%",
-    font = {
-      family = settings.font.numbers,
-      style = settings.font.style_map["Bold"],
-      size = 9.0,
-    },
+    string = "CPU --%",
     align = "right",
-    padding_right = 0,
-    width = 0,
-    y_offset = 4
+    font = compact_label.font,
+    color = compact_label.color,
+    padding_left = settings.paddings,
+    padding_right = 4,
   },
-  padding_right = settings.paddings + 6
+})
+
+local memory = sbar.add("item", "widgets.memory", {
+  position = "right",
+  width = 66,
+  icon = { drawing = false },
+  label = {
+    string = "MEM --%",
+    align = "right",
+    font = compact_label.font,
+    color = compact_label.color,
+    padding_left = 4,
+    padding_right = settings.paddings,
+  },
+  update_freq = 10,
 })
 
 cpu:subscribe("cpu_update", function(env)
-  -- Also available: env.user_load, env.sys_load
   local load = tonumber(env.total_load)
-  cpu:push({ load / 100. })
-
-  local color = colors.blue
-  if load > 30 then
-    if load < 60 then
-      color = colors.yellow
-    elseif load < 80 then
-      color = colors.orange
-    else
-      color = colors.red
-    end
+  if load then
+    cpu:set({ label = "CPU " .. load .. "%" })
   end
-
-  cpu:set({
-    graph = { color = color },
-    label = "cpu " .. env.total_load .. "%",
-  })
 end)
 
-cpu:subscribe("mouse.clicked", function(env)
+memory:subscribe({ "routine", "system_woke" }, function()
+  sbar.exec("sysctl -n hw.memsize; vm_stat", function(stats)
+    local total = tonumber(stats:match("^(%d+)"))
+    local page_size = tonumber(stats:match("page size of (%d+) bytes"))
+    local active = tonumber(stats:match("Pages active:%s+(%d+)%."))
+    local wired = tonumber(stats:match("Pages wired down:%s+(%d+)%."))
+    local compressed = tonumber(stats:match("Pages occupied by compressor:%s+(%d+)%."))
+
+    if total and page_size and active and wired and compressed then
+      local used = math.floor(100 * (active + wired + compressed) * page_size / total + 0.5)
+      memory:set({ label = "MEM " .. used .. "%" })
+    end
+  end)
+end)
+
+local function open_activity_monitor()
   sbar.exec("open -a 'Activity Monitor'")
-end)
+end
 
--- Background around the cpu item
-sbar.add("bracket", "widgets.cpu.bracket", { cpu.name }, {
-  background = { color = colors.bg1 }
-})
+cpu:subscribe("mouse.clicked", open_activity_monitor)
+memory:subscribe("mouse.clicked", open_activity_monitor)
 
--- Background around the cpu item
-sbar.add("item", "widgets.cpu.padding", {
+sbar.add("item", "widgets.system.padding", {
   position = "right",
-  width = settings.group_paddings
+  width = settings.group_paddings,
 })
