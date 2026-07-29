@@ -9,14 +9,16 @@ When the user ask changes, the goal is to update this macOs setup repo.
 
 ## Key Commands
 
-- `make install` — Full setup for a new machine (brew, node, npm-global, link, sketchybar, obsidian, macos, raycast, mas, ollama, pwa-helium)
-- `make update` — Fast daily update (brew, node, link, macos)
+- `make install` — Full setup for a new machine (brew, node, npm-global, link, disabled SketchyBar, obsidian, macos, raycast, mas, ollama, pwa-helium)
+- `make update` — Fast daily update (brew, node, link, macos, disabled SketchyBar)
 - `make backup` — Backup SSH keys before formatting
 - `make restore-ssh` — Restore SSH keys from most recent backup
 - `make link` — Symlink dotfiles only
 - `make brew` — Install Homebrew packages only
 - `make macos` — Apply all macOS defaults
 - `make fuji-webcam` — Install FUJIFILM X Webcam from the bundled `.pkg` (no Homebrew cask exists; needs sudo, restart after)
+- `make sketchybar` — Build and enable the optional SketchyBar setup
+- `make disable-sketchybar` — Stop SketchyBar and its theme watcher without deleting their configuration
 - `make uhk-backup` — Snapshot the live UHK Agent user-config into `dotfiles/uhk/uhk-config.json` (commit the diff afterwards)
 - `make macos-<module>` — Apply a single module (finder, dock, keyboard, trackpad, mission-control, desktop, control-center, pointer, e-ink)
 - `make macos-e-ink` — Apply e-ink display optimizations (font smoothing off, reduce transparency, increase contrast)
@@ -33,7 +35,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - **apps-mas.sh** — Mac App Store installs via `mas`.
 - **installers/** — Vendor `.pkg` installers with no Homebrew cask (e.g. `XWebcamIns220.pkg` for FUJIFILM X Webcam). Installed by the `fuji-webcam` Makefile target via `sudo installer -pkg … -target /`, guarded so it skips when the app already exists.
 - **pwa-helium.sh** — Recreates *native* Helium PWA `.app` shortcuts (Google Chat, Google Meet) in `~/Applications/Chromium Apps.localized/` by launching `Helium --app-id=<id>` (same trick as Chrome's `--app-id`, which regenerates the shortcut on disk). Used for Google web apps: they open external links via their parent browser process, bypassing the default browser, so Finicky can't route those clicks — running them *inside* Helium makes their links open in Helium. Each PWA must be installed once via Helium's ⋮ menu > "Install app…" (registers it in the Helium profile); the script regenerates it on re-runs. Installed by `make pwa-helium`. Note: the very first launch after regeneration triggers a Helium "rebuild" cycle that may not open a window — just launch it again.
-- **launchd/** — LaunchAgent templates (`__HOME__` placeholder is substituted at install time). `com.user.sketchybar-theme.plist` runs `dark-notify` to reload sketchybar on light/dark switch; installed by `make sketchybar`.
+- **launchd/** — LaunchAgent templates (`__HOME__` placeholder is substituted at install time). `com.user.sketchybar-theme.plist` runs `dark-notify` to reload sketchybar on light/dark switch when the optional bar is enabled by `make sketchybar`.
 - **dotfiles/** — Symlinked into `~` and `~/.config/` by `make link`:
   - Hidden files (`.zshrc`, `.gitconfig`, `.gitignore_global`, `.finicky.js`) → `~/`
   - Directories (`nvim/`, `lazygit/`, `sketchybar/`, `atuin/`, `wezterm/`, `karabiner/`, `aerospace/`, `raycast/`) → `~/.config/<name>/`
@@ -51,7 +53,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - Manual steps that can't be automated are echoed to stdout as reminders.
 - The repo lives at `~/code/mac-setup`.
 - Backup directory (`backup/`) is gitignored and contains SSH key snapshots.
-- Sketchybar config is Lua-based (not shell). It has C event providers (`helpers/event_providers/`) that compile via `make` — run `make sketchybar` to rebuild after changes.
+- Sketchybar is disabled by default, but its Lua config is preserved. It has C event providers (`helpers/event_providers/`) that compile via `make` — run `make sketchybar` to rebuild and re-enable it after changes.
 - macOS defaults modules are sourced (not executed) by `macos-defaults.sh`, so they don't need their own shebang or `set -euo pipefail`.
 - The `npm-global` target installs global packages via **pnpm** (`PNPM_HOME=~/Library/pnpm`), despite its name.
 - The Raycast config file (`dotfiles/raycast/*.rayconfig`) is a binary export — update it by re-exporting from Raycast, not by hand-editing. `dotfiles/raycast/extensions/` is gitignored: Raycast rewrites it via the `~/.config/raycast` symlink and it is not config.

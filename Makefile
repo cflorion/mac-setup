@@ -4,17 +4,17 @@ OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/
 
 UHK_AGENT_DIR := $(HOME)/Library/Application Support/uhk-agent
 
-.PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh sketchybar obsidian ollama pwa-helium uhk-backup wezterm \
+.PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh sketchybar disable-sketchybar obsidian ollama pwa-helium uhk-backup wezterm \
 	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer macos-e-ink
 
 all: install
 
 # Full setup for a new machine
-install: brew fuji-webcam open-pdf-studio node npm-global link sketchybar obsidian macos raycast mas ollama pwa-helium wezterm
+install: brew fuji-webcam open-pdf-studio node npm-global link disable-sketchybar obsidian macos raycast mas ollama pwa-helium wezterm
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
-update: brew node link macos
+update: brew node link macos disable-sketchybar
 	@echo "==> Updates applied!"
 
 brew:
@@ -177,10 +177,20 @@ sketchybar:
 	@mkdir -p $(HOME)/Library/LaunchAgents
 	@sed "s|__HOME__|$(HOME)|g" launchd/com.user.sketchybar-theme.plist > $(HOME)/Library/LaunchAgents/com.user.sketchybar-theme.plist
 	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.sketchybar-theme.plist 2>/dev/null || true
+	@launchctl enable gui/$$(id -u)/com.user.sketchybar-theme
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.sketchybar-theme.plist
 	@# Start sketchybar service
 	@brew services start sketchybar 2>/dev/null || true
 	@echo "  Sketchybar ready!"
+
+# Keep SketchyBar installed and configured, but do not run it by default.
+# Run `make sketchybar` to re-enable it later.
+disable-sketchybar:
+	@echo "==> Disabling sketchybar..."
+	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.sketchybar-theme.plist 2>/dev/null || true
+	@launchctl disable gui/$$(id -u)/com.user.sketchybar-theme
+	@brew services stop sketchybar >/dev/null 2>&1 || true
+	@echo "  Sketchybar disabled; configuration preserved."
 
 # Install WezTerm login helpers
 # Reuses a responsive mux server, or cleans stale unix-domain sockets before

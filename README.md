@@ -48,7 +48,8 @@ It installs the Command Line Tools + Homebrew, clones this repo into
 | `make macos` | Apply all macOS settings |
 | `make macos-<module>` | Apply a single setting (see the list below) |
 | `make raycast` | Configure Raycast (frees Cmd+Space, imports the config) |
-| `make sketchybar` | Build and start the SketchyBar menu bar |
+| `make sketchybar` | Build and enable the optional SketchyBar menu bar |
+| `make disable-sketchybar` | Stop SketchyBar and its theme watcher without removing their config |
 | `make obsidian` | Copy the Obsidian theme and plugins into the vault |
 | `make pwa` | Recreate the Chrome PWA shortcuts (e.g. Google Chat) |
 | `make pwa-helium` | Create Helium app-window wrappers (links open in Helium) |
@@ -57,6 +58,9 @@ It installs the Command Line Tools + Homebrew, clones this repo into
 `make macos-<module>` modules:
 `finder` · `dock` · `keyboard` · `trackpad` · `mission-control` · `desktop` ·
 `control-center` · `pointer`
+
+SketchyBar remains installed and configured, but `make install` and `make update`
+leave it disabled by default. Run `make sketchybar` if you want it back.
 
 ---
 
