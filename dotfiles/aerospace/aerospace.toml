@@ -177,7 +177,11 @@ run = ['move-node-to-workspace M', 'workspace M']
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = ['move-node-to-workspace S', 'workspace S']
 
-# Messaging - WhatsApp (P)
+# Messaging - Messages and WhatsApp share P, with Messages on the left
+[[on-window-detected]]
+if.app-id = 'com.apple.MobileSMS'
+run = ['move-node-to-workspace P', 'layout --workspace P --root horizontal', 'move left', 'workspace P']
+
 [[on-window-detected]]
 if.app-id = 'net.whatsapp.WhatsApp'
 run = ['move-node-to-workspace P', 'workspace P']
