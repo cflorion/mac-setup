@@ -19,7 +19,7 @@ local workspace_defs = {
   { key = "M", app = "Superhuman",      label = "Mail Pro", side = "left" },
   { key = "S", app = "Slack",           label = "Slack",    side = "left" },
   { key = "D", app = "‎WhatsApp",       label = "WhatsApp (D)", side = "left" },
-  { key = "C", app = "Google Chat",     label = "Chat",     side = "left" },
+  { key = "C", app = "Claude",          label = "Claude",   side = "left" },
   { key = "L", app = "Linear",          label = "Linear",   side = "left" },
   { key = "O", app = "Obsidian",        label = "Obsidian", side = "left" },
   { key = "T", app = "TickTick",        label = "TickTick", side = "left" },
