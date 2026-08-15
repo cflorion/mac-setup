@@ -4,7 +4,6 @@
 
 local wezterm = require 'wezterm'
 local act = wezterm.action
-local mux = wezterm.mux
 local config = wezterm.config_builder()
 
 -- Detect system light/dark appearance (auto-reloads on change)
@@ -75,10 +74,16 @@ local is_dark = get_appearance():find('Dark')
 -- =============================================================================
 
 -- unix domain: mux server survives WezTerm GUI restarts (live processes keep running)
--- gui-startup below handles the connection instead of default_gui_startup_args
 config.unix_domains = {
   { name = 'unix' },
 }
+
+-- Attach to the mux server at startup, and let WezTerm's own `connect` path do
+-- it. A `gui-startup` hook cannot: attaching the domain (or spawning into it)
+-- is async, and while it awaits, WezTerm's "mux is still empty -> open a
+-- default window" fallback fires. That extra local window is what opened next
+-- to the mux one on every launch.
+config.default_gui_startup_args = { 'connect', 'unix' }
 
 -- =============================================================================
 -- SESSION PERSISTENCE (survives reboots via resurrect.wezterm)
@@ -93,18 +98,11 @@ wezterm.on('gui-shutdown', function()
   resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
 end)
 
--- On startup: connect to unix domain.
--- After reboot (fresh mux): auto-restore last saved session.
--- Close the bootstrap window when another window is available, either from
--- the live mux or from the restored session. Keep it when restoration fails.
-wezterm.on('gui-startup', function(cmd)
-  local tab = mux.spawn_window(cmd or { domain = { DomainName = 'unix' } })
-  if #mux.all_windows() == 1 then
-    resurrect.state_manager.resurrect_on_gui_startup()
-  end
-  if #mux.all_windows() > 1 then
-    tab:close()
-  end
+-- Restore the last saved session into the mux server when it starts empty
+-- (i.e. after a reboot). Runs in the mux server, so the GUI just connects to
+-- the restored session instead of racing to create windows of its own.
+wezterm.on('mux-startup', function()
+  resurrect.state_manager.resurrect_on_gui_startup()
 end)
 
 -- =============================================================================
