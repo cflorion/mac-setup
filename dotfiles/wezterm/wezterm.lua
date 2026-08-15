@@ -90,17 +90,65 @@ config.default_gui_startup_args = { 'connect', 'unix' }
 -- =============================================================================
 local resurrect = wezterm.plugin.require('https://github.com/MLFlexer/resurrect.wezterm')
 
--- Auto-save every 5 minutes
-resurrect.state_manager.periodic_save()
+-- The panes live in the mux server, so a state must name the domain of the
+-- process that will respawn it: `local` for the mux server (which restores at
+-- boot), `unix` for the GUI (which sees the very same panes through the unix
+-- domain). Rewrite it on the way out and back in.
+local function set_domain(state, name)
+  local function walk(node)
+    if type(node) ~= 'table' then return end
+    if node.domain then node.domain = name end
+    walk(node.bottom)
+    walk(node.right)
+  end
+  for _, window_state in ipairs(state.window_states or {}) do
+    for _, tab in ipairs(window_state.tabs or {}) do
+      walk(tab.pane_tree)
+    end
+  end
+  return state
+end
 
--- Final save of all workspaces on quit
-wezterm.on('gui-shutdown', function()
-  resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
-end)
+local function save_session()
+  local state = resurrect.workspace_state.get_workspace_state()
+  -- Never trade a real session for an empty one
+  if #state.window_states == 0 then return end
+  resurrect.state_manager.save_state(set_domain(state, 'local'))
+  -- The pointer file resurrect_on_gui_startup() reads. Nothing writes it for
+  -- us, and without it the restore below silently finds nothing to do.
+  resurrect.state_manager.write_current_state(state.workspace, 'workspace')
+end
 
--- Restore the last saved session into the mux server when it starts empty
--- (i.e. after a reboot). Runs in the mux server, so the GUI just connects to
--- the restored session instead of racing to create windows of its own.
+-- Save every 5 minutes, from the GUI: wezterm.time timers only fire there, and
+-- WezTerm has no shutdown event to save from (the `gui-shutdown` handler this
+-- config used to carry was never called by anything).
+if wezterm.gui then
+  local function save_loop()
+    wezterm.time.call_after(300, function()
+      save_session()
+      save_loop()
+    end)
+  end
+  save_loop()
+end
+
+-- Restore a saved workspace into the current window (Ctrl+Cmd+R below).
+local function restore_session(win, id)
+  local name = id:match('([^/]+)$'):match('(.+)%..+$')
+  local state = resurrect.state_manager.load_state(name, 'workspace')
+  -- Spawn back into the mux server, not into the GUI's own domain, or the
+  -- restored panes would die with the window.
+  resurrect.workspace_state.restore_workspace(set_domain(state, 'unix'), {
+    window = win:mux_window(),
+    relative = true,
+    restore_text = true,
+    on_pane_restore = resurrect.tab_state.default_on_pane_restore,
+  })
+end
+
+-- Restore into the mux server as it starts up, which after a reboot happens
+-- long before the GUI connects. Restoring from the GUI instead would race with
+-- its own startup and open a second window.
 wezterm.on('mux-startup', function()
   resurrect.state_manager.resurrect_on_gui_startup()
 end)
@@ -323,12 +371,16 @@ config.keys = {
   -- -------------------------------------------------------------------------
   -- Session save / restore  (Ctrl+Cmd+S / Ctrl+Cmd+R)
   -- -------------------------------------------------------------------------
-  { key = 's', mods = 'CTRL|SUPER', action = wezterm.action_callback(function(win, _)
-      resurrect.save_state(win:active_workspace())
+  -- Everything goes through the plugin's submodules: resurrect.save_state() and
+  -- resurrect.resurrect(), which these bindings used to call, do not exist.
+  { key = 's', mods = 'CTRL|SUPER', action = wezterm.action_callback(function(_, _)
+      save_session()
     end)
   },
   { key = 'r', mods = 'CTRL|SUPER', action = wezterm.action_callback(function(win, pane)
-      resurrect.resurrect(win)
+      resurrect.fuzzy_loader.fuzzy_load(win, pane, function(id)
+        restore_session(win, id)
+      end, { ignore_tabs = true, ignore_windows = true })
     end)
   },
 
@@ -380,6 +432,11 @@ config.key_tables = {
 -- SHELL & MISC
 -- =============================================================================
 
+-- Never prompt on close: skip_close_confirmation_for_processes_named cannot see
+-- the foreground process of a mux pane, so every Cmd+Q popped a confirmation
+-- dialog even over an idle shell. Nothing is lost anyway — the panes belong to
+-- the mux server and keep running after the GUI closes.
+config.window_close_confirmation = 'NeverPrompt'
 config.default_prog = { '/bin/zsh', '-l' }
 config.scrollback_lines = 10000
 config.audible_bell = 'Disabled'
