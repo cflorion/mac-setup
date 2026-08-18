@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Messages and WhatsApp share workspace D side by side. WhatsApp has an 800 pt
+# minimum width, which is 48 pt wider than half of the built-in 1512 pt display.
+# Rebalance first so repeated window-detected callbacks remain idempotent, then
+# give those 48 pt to WhatsApp instead of letting its right edge leave the screen.
+
+WORKSPACE="D"
+WHATSAPP_BUNDLE_ID="net.whatsapp.WhatsApp"
+
+WINDOW_COUNT=$(aerospace list-windows --workspace "$WORKSPACE" --count)
+[[ "$WINDOW_COUNT" -eq 2 ]] || exit 0
+
+WHATSAPP_WINDOW_ID=$(
+    aerospace list-windows \
+        --workspace "$WORKSPACE" \
+        --app-bundle-id "$WHATSAPP_BUNDLE_ID" \
+        --format '%{window-id}' \
+        | head -1
+)
+[[ -n "$WHATSAPP_WINDOW_ID" ]] || exit 0
+
+aerospace workspace "$WORKSPACE"
+aerospace layout --workspace "$WORKSPACE" --root horizontal
+aerospace balance-sizes
+aerospace resize --window-id "$WHATSAPP_WINDOW_ID" width +48

@@ -182,11 +182,11 @@ run = ['move-node-to-workspace S', 'workspace S']
 # Messaging - Messages and WhatsApp share D (Discussions), with Messages on the left
 [[on-window-detected]]
 if.app-id = 'com.apple.MobileSMS'
-run = ['move-node-to-workspace D', 'layout --workspace D --root horizontal', 'move left', 'workspace D']
+run = ['move-node-to-workspace D', 'layout --workspace D --root horizontal', 'move left', 'workspace D', 'exec-and-forget aerospace-layout-discussions']
 
 [[on-window-detected]]
 if.app-id = 'net.whatsapp.WhatsApp'
-run = ['move-node-to-workspace D', 'workspace D']
+run = ['move-node-to-workspace D', 'workspace D', 'exec-and-forget aerospace-layout-discussions']
 
 # AI - ChatGPT (G = GPT)
 [[on-window-detected]]
