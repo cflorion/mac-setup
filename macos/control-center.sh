@@ -53,3 +53,7 @@ defaults -currentHost write com.apple.controlcenter Battery 1
 defaults write com.apple.menuextra.battery ShowPercent -bool true
 defaults write com.apple.menuextra.battery ShowTime -bool false
 defaults write com.apple.menuextra.battery PowerModeShowOnlyOnBattery -bool true
+
+# Clock: show day of week and date (compact form) next to the time
+defaults write com.apple.menuextra.clock ShowDate -int 1
+defaults write com.apple.menuextra.clock ShowDayOfWeek -bool true
