@@ -77,6 +77,15 @@ Each camera key shows one source and hides the others in one shot.
 | Hyper+G | Gemini |
 | Hyper+Y | Kaset (YouTube Music) |
 
+### Scratch note
+| Shortcut | Action |
+|---|---|
+| Hyper+N | Apple Notes scratch pad — floats the `Brouillon` note window over the current workspace (`notes-scratch`) |
+
+> The note title is its first line: keep `Brouillon` on line 1 and type below it.
+> Overwrite that line and the note is renamed — Hyper+N then no longer finds it
+> and creates a fresh `Brouillon` note next to the old one.
+
 ---
 
 ## Raycast

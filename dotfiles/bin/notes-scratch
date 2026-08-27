@@ -1,0 +1,105 @@
+#!/bin/bash
+set -euo pipefail
+
+# Focus (or open) a dedicated Apple Notes window used as a scratch pad.
+#
+# Replaces Antinote: one hotkey (Hyper+N), a note window right over whatever you
+# are doing — but the note is a real Apple Notes note, so it syncs to the iPhone
+# through iCloud instead of living in a second, Mac-only data store.
+#
+# Warm path (window already open): a single AeroSpace focus, ~150ms.
+# Cold path: create the note if missing, select it, open it in its own window —
+# ~1.5s, or ~2.5s when Notes itself has to launch. Notes does not restore
+# separate note windows, so the first Hyper+N after a login pays the cold path.
+#
+# The window floats thanks to the `com.apple.Notes` rule in aerospace.toml.
+# The note name is also the window title, and Apple Notes derives the name from
+# the first line of the note — so keep that first line intact and type below it.
+
+NOTE_NAME="${NOTES_SCRATCH_NOTE:-Brouillon}"
+BUNDLE_ID="com.apple.Notes"
+
+find_window() {
+    aerospace list-windows --monitor all --app-bundle-id "$BUNDLE_ID" \
+        --format '%{window-id}|%{window-title}' 2>/dev/null \
+        | awk -F'|' -v name="$NOTE_NAME" '$2 == name { print $1; exit }'
+}
+
+# Bring the window to the workspace in front of the user, then focus it.
+focus_window() {
+    local wid="$1" ws
+    ws=$(aerospace list-workspaces --focused)
+    aerospace move-node-to-workspace --window-id "$wid" "$ws" 2>/dev/null || true
+    aerospace focus --window-id "$wid"
+}
+
+# Create the note on first run, then select it in the notes list.
+select_note() {
+    osascript - "$NOTE_NAME" <<'APPLESCRIPT'
+on run argv
+    set noteName to item 1 of argv
+    tell application "Notes"
+        if not (exists note noteName) then
+            -- Apple Notes takes the title from the first line of the body,
+            -- so the body has to start with the name we want to match on.
+            make new note with properties ¬
+                {body:"<div><b>" & noteName & "</b></div><div><br></div>"}
+        end if
+        show note noteName
+    end tell
+end run
+APPLESCRIPT
+}
+
+# Window > "Open Note in New Window". There is no AppleScript command for it, and
+# the menu item is a no-op unless Notes was activated through its URL scheme
+# (`activate` alone is not enough — verified on macOS 26).
+open_in_own_window() {
+    osascript <<'APPLESCRIPT'
+tell application "System Events" to tell process "Notes"
+    -- Window is always the second-to-last menu, before Help, in every locale.
+    set windowMenu to menu 1 of menu bar item -2 of menu bar 1
+    repeat with mi in (every menu item of windowMenu)
+        set nm to name of mi
+        if nm is not missing value then
+            if (nm contains "nouvelle fenêtre") or (nm contains "New Window") then
+                click mi
+                return
+            end if
+        end if
+    end repeat
+    error "menu item 'Open Note in New Window' not found"
+end tell
+APPLESCRIPT
+}
+
+wid=$(find_window)
+if [ -n "$wid" ]; then
+    focus_window "$wid"
+    exit 0
+fi
+
+select_note >/dev/null
+open "notes://"
+
+# Notes may still be launching; retry until its menu bar answers and the window
+# shows up. The window check comes first so a slow-to-appear window never gets a
+# second menu click.
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    wid=$(find_window)
+    [ -n "$wid" ] && break
+    open_in_own_window >/dev/null 2>&1 || true
+    sleep 0.3
+done
+
+if [ -z "$wid" ]; then
+    # Bound to a hotkey, so stderr goes nowhere. The notification is itself an
+    # Automation call, so it can be blocked by the very denial it would report —
+    # fall back to plain Notes so the hotkey always surfaces something.
+    echo "notes-scratch: could not open a window for note '$NOTE_NAME'" >&2
+    osascript -e "display notification \"Could not open the note '$NOTE_NAME'\" with title \"notes-scratch\"" >/dev/null 2>&1 || true
+    open -a Notes
+    exit 1
+fi
+
+focus_window "$wid"
