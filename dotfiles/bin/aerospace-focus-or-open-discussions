@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Hyper+D opens the shared Discussions workspace and makes both messaging apps
+# available. Their on-window-detected rules assign them to D and keep Messages
+# on the left.
+
+WORKSPACE="D"
+
+MOUSE_MON=$(aerospace list-monitors --mouse --format '%{monitor-id}')
+aerospace move-workspace-to-monitor --workspace "$WORKSPACE" "$MOUSE_MON" 2>/dev/null || true
+aerospace workspace "$WORKSPACE"
+
+ensure_app_window() {
+    local bundle_id="$1"
+    local app_name="$2"
+    local window_id
+
+    window_id=$(aerospace list-windows \
+        --monitor all \
+        --app-bundle-id "$bundle_id" \
+        --format '%{window-id}' \
+        2>/dev/null | head -1)
+
+    if [[ -z "$window_id" ]]; then
+        open -a "$app_name"
+    fi
+}
+
+ensure_app_window 'com.apple.MobileSMS' 'Messages'
+ensure_app_window 'net.whatsapp.WhatsApp' 'WhatsApp'
+
+# This is immediately effective when both apps were already open. For freshly
+# launched apps, their on-window-detected rules run it again once windows exist.
+aerospace-layout-discussions
