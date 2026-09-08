@@ -121,22 +121,17 @@
                         ]
                     },
                     {
-                        "description": "Right ⇧ → Meh (Ctrl+Opt+Shift) / tap → Shift",
+                        "description": "Right ⌥ → Meh (Ctrl+Opt+Shift)",
                         "manipulators": [
                             {
                                 "from": {
-                                    "key_code": "right_shift",
+                                    "key_code": "right_option",
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to": [
                                     {
                                         "key_code": "left_shift",
                                         "modifiers": ["left_control", "left_option"]
-                                    }
-                                ],
-                                "to_if_alone": [
-                                    {
-                                        "key_code": "right_shift"
                                     }
                                 ],
                                 "type": "basic"
