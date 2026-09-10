@@ -43,6 +43,7 @@ brew "mas"
 brew "dockutil"
 brew "switchaudio-osx"
 brew "nowplaying-cli"
+brew "container"
 brew "felixkratz/formulae/sketchybar"
 brew "cormacrelf/tap/dark-notify"
 
