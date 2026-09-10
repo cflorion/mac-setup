@@ -50,7 +50,6 @@ brew "cormacrelf/tap/dark-notify"
 # --- AI ---
 brew "opencode"
 brew "herdr"
-brew "ollama"
 
 # --- Dev apps ---
 cask "visual-studio-code"
@@ -67,7 +66,6 @@ cask "claude-code"
 cask "chatgpt"
 cask "google-gemini"
 cask "opencode-desktop"
-cask "lm-studio"
 
 # --- Productivity ---
 cask "raycast"
@@ -112,6 +110,7 @@ cask "homerow"
 cask "sf-symbols"
 cask "finicky"
 cask "protonvpn"
+cask "tailscale"
 
 # --- Fonts ---
 cask "font-jetbrains-mono-nerd-font"
