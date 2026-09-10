@@ -111,6 +111,7 @@ cask "handy"
 cask "homerow"
 cask "sf-symbols"
 cask "finicky"
+cask "protonvpn"
 
 # --- Fonts ---
 cask "font-jetbrains-mono-nerd-font"
