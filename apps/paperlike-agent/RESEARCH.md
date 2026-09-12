@@ -171,6 +171,41 @@ passation, récupérée en changeant le contraste — ce qui déclenche le même
 redessin. Le geste à retenir pour un panneau resté noir est l'effacement, qui
 exige `--control` et le lien CH340.
 
+## Carte des commandes du moniteur
+
+Relevée en désassemblant les méthodes `updateView…` du client : chaque libellé de
+méthode précède immédiatement l'octet qu'elle envoie, sans inférence.
+
+| Cmd | Méthode du client | Réglage | Bornes | Valeur d'origine |
+| --- | --- | --- | --- | --- |
+| `0x01` | `updateViewThresholdInfo:` | Contraste (« Contrast Level ») | 1–9 | 1 |
+| `0x02` | `updateViewModeInfo:` | Mode : texte / image | 1–2 | 2 |
+| `0x03` | `updateViewRefreshInfo:` | Ghost Cleanup | — | — |
+| `0x04` | `updateViewSpeedInfo:` | Refresh Speed | 1–5 | 4 |
+| `0x05` | `updateRealTimeClockInfo` | **Horloge temps réel** — non exposée | — | pas de réponse |
+| `0x07` | `updateViewFrontModeInfo:` | Lumière frontale : mode | 0–3 | 0 |
+| `0x08` | `updateViewFrontTemperatureValueInfo:` | Lumière frontale : température | 0–100 | 70 |
+| `0x09` | `updateViewFrontBrightnessValueInfo:` | Lumière frontale : luminosité | 0–100 | 0 |
+| `0x0A` | `requestUpdateViewInfo:` | préfixe de lecture | — | — |
+| `0x10` | — | MCU | — | 48 (`0x30`) |
+| `0x12` | `updateTextEnhancementInfo:` | Text Enhancement | 0–1 | 1 |
+| `0x13` | — | **non identifié** — non exposé | — | 5 |
+| `0x20` | `updateDitheringInfo:` | état du tramage | — | pas de réponse |
+
+`0x05` et `0x13` ne sont pas exposés en écriture : le premier est une horloge,
+le second reste inconnu. Un test l'impose (`testEverySettingIsUniquelyNamedAndCommanded`).
+
+**Dépendance découverte :** `0x09` (luminosité frontale) est silencieusement
+ignoré tant que `0x07` vaut 0. Le moniteur conserve alors l'ancienne valeur sans
+rien signaler — d'où la relecture obligatoire après chaque écriture, et la
+déclaration explicite de cette dépendance dans `Setting.requires`, pour rendre un
+message utile plutôt qu'une erreur de bornes trompeuse.
+
+Bornes établies par écriture puis relecture : le moniteur borne lui-même, donc
+une valeur refusée se manifeste par une relecture divergente et la commande
+échoue au lieu de prétendre avoir abouti. L'état d'origine ci-dessus a été
+restauré après les essais.
+
 ## Matériel et client examinés
 
 - macOS 26.6.2, Apple M1 Max.

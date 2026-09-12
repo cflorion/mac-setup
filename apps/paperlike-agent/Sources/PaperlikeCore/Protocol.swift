@@ -60,38 +60,92 @@ public struct FrameParser {
     }
 }
 
+// Every writable setting the official client drives, with the command byte each
+// one carries. The mapping was read off the client's own update methods — see
+// RESEARCH.md. Two commands are deliberately absent: 0x05 is the device's
+// real-time clock, and 0x13 is unidentified. Neither is exposed for writing.
+public struct Setting: Equatable {
+    public let name: String
+    public let command: UInt8
+    public let bounds: ClosedRange<Int>
+    public let summary: String
+    // Some registers are only writable once another one is on. The monitor
+    // silently keeps the old value otherwise, so the dependency is declared
+    // here and checked before writing rather than reported as a bounds error.
+    public let requires: Requirement?
+
+    public struct Requirement: Equatable {
+        public let command: UInt8
+        public let explanation: String
+    }
+
+    public static let all: [Setting] = [
+        Setting(name: "contrast", command: 0x01, bounds: 1...9,
+                summary: "Contraste (« Contrast Level » du client)", requires: nil),
+        Setting(name: "mode", command: 0x02, bounds: 1...2,
+                summary: "Mode d’affichage : 1 texte, 2 image", requires: nil),
+        Setting(name: "speed", command: 0x04, bounds: 1...5,
+                summary: "Vitesse de rafraîchissement : 1 lent et propre, 5 rapide", requires: nil),
+        Setting(name: "light-mode", command: 0x07, bounds: 0...3,
+                summary: "Lumière frontale : mode (0 éteinte)", requires: nil),
+        Setting(name: "light-temp", command: 0x08, bounds: 0...100,
+                summary: "Lumière frontale : température, 0 froide à 100 chaude", requires: nil),
+        Setting(name: "light", command: 0x09, bounds: 0...100,
+                summary: "Lumière frontale : luminosité", requires: Requirement(command: 0x07,
+                    explanation: "la lumière frontale est éteinte ; l’allumer d’abord avec « paperlike light-mode 1 »")),
+        Setting(name: "text-enhance", command: 0x12, bounds: 0...1,
+                summary: "Rehaussement du texte : 0 désactivé, 1 activé", requires: nil),
+    ]
+
+    public static func named(_ name: String) -> Setting? { all.first { $0.name == name } }
+}
+
+// A hotkey adjusts a setting without knowing its current value, so relative
+// changes are resolved against a fresh read rather than a cached figure.
+public enum Adjustment: Equatable {
+    case absolute(Int)
+    case relative(Int)
+
+    public func resolve(from current: Int, within bounds: ClosedRange<Int>) -> Int {
+        switch self {
+        case .absolute(let value): return value
+        case .relative(let delta): return min(max(current + delta, bounds.lowerBound), bounds.upperBound)
+        }
+    }
+}
+
 public enum Action: Equatable {
-    case refresh, contrast(Int), speed(Int)
+    case refresh
+    case set(Setting, Adjustment)
 
     public static func parse(_ args: [String]) throws -> Action {
-        switch args.first {
-        case "refresh" where args.count == 1: return .refresh
-        case "contrast" where args.count == 2:
-            guard let value = Int(args[1]), (1...9).contains(value) else {
-                throw PaperlikeError("Le contraste doit être compris entre 1 et 9.")
-            }
-            return .contrast(value)
-        case "speed" where args.count == 2:
-            guard let value = Int(args[1]), (1...5).contains(value) else {
-                throw PaperlikeError("La vitesse doit être comprise entre 1 et 5.")
-            }
-            return .speed(value)
-        default: throw PaperlikeError("Commande inconnue. Utiliser paperlike help.")
+        if args == ["refresh"] { return .refresh }
+        guard args.count == 2, let setting = Setting.named(args[0]) else {
+            throw PaperlikeError("Commande inconnue. Utiliser paperlike help.")
         }
+        let raw = args[1]
+        // A leading sign means "move by this much", so "light +10" differs from
+        // "light 10". Int() accepts a leading "+", hence the explicit check.
+        if raw.hasPrefix("+") || raw.hasPrefix("-"), let delta = Int(raw), delta != 0 {
+            return .set(setting, .relative(delta))
+        }
+        guard let value = Int(raw), setting.bounds.contains(value) else {
+            throw PaperlikeError("\(setting.name) attend une valeur de \(setting.bounds.lowerBound) à \(setting.bounds.upperBound), ou un écart signé comme +1.")
+        }
+        return .set(setting, .absolute(value))
     }
 
-    public var frame: Frame {
-        switch self {
-        case .refresh: return Frame(0x03)
-        case .contrast(let value): return Frame(0x01, UInt8(value))
-        case .speed(let value): return Frame(0x04, UInt8(value))
-        }
-    }
     public var register: UInt8? {
         switch self {
         case .refresh: return nil
-        case .contrast: return 0x01
-        case .speed: return 0x04
+        case .set(let setting, _): return setting.command
+        }
+    }
+
+    public func frame(value: Int) -> Frame {
+        switch self {
+        case .refresh: return Frame(0x03)
+        case .set(let setting, _): return Frame(setting.command, UInt8(value))
         }
     }
 }

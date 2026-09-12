@@ -6,9 +6,9 @@ final class ProtocolTests: XCTestCase {
     func testPublishedWireCommands() throws {
         XCTAssertEqual(Frame(0x0a, 0x10).ascii, "5FF50A10000000000000A0FA")
         XCTAssertEqual(Frame(0x20, 1).ascii, "5FF52001000000000000A0FA")
-        XCTAssertEqual(try Action.parse(["refresh"]).frame.ascii, "5FF50300000000000000A0FA")
-        XCTAssertEqual(try Action.parse(["contrast", "9"]).frame.ascii, "5FF50109000000000000A0FA")
-        XCTAssertEqual(try Action.parse(["speed", "5"]).frame.ascii, "5FF50405000000000000A0FA")
+        XCTAssertEqual(try Action.parse(["refresh"]).frame(value: 0).ascii, "5FF50300000000000000A0FA")
+        XCTAssertEqual(try Action.parse(["contrast", "9"]).frame(value: 9).ascii, "5FF50109000000000000A0FA")
+        XCTAssertEqual(try Action.parse(["speed", "5"]).frame(value: 5).ascii, "5FF50405000000000000A0FA")
     }
 
     func testParserSurvivesEveryUSBFragmentBoundary() {
@@ -45,10 +45,13 @@ final class ProtocolTests: XCTestCase {
     }
 
     func testBadCommandsNeverBecomeHardwareWrites() {
-        for args in [["contrast", "0"], ["contrast", "10"], ["contrast", "-1"], ["speed", "6"],
-                     ["refresh", "1"], ["raw", "5FF5"], ["contrast", "foo"], []] {
+        for args in [["contrast", "0"], ["contrast", "10"], ["speed", "6"], ["contrast", "+0"],
+                     ["refresh", "1"], ["raw", "5FF5"], ["contrast", "foo"], ["contrast", "+foo"], []] {
             XCTAssertThrowsError(try Action.parse(args))
         }
+        // A signed value is a relative adjustment, so "-1" is now valid where a
+        // bare "-1" would still be out of bounds as an absolute value.
+        XCTAssertEqual(try Action.parse(["contrast", "-1"]), .set(Setting.named("contrast")!, .relative(-1)))
         XCTAssertFalse(ProtocolIdentity.isSupported(0))
         XCTAssertFalse(ProtocolIdentity.isSupported(0xff))
         XCTAssertTrue(ProtocolIdentity.isSupported(0x31))
@@ -97,5 +100,67 @@ final class ProtocolTests: XCTestCase {
         XCTAssertEqual(try port.query(0x10, timeout: 0.2), 0x30)
         wait(for: [received], timeout: 2)
         XCTAssertThrowsError(try port.query(0x01, timeout: 0.05))
+    }
+}
+
+final class SettingsTests: XCTestCase {
+    func testEverySettingIsUniquelyNamedAndCommanded() {
+        XCTAssertEqual(Set(Setting.all.map(\.name)).count, Setting.all.count)
+        XCTAssertEqual(Set(Setting.all.map(\.command)).count, Setting.all.count)
+        // 0x05 is the device's real-time clock and 0x13 is unidentified; neither
+        // may become writable by accident.
+        XCTAssertFalse(Setting.all.contains { [0x05, 0x13, 0x0a, 0x10, 0x20].contains($0.command) })
+    }
+
+    func testAbsoluteValuesAreBoundedAndRelativeOnesAreNot() throws {
+        let light = Setting.named("light")!
+        XCTAssertThrowsError(try Action.parse(["light", "101"]))
+        XCTAssertThrowsError(try Action.parse(["contrast", "0"]))
+        XCTAssertThrowsError(try Action.parse(["nope", "1"]))
+        XCTAssertEqual(try Action.parse(["light", "+10"]), .set(light, .relative(10)))
+        XCTAssertEqual(try Action.parse(["light", "-10"]), .set(light, .relative(-10)))
+        XCTAssertEqual(try Action.parse(["light", "10"]), .set(light, .absolute(10)))
+    }
+
+    func testRelativeAdjustmentsClampInsteadOfOverflowing() {
+        let light = Setting.named("light")!
+        XCTAssertEqual(Adjustment.relative(50).resolve(from: 95, within: light.bounds), 100)
+        XCTAssertEqual(Adjustment.relative(-50).resolve(from: 5, within: light.bounds), 0)
+        XCTAssertEqual(Adjustment.absolute(7).resolve(from: 1, within: light.bounds), 7)
+    }
+
+    func testFramesCarryTheDocumentedCommandBytes() throws {
+        XCTAssertEqual(try Action.parse(["light", "20"]).frame(value: 20).ascii, "5FF50914000000000000A0FA")
+        XCTAssertEqual(try Action.parse(["text-enhance", "1"]).frame(value: 1).ascii, "5FF51201000000000000A0FA")
+    }
+
+    func testConfigurationRejectsUnusableBindingsAndKeepsWorkingOnes() throws {
+        XCTAssertThrowsError(try Configuration.binding(keys: "r", action: ["refresh"]))
+        XCTAssertThrowsError(try Configuration.binding(keys: "ctrl+alt+cmd+r", action: ["fly"]))
+        XCTAssertThrowsError(try Configuration.binding(keys: "ctrl+alt+cmd", action: ["refresh"]))
+        let ok = try Configuration.binding(keys: "ctrl+alt+cmd+up", action: ["light", "+10"])
+        XCTAssertEqual(ok.describedAction, "light +10")
+        XCTAssertNotEqual(ok.modifiers, 0)
+    }
+
+    func testDefaultHotkeysAllParse() {
+        for (keys, action) in Configuration.defaultHotkeys {
+            XCTAssertNoThrow(try Configuration.binding(keys: keys, action: action), "\(keys)")
+        }
+    }
+
+    func testAMissingConfigurationFileYieldsDefaultsWithoutProblems() {
+        let config = Configuration.load(from: "/nonexistent/paperlike.json")
+        XCTAssertEqual(config.hotkeys.count, Configuration.defaultHotkeys.count)
+        XCTAssertTrue(config.problems.isEmpty)
+    }
+
+    func testAnUnparseableConfigurationStillYieldsWorkingDefaults() throws {
+        let path = NSTemporaryDirectory() + "paperlike-broken.json"
+        try "{ not json".write(toFile: path, atomically: true, encoding: .utf8)
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let config = Configuration.load(from: path)
+        XCTAssertEqual(config.hotkeys.count, Configuration.defaultHotkeys.count)
+        XCTAssertFalse(config.problems.isEmpty)
     }
 }

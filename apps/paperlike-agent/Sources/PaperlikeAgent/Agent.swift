@@ -32,20 +32,31 @@ final class Agent {
     private var gammaWasLinear: Bool?
     private var lastDitheringReassert: String?
     private var lastDitheringApplied: [DitheringEnforcement] = []
-    private var shortcut: [String: Any] = [:]
+    private var shortcuts: [[String: Any]] = []
     private var lastShortcutResult: [String: Any]?
     private let controlEnabled: Bool
 
-    init(controlEnabled: Bool) { self.controlEnabled = controlEnabled }
+    private let configurationProblems: [String]
 
-    func recordShortcutRegistration(_ status: Int32) {
-        queue.async {
-            self.shortcut = ["keys": "Control+Option+Command+R", "registered": status == 0, "osStatus": status]
+    init(controlEnabled: Bool, configurationProblems: [String] = []) {
+        self.controlEnabled = controlEnabled
+        self.configurationProblems = configurationProblems
+        if !configurationProblems.isEmpty {
+            logger.error("Configuration : \(configurationProblems.joined(separator: " ; "), privacy: .public)")
         }
     }
 
-    func recordShortcutResult(_ reply: [String: Any]) {
-        queue.async { self.lastShortcutResult = reply }
+    func recordShortcutRegistrations(_ results: [(HotKeyBinding, OSStatus)]) {
+        queue.async {
+            self.shortcuts = results.map { binding, status in
+                ["keys": binding.keys, "action": binding.describedAction,
+                 "registered": status == noErr, "osStatus": Int(status)]
+            }
+        }
+    }
+
+    func recordShortcutResult(_ keys: String, _ reply: [String: Any]) {
+        queue.async { self.lastShortcutResult = reply.merging(["keys": keys]) { current, _ in current } }
     }
 
     func start() {
@@ -101,6 +112,17 @@ final class Agent {
                 guard controlEnabled else {
                     throw PaperlikeError("Mode observation : aucune commande USB n’est envoyée. Le contrôle expérimental est désactivé.")
                 }
+                if args.count == 2, args[0] == "read" {
+                    // Diagnostic: 0x0A + register is a non-destructive read, so an
+                    // arbitrary register is safe to expose. Writing is not.
+                    guard let register = UInt8(args[1].replacingOccurrences(of: "0x", with: ""), radix: 16) else {
+                        throw PaperlikeError("Registre attendu en hexadécimal, par exemple : paperlike read 09.")
+                    }
+                    guard let serial else { throw PaperlikeError(message) }
+                    try sendMacStatus(serial)
+                    return ["ok": true, "register": String(format: "0x%02X", register),
+                            "value": Int(try serial.query(register))]
+                }
                 if args == ["query"] {
                     guard let serial else { throw PaperlikeError(message) }
                     try sendMacStatus(serial)
@@ -117,23 +139,46 @@ final class Agent {
                 lastAction = now
                 try sendMacStatus(serial)
                 _ = try serial.readFrames(timeout: 0.02)
-                try serial.send(action.frame)
-                let replies = try serial.readFrames(timeout: 0.25)
-                var response: [String: Any] = ["ok": true, "action": args.joined(separator: " "),
-                                                "delivery": "sent", "received": replies.map(\.ascii)]
-                if let register = action.register {
-                    let actual = try serial.query(register)
-                    guard actual == action.frame.value else {
-                        throw PaperlikeError("Commande envoyée, mais la relecture du réglage ne confirme pas la valeur demandée (\(actual)).")
-                    }
-                    response["delivery"] = "confirmed_by_readback"
-                    response["value"] = actual
-                } else {
-                    if replies.contains(where: { $0.acknowledges(action.frame) }) {
-                        response["delivery"] = "acknowledged_by_device"
-                    }
+
+                var response: [String: Any] = ["ok": true, "action": args.joined(separator: " ")]
+                guard case .set(let setting, let adjustment) = action else {
+                    try serial.send(action.frame(value: 0))
+                    let replies = try serial.readFrames(timeout: 0.25)
+                    response["received"] = replies.map(\.ascii)
+                    response["delivery"] = replies.contains(where: { $0.acknowledges(action.frame(value: 0)) })
+                        ? "acknowledged_by_device" : "sent"
                     response["note"] = "L’effet visuel de l’effacement reste à constater sur l’écran."
+                    lastReply = ISO8601DateFormatter().string(from: Date())
+                    return response
                 }
+
+                // A relative change is resolved against a fresh read, never a
+                // cached value: the monitor is also driven by its own buttons.
+                if let requirement = setting.requires, try serial.query(requirement.command) == 0 {
+                    throw PaperlikeError("\(setting.name) ne peut pas être réglé : \(requirement.explanation).")
+                }
+                let before = Int(try serial.query(setting.command))
+                let target = adjustment.resolve(from: before, within: setting.bounds)
+                response["from"] = before
+                guard setting.bounds.contains(target) else {
+                    throw PaperlikeError("\(setting.name) attend une valeur de \(setting.bounds.lowerBound) à \(setting.bounds.upperBound) ; \(target) est hors bornes.")
+                }
+                guard target != before else {
+                    response["delivery"] = "unchanged"
+                    response["value"] = before
+                    return response
+                }
+                try serial.send(action.frame(value: target))
+                response["received"] = (try serial.readFrames(timeout: 0.25)).map(\.ascii)
+                // Read-back is the contract for every setting: the vendor client
+                // acknowledged commands that had not landed, which is precisely
+                // the failure this agent exists to avoid.
+                let actual = Int(try serial.query(setting.command))
+                guard actual == target else {
+                    throw PaperlikeError("Commande envoyée, mais la relecture donne \(actual) au lieu de \(target). Le moniteur a peut-être borné la valeur.")
+                }
+                response["delivery"] = "confirmed_by_readback"
+                response["value"] = actual
                 lastReply = ISO8601DateFormatter().string(from: Date())
                 return response
             } catch {
@@ -263,7 +308,9 @@ final class Agent {
         if let data = try? JSONEncoder().encode(GammaState.capture()) {
             result["gamma"] = try? JSONSerialization.jsonObject(with: data)
         }
-        result["refreshShortcut"] = shortcut
+        result["hotkeys"] = shortcuts
+        result["configurationPath"] = Configuration.path
+        result["configurationProblems"] = configurationProblems
         result["lastShortcutResult"] = lastShortcutResult
         if let data = try? JSONEncoder().encode(DitheringState.capture()) {
             result["dithering"] = try? JSONSerialization.jsonObject(with: data)

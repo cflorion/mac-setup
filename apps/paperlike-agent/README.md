@@ -81,6 +81,62 @@ L’agent utilise `RegisterEventHotKey` : il n’écoute pas les frappes et ne d
 pas de permission Accessibilité. Un conflit de raccourci est signalé dans
 `paperlike status` (`refreshShortcut.registered: false`).
 
+### Réglages de l'écran (mode contrôle)
+
+Chaque réglage du client officiel est exposé, avec ses bornes. Une valeur signée
+agit **relativement** (`paperlike light +10`), ce qui est ce dont un raccourci a
+besoin. **Toute écriture est confirmée par relecture du registre** : sans
+confirmation, la commande échoue au lieu de prétendre avoir abouti — c'est
+précisément le mode de défaillance rencontré avec le client propriétaire.
+
+| Commande | Bornes | Réglage |
+| --- | --- | --- |
+| `paperlike contrast` | 1–9 | Contraste |
+| `paperlike mode` | 1–2 | Texte / image |
+| `paperlike speed` | 1–5 | Vitesse de rafraîchissement |
+| `paperlike light-mode` | 0–3 | Lumière frontale : 0 éteinte |
+| `paperlike light` | 0–100 | Lumière frontale : luminosité |
+| `paperlike light-temp` | 0–100 | Lumière frontale : température |
+| `paperlike text-enhance` | 0–1 | Rehaussement du texte |
+| `paperlike refresh` | — | Ghost Cleanup |
+| `paperlike read 09` | — | Lire un registre brut (diagnostic) |
+
+La luminosité frontale n'est acceptée **que si la lumière est allumée** : sinon le
+moniteur ignore l'écriture sans rien dire. L'agent le détecte et le signale.
+
+### Raccourcis clavier
+
+Actifs en mode contrôle, sur Control+Option+Command (« Meh », sans Maj, donc
+Hyper reste libre). Les flèches sont choisies exprès : leurs codes ne changent
+pas d'une disposition à l'autre, ce qu'une lettre ne garantit pas sur AZERTY.
+
+| Raccourci | Action |
+| --- | --- |
+| `Ctrl+Opt+Cmd+R` | Ghost Cleanup |
+| `Ctrl+Opt+Cmd+↑ / ↓` | Luminosité frontale ±10 |
+| `Ctrl+Opt+Cmd+→ / ←` | Contraste ±1 |
+
+`paperlike status` liste chaque raccourci avec son état d'enregistrement : un
+raccourci déjà pris par une autre application échoue silencieusement sinon.
+
+### Personnalisation facultative
+
+Fichier lu **une fois au démarrage**, absent par défaut :
+`~/.config/paperlike/config.json`
+
+```json
+{ "hotkeys": [
+    { "keys": "ctrl+alt+cmd+up", "action": ["light", "+10"] },
+    { "keys": "ctrl+alt+cmd+t",  "action": ["text-enhance", "1"] }
+] }
+```
+
+Pas de surveillance de fichier, pas de rechargement, pas d'interface : l'agent
+reste un processus d'arrière-plan invisible. Un fichier absent ou illisible
+donne les valeurs par défaut et **l'agent démarre quand même** — l'anti-tramage,
+sa seule fonction essentielle, ne dépend jamais de ce fichier. Les erreurs de
+configuration apparaissent dans `paperlike status`.
+
 ```sh
 paperlike detect         # Présence écran / USB, sans ouvrir le port
 paperlike status         # Connexion, processus, raccourci, dernières réponses
