@@ -5,6 +5,7 @@ OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/
 UHK_AGENT_DIR := $(HOME)/Library/Application Support/uhk-agent
 
 .PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh sketchybar disable-sketchybar obsidian ollama pwa-helium uhk-backup wezterm \
+	paperlike paperlike-control paperlike-build paperlike-test paperlike-stop paperlike-uninstall \
 	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer macos-e-ink
 
 all: install
@@ -87,6 +88,26 @@ macos-pointer:
 
 macos-e-ink:
 	@bash -euo pipefail -c 'source ./macos/e-ink.sh && killall Finder || true'
+
+# Optional native DASUNG controller POC; not enabled by the general setup.
+paperlike:
+	@bash ./apps/paperlike-agent/manage.sh install
+
+# Explicit opt-in: experimental USB control, pending visual validation.
+paperlike-control:
+	@bash ./apps/paperlike-agent/manage.sh install-control
+
+paperlike-build:
+	@bash ./apps/paperlike-agent/build.sh
+
+paperlike-test:
+	@bash ./apps/paperlike-agent/build.sh test
+
+paperlike-stop:
+	@bash ./apps/paperlike-agent/manage.sh stop
+
+paperlike-uninstall:
+	@bash ./apps/paperlike-agent/manage.sh uninstall
 
 raycast:
 	@echo "==> Configuring Raycast..."
