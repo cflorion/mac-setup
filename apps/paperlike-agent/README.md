@@ -1,17 +1,53 @@
 # PaperlikeAgent — POC natif macOS pour DASUNG
 
-**État de l’essai :** les commandes USB ont été confirmées par le moniteur ;
-leur résultat visuel reste à valider. L’utilisateur précise que le même défaut
-d’affichage existe avec le client officiel, depuis la fermeture de sa fenêtre
-par la croix. La cause reste indéterminée. Le POC est conservé dans ce dossier,
-arrêté et désactivé au login sur ce Mac ; le client officiel a été rétabli.
-L’utilisateur prévoit un débranchement complet de l’écran avant de reprendre
-le diagnostic. Voir [RESEARCH.md](RESEARCH.md) pour le suivi.
+**Rôle principal : supprimer le tramage de macOS sur la dalle e-ink.** macOS
+active `enableDither` sur chaque framebuffer ; sur e-ink cela se voit comme du
+grain, des taches et une image sombre. L’agent remet cette propriété à `false`
+sur les seules sorties DASUNG, à chaque cycle de deux secondes, car macOS la
+restaure lors d’une reconnexion, d’un réveil ou d’un changement de mode. C’est
+exactement ce que fait le client officiel avec son `disableDitheringTimer` — et
+la raison pour laquelle fermer sa fenêtre par la croix ramenait le défaut.
+
+Ce réglage est appliqué **quel que soit le mode** : c’est une écriture de
+propriété IOKit sur le framebuffer, elle ne touche jamais au port USB. La dalle
+interne est délibérément exclue, y supprimer le tramage produirait du banding.
+Mécanisme, preuves et mesures : [RESEARCH.md](RESEARCH.md).
+
+**Plusieurs écrans DASUNG.** Toutes les sorties dont le fabricant EDID est
+`0x1263` sont traitées, chacune indépendamment : un Paperlike noir et blanc et
+un Revo Color branchés ensemble sont couverts sans réglage. Ne pas les
+identifier par leur `ProductName`, identique sur les deux ; utiliser
+`SerialNumber` et `YearOfManufacture`.
+
+**Branchement à chaud.** L’agent s’abonne à
+`CGDisplayRegisterReconfigurationCallback` et ré-applique l’anti-tramage dès la
+fin d’une reconfiguration, puis à 0,15 s, 0,4 s et 1 s — macOS pose parfois
+`enableDither` juste après l’apparition du framebuffer. Le minuteur de deux
+secondes reste le filet de sécurité si le callback est refusé, ce que
+`paperlike status` signale par `reconfigurationCallbackRegistered: false`.
+
+**Surveillance de la table gamma.** `paperlike status` expose un champ `gamma`
+par sortie DASUNG (`ceiling`, `maxDeviation`), et l’agent journalise une erreur
+dès qu’une table cesse d’être linéaire. C’est le réglage hôte le plus destructeur
+pour de l’e-ink — un plafond sous `1.0` écrase tous les niveaux de gris, qui
+*sont* l’image — et il est invisible dans les Réglages d’affichage. Cause
+typique : la luminosité logicielle de BetterDisplay sur un écran sans contrôle
+matériel. **Signalé, jamais corrigé** : l’agent n’écrit qu’une propriété, sur les
+framebuffers d’un seul fabricant, et disputer la table gamma à un autre outil
+défairait cette garantie.
+
+**Veille écran et veille système sont deux cas distincts.** Éteindre un moniteur
+ou le laisser s’endormir n’émet aucune notification `NSWorkspace` : l’agent ne se
+met pas en pause, son minuteur continue et le rallumage est couvert par le
+minuteur comme par le callback de reconfiguration. C’est le cas courant avec ces
+écrans. Seule la veille du Mac émet `willSleep`/`didWake` : l’agent suspend alors
+son minuteur, et `didWake` déclenche un cycle immédiat.
 
 Un agent Swift sans fenêtre, sans icône dans le Dock, Cmd-Tab ou la barre des
-menus. **Par défaut, il observe la présence du DASUNG et de sa liaison USB sans
-ouvrir le port.** Un mode de contrôle expérimental séparé valide le MCU,
-entretient la connexion et reçoit les commandes de la CLI ou du raccourci global.
+menus. **Par défaut il applique l’anti-tramage et observe la présence du DASUNG
+et de sa liaison USB, sans ouvrir le port.** Un mode de contrôle expérimental
+séparé valide le MCU, entretient la connexion et reçoit les commandes de la CLI
+ou du raccourci global. Le contrôle USB n’est pas nécessaire à l’anti-tramage.
 
 Le matériel observé sur ce Mac est nommé **Paperlike253** par macOS : Color,
 3200 × 1800, MCU `0x30`, interface CH340 `1a86:7523`. Le POC ne constitue pas
@@ -32,8 +68,10 @@ La compilation est native pour le Mac utilisé, sans dépendance externe.
 La signature ad hoc convient à cet usage local ; ce n’est pas une distribution
 signée et notariée pour d’autres utilisateurs.
 
-Le mode observation peut coexister avec le client officiel et ne réserve aucun
-raccourci. Après diagnostic et validation visuelle, `make paperlike-control`
+Le mode par défaut peut coexister avec le client officiel et ne réserve aucun
+raccourci ; les deux écrivent la même propriété avec la même valeur.
+`paperlike status` expose `ditheringReasserts`, le nombre de fois où macOS a
+remis le tramage et où l’agent l’a retiré. Après diagnostic et validation visuelle, `make paperlike-control`
 permet d’activer explicitement le contrôle USB expérimental au login.
 
 En mode contrôle, **Control + Option + Command + R** envoie une demande

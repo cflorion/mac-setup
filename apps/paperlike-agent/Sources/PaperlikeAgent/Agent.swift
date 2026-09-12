@@ -2,6 +2,14 @@ import AppKit
 import OSLog
 import PaperlikeCore
 
+// A CGDisplayReconfigurationCallBack is a C function pointer and cannot
+// capture, so the agent is passed through the userInfo pointer. The callback
+// fires twice per change; only the end of the reconfiguration is acted on.
+private let reconfigurationCallback: CGDisplayReconfigurationCallBack = { _, flags, userInfo in
+    guard let userInfo, !flags.contains(.beginConfigurationFlag) else { return }
+    Unmanaged<Agent>.fromOpaque(userInfo).takeUnretainedValue().displayReconfigured()
+}
+
 final class Agent {
     let queue = DispatchQueue(label: "com.user.paperlike-agent.hardware", qos: .utility)
     private let logger = Logger(subsystem: "com.user.paperlike-agent", category: "connection")
@@ -18,6 +26,12 @@ final class Agent {
     private var lastReply: String?
     private let started = Date()
     private var lastAction = 0.0
+    private var ditheringReasserts = 0
+    private var displayReconfigurations = 0
+    private var reconfigurationCallbackRegistered = false
+    private var gammaWasLinear: Bool?
+    private var lastDitheringReassert: String?
+    private var lastDitheringApplied: [DitheringEnforcement] = []
     private var shortcut: [String: Any] = [:]
     private var lastShortcutResult: [String: Any]?
     private let controlEnabled: Bool
@@ -40,6 +54,36 @@ final class Agent {
         timer.setEventHandler { [weak self] in self?.tick() }
         self.timer = timer
         timer.resume()
+        // The two-second timer alone would leave a monitor dithered for up to
+        // two seconds after it is plugged in. This fires as soon as macOS
+        // finishes reconfiguring the displays.
+        let registration = CGDisplayRegisterReconfigurationCallback(reconfigurationCallback, Unmanaged.passUnretained(self).toOpaque())
+        queue.async { self.reconfigurationCallbackRegistered = registration == .success }
+        if registration != .success {
+            logger.error("Callback de reconfiguration refusé (\(registration.rawValue, privacy: .public)) ; seul le minuteur de deux secondes couvre les rebranchements.")
+        }
+    }
+
+    deinit {
+        CGDisplayRemoveReconfigurationCallback(reconfigurationCallback, Unmanaged.passUnretained(self).toOpaque())
+    }
+
+    // macOS may set `enableDither` slightly after the reconfiguration ends, so
+    // one write on the event is not enough. The schedule is fixed and bounded;
+    // repeated writes cost nothing because `disableOnDasung` skips any output
+    // already at false.
+    private static let reapplyDelays: [Double] = [0, 0.15, 0.4, 1.0]
+
+    // Called from the main run loop: every access to agent state has to hop
+    // onto `queue`, which owns it.
+    fileprivate func displayReconfigured() {
+        queue.async { self.displayReconfigurations += 1 }
+        for delay in Agent.reapplyDelays {
+            queue.asyncAfter(deadline: .now() + delay) { [weak self] in
+                guard let self, !self.sleeping else { return }
+                self.enforceDithering()
+            }
+        }
     }
 
     func sleep(_ value: Bool) {
@@ -100,12 +144,16 @@ final class Agent {
 
     private func tick() {
         guard !sleeping else { return }
+        let current = Inventory.capture()
+        inventory = current
+        // Runs whatever the control mode: clearing `enableDither` is an IOKit
+        // property write on the framebuffer and never touches the USB port.
+        enforceDithering()
+        reportGamma()
         do {
-            let current = Inventory.capture()
-            inventory = current
             guard controlEnabled else {
                 transition(current.displays.contains(where: \.isDasung) ? "detected" : "waiting",
-                           "Mode observation : détection uniquement, sans ouverture du port USB.")
+                           "Anti-dithering appliqué ; contrôle USB désactivé.")
                 return
             }
             let device = try current.selectedDevice()
@@ -139,6 +187,42 @@ final class Agent {
         }
     }
 
+    // macOS restores dithering on reconnect, wake and mode changes. Only a
+    // framebuffer whose value is not already false is written, so the counter
+    // below measures how often macOS actually resets it.
+    private func enforceDithering() {
+        let applied = DitheringState.disableOnDasung()
+        guard !applied.isEmpty else { return }
+        ditheringReasserts += applied.count
+        lastDitheringReassert = ISO8601DateFormatter().string(from: Date())
+        lastDitheringApplied = applied
+        for entry in applied where !entry.succeeded {
+            logger.error("Anti-dithering refusé sur ProductID \(entry.product, privacy: .public) : kern_return \(entry.result, privacy: .public).")
+        }
+        let restored = applied.filter(\.succeeded).count
+        if restored > 0 {
+            logger.notice("Anti-dithering rétabli sur \(restored, privacy: .public) sortie(s) DASUNG.")
+        }
+    }
+
+    // Reported, never corrected — see GammaState. A crushed table is the single
+    // most destructive host-side setting for an e-ink panel and is invisible in
+    // Display settings, so it is worth a log line the moment it appears.
+    private func reportGamma() {
+        let states = GammaState.capture()
+        guard !states.isEmpty else { gammaWasLinear = nil; return }
+        let linear = states.allSatisfy(\.isLinear)
+        defer { gammaWasLinear = linear }
+        guard gammaWasLinear != linear else { return }
+        if linear {
+            logger.notice("Table gamma redevenue linéaire sur les sorties DASUNG.")
+        } else {
+            for state in states where !state.isLinear {
+                logger.error("Table gamma écrasée sur DASUNG ProductID \(state.product, privacy: .public) : plafond \(state.ceiling, privacy: .public) au lieu de 1.0. Sur e-ink cela effondre le contraste — vérifier la luminosité logicielle de BetterDisplay ou tout autre outil écrivant la table.")
+            }
+        }
+    }
+
     private func disconnect() {
         serial = nil; selectedPath = nil; firmware = nil
     }
@@ -169,6 +253,16 @@ final class Agent {
         result["lastKeepaliveSentAt"] = lastKeepalive
         result["lastReplyAt"] = lastReply
         result["recentFrames"] = serial?.lastFrames
+        result["ditheringReasserts"] = ditheringReasserts
+        result["displayReconfigurations"] = displayReconfigurations
+        result["reconfigurationCallbackRegistered"] = reconfigurationCallbackRegistered
+        result["lastDitheringReassert"] = lastDitheringReassert
+        if let data = try? JSONEncoder().encode(lastDitheringApplied) {
+            result["lastDitheringApplied"] = try? JSONSerialization.jsonObject(with: data)
+        }
+        if let data = try? JSONEncoder().encode(GammaState.capture()) {
+            result["gamma"] = try? JSONSerialization.jsonObject(with: data)
+        }
         result["refreshShortcut"] = shortcut
         result["lastShortcutResult"] = lastShortcutResult
         if let data = try? JSONEncoder().encode(DitheringState.capture()) {

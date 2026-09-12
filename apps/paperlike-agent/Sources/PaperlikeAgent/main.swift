@@ -11,8 +11,9 @@ PaperlikeAgent — contrôleur DASUNG sans fenêtre
   paperlike contrast 1..9   Régler le contraste, puis relire la valeur
   paperlike speed 1..5      Régler la vitesse, puis relire la valeur
 
-Par défaut, le POC observe les connexions sans ouvrir le port USB.
-Contrôle expérimental : make paperlike-control (affichage à revalider).
+L’agent retire en permanence le tramage macOS des sorties DASUNG ; c’est sa
+fonction principale et elle ne demande pas le port USB.
+Contrôle USB expérimental, optionnel : make paperlike-control.
 En mode contrôle : Control+Option+Command+R pour effacer les rémanences.
 
 Installation/démarrage : make paperlike

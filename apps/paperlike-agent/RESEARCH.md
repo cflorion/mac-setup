@@ -1,34 +1,175 @@
 # Recherche et preuves — 12 septembre 2026
 
-## État après le retour utilisateur
+## Cause du défaut visuel : table gamma écrasée par BetterDisplay
 
-L’utilisateur a signalé un **problème d’affichage** après l’essai. Le POC a été
-arrêté, son démarrage au login désactivé, et PaperLikeClient relancé. Le port USB
-a bien été repris par le client officiel. La nature du défaut visuel reste à
-préciser : les preuves d’échange USB ci-dessous ne valident pas le rendu physique.
+**Deux attributions erronées ont précédé celle-ci dans ce fichier. Les voici
+consignées, parce que chacune paraissait solide.**
 
-**Précision ultérieure de l’utilisateur, le 12 septembre 2026 :** le même défaut
-existe avec le client officiel. D’après son récit, l’affichage fonctionnait
-jusqu’à la fermeture de la fenêtre PaperLikeClient par sa croix ; relancer le
-client, redémarrer le Mac et éteindre/rallumer l’écran n’ont pas résolu le
-problème. Il ne l’attribue pas au POC et demande de conserver celui-ci dans
-`mac-setup`. Il prévoit de débrancher complètement l’écran. Le résultat de cet
-essai manuel reste à recueillir ; la succession des événements ne démontre pas
-la cause du défaut. Le POC reste désactivé pendant cet essai.
+Le défaut — image sombre, couleurs sales, larges zones noires qui vibrent au
+moindre mouvement — n'était causé ni par le moniteur, ni par ses registres, ni
+par le tramage de macOS. Il venait de la **table gamma de la sortie**, écrasée
+par la luminosité logicielle de BetterDisplay.
 
-La version suivante démarre donc en **observation sans ouverture USB** par
-défaut. Le contrôle demande un choix explicite séparé. Elle vérifie aussi
-`enableDither = No` sur les sorties DASUNG avant d’annoncer cet état via `0x20/1`.
-Ce contrôle de cohérence n’est pas présenté comme un correctif visuel prouvé.
-Le mode contrôle n’a pas été relancé après le signalement utilisateur.
+### L'expérience qui l'a isolé
 
-La version finale a passé **9 tests automatisés** et un essai réel en observation :
-écran détecté, `controlEnabled = false`, zéro fenêtre, commandes de réglage
-refusées et deuxième instance refusée. `lsof` confirme que seul PaperLikeClient
-possédait le port USB pendant cet essai. Le processus d’observation a ensuite
-été arrêté ; son LaunchAgent est toujours `disabled`. L’application installée
-a été mise à jour avec cette version. Trace locale :
-`cache/paperlike-agent/observation-test.json`.
+L'utilisateur a ouvert une **session macOS vierge** sur le même Mac, avec le même
+écran et les mêmes câbles : l'affichage y est correct. Cela disqualifie d'un seul
+coup le matériel, l'état interne du moniteur et tout réglage système partagé, et
+désigne l'état propre à la session utilisateur. Aucune des mesures précédentes
+n'avait cette force de discrimination.
+
+### La mesure confirmante
+
+| Écran | Plafond de la table gamma | Écart max à la rampe identité |
+| --- | --- | --- |
+| Interne (`41038`) | `1.000` | `0.0000` |
+| DASUNG `9532` | **`0.375`** | **`0.6250`** |
+
+Et dans les préférences de BetterDisplay :
+
+```
+value@softwareBrightness-ColorController@Display:12 = 0.375   ← Revo Color
+value@softwareBrightness-ColorController@Display:2  = 1       ← écran interne
+value@hardwareBrightness-DDCController@Display:12   = 0
+```
+
+Les deux valeurs `0.375` coïncident exactement. Le moniteur n'ayant pas de
+contrôle de luminosité matériel exploitable, BetterDisplay n'a d'autre moyen
+d'assombrir que d'écraser la table gamma. Sur un LCD rétroéclairé, cela ne fait
+qu'assombrir. Sur e-ink, **les niveaux de gris *sont* l'image** : tout se retrouve
+tassé dans le tiers bas de la plage, le contraste s'effondre et le waveform du
+panneau s'affole sur des valeurs devenues ambiguës.
+
+Cela explique aussi ce qui résistait : la persistance après redémarrage
+(BetterDisplay restaure son réglage au login), l'échec du client officiel — qui
+met pourtant bien `enableDither = false` — et le fait que débrancher ou
+redémarrer le moniteur ne changeait rien, la table étant côté hôte.
+
+### Propriété de la table gamma à connaître
+
+CoreGraphics **restaure la table gamma à la fin du processus qui l'a écrite.**
+Un correctif appliqué par un utilitaire à durée de vie courte ne tient donc pas,
+et l'assombrissement de BetterDisplay ne subsiste que tant qu'il tourne. Cette
+propriété a d'abord fait croire à l'échec d'un test de détection ; c'était le
+test qui était mal construit, pas la détection.
+
+### Détection ajoutée à l'agent
+
+`paperlike status` expose désormais un champ `gamma` par sortie DASUNG
+(`ceiling`, `maxDeviation`), et l'agent journalise une erreur dès qu'une table
+cesse d'être linéaire. **En lecture seule, délibérément** : corriger la table
+ferait de l'agent un second écrivain en conflit avec BetterDisplay ou tout outil
+de calibration légitime, alors que toute sa sûreté tient à ce qu'il n'écrive
+qu'une seule propriété, sur les framebuffers d'un seul fabricant.
+
+Essai : table maintenue à `0.375` par un processus tiers → `ceiling: 0.375`,
+`maxDeviation: 0.625` et l'erreur journalisée ; au relâchement, retour à
+`ceiling: 1`, `maxDeviation: 0` et la notice de retour au linéaire.
+
+## Le tramage : un défaut réel, mais distinct
+
+Ce qui suit reste exact et utile — le tramage **était** activé et devait être
+désactivé — mais il faut cesser de lui attribuer le défaut visuel ci-dessus.
+
+macOS expose `enableDither` sur chaque framebuffer ; sur e-ink, le tramage
+ajoute du bruit. Le client officiel le désactive en boucle
+(`enableDisableDithering:`, `startDisableDithering`, `disableDitheringTimer`,
+`ditheringCheckAction while (true)`), car macOS restaure la valeur lors d'une
+reconnexion, d'un réveil ou d'un changement de mode. Fermer la fenêtre du client
+par sa croix quitte l'application, et plus rien ne maintenait le réglage.
+
+| Moment | ProductID 9532 (DP) | ProductID 0 (HDMI) |
+| --- | --- | --- |
+| Client quitté, après redémarrage | `enableDither = Yes` | `enableDither = Yes` |
+| Après `open -a PaperLikeClient` | `enableDither = No` | `enableDither = No` |
+
+**Le POC est hors de cause dans les deux défauts** : au moment du signalement il
+était en `state = waiting`, `lsof` ne montrait aucun détenteur du port, et son
+contrôle `requireDisabled` l'empêchait précisément d'émettre.
+
+### Mécanisme repris par l'agent
+
+Les entitlements de `Stillcolor.app` donnent la clé exacte :
+
+```
+(allow iokit-set-properties (iokit-property "enableDither") (iokit-property "uniformity2D"))
+```
+
+La propriété écrite est **`enableDither`** ; la chaîne `disableDithering` visible
+dans ce binaire n'est que le nom de sa fonction Swift interne. Écrire une clé
+inconnue est refusé par le pilote avec `kIOReturnBadArgument` (`0xE00002C2`) —
+erreur obtenue et levée pendant l'étude.
+
+`IORegistryEntrySetCFProperty(service, "enableDither", kCFBooleanFalse)` sur les
+services `IOMobileFramebufferAP` renvoie `kern_return = 0` depuis un binaire
+ordinaire, **non sandboxé et sans entitlement** : Stillcolor n'a besoin de
+l'exception `com.apple.security.temporary-exception.sbpl` que parce qu'il est
+lui-même sandboxé. Le basculement a été vérifié par relecture dans les deux sens.
+
+L'agent applique donc ce réglage lui-même à chaque tick de deux secondes, quel
+que soit le mode de contrôle : l'écriture est une propriété IOKit sur le
+framebuffer et ne touche jamais au port USB. Seules les sorties dont le
+fabricant EDID est DASUNG (`0x1263`) sont écrites — la correspondance fabricant
+est la condition positive d'écriture. La dalle interne est délibérément exclue :
+y supprimer le tramage produit du banding.
+
+Essai de bout en bout réalisé : `enableDither` forcé à `true` sur les deux
+sorties, rétabli à `false` par l'agent en moins de deux secondes, `result = 0`,
+compteur `ditheringReasserts` incrémenté de deux et `wasEnabled = true`
+enregistré. La reprise après un cycle de veille système complet n'a pas été
+observée ; le minuteur périodique la couvre par construction, sans preuve.
+
+### Deux moniteurs DASUNG, pas un seul — comment les distinguer
+
+**Erreur commise pendant cette étude, consignée ici pour qu'elle ne se répète
+pas.** macOS expose deux connexions `Paperlike253`. Elles ont été prises pour un
+seul écran branché deux fois, et « débrancher le câble HDMI » a été conseillé à
+tort. L'utilisateur possède réellement **deux moniteurs DASUNG distincts** : un
+Paperlike 253 noir et blanc et un Paperlike 253 Revo Color.
+
+Le piège est que tout ce qui saute aux yeux est identique : même
+`ProductName = "Paperlike253"`, même fabricant EDID `0x1263`, même définition
+3200 × 1800. Les observations qui avaient servi à conclure (`SinkDeviceID`
+`AG6320`, portID 16, historique `RTK FHD`/`Yealink` sur le même port) sont
+exactes mais ne prouvent rien : elles décrivent un trajet par un dock, ce qui est
+tout aussi vrai pour deux écrans que pour deux câbles.
+
+Les vrais discriminants :
+
+| Champ | Noir et blanc | Revo Color |
+| --- | --- | --- |
+| `ProductID` | `0` | `9532` (`0x253C`) |
+| `SerialNumber` | `0` | `25312` |
+| `YearOfManufacture` | 2020 | 2025 |
+| `DFP Type` | 3 (`HDMI`) | 0 (`DP`) |
+| `SupportsBT2020RGB` / `YCC` / `cYCC` | absents | présents |
+
+Le numéro de série et l'année séparent les deux de façon fiable ; les champs
+`SupportsBT2020*` ne sont présents que sur le modèle couleur. Ne jamais
+identifier un écran DASUNG par son `ProductName`.
+
+Conséquence pour le code : l'anti-tramage itère sur **toutes** les sorties dont
+le fabricant EDID est `0x1263` et écrit chacune. Deux moniteurs sont donc
+couverts sans traitement particulier, et la disparition de l'un n'affecte pas
+l'autre — `withDasungFramebuffers` ne conserve aucun état entre deux appels.
+
+Un seul adaptateur CH340 est présent (`/dev/cu.usbserial-2115410`) : un seul des
+deux moniteurs a son câble USB de contrôle branché. `selectedDevice()` refuse
+toute sélection ambiguë si un second apparaît.
+
+### Écran noir : résolu par l'effacement
+
+Symptôme distinct des deux précédents : le Revo Color n'affichait plus rien du
+tout, ce que ni le tramage ni la table gamma n'expliquent — tous deux salissent
+l'image sans l'effacer. Les registres relus à ce moment étaient contraste 1,
+mode 2, vitesse 4, et le moniteur répondait normalement.
+
+`paperlike refresh` (commande `0x03`) a suffi : acquittement `5FF5F003…` du
+moniteur, image revenue. Il s'agissait donc d'un état interne du panneau, pas
+d'un problème hôte. Une occurrence antérieure figurait dans les notes de
+passation, récupérée en changeant le contraste — ce qui déclenche le même
+redessin. Le geste à retenir pour un panneau resté noir est l'effacement, qui
+exige `--control` et le lien CH340.
 
 ## Matériel et client examinés
 
@@ -39,9 +180,10 @@ a été mise à jour avec cette version. Trace locale :
 - Le client officiel affiche `PaperLike253(Color) [FrontLight]`.
 - La liaison de contrôle expose `/dev/cu.usbserial-2115410`, CH340
   `1a86:7523`. Le chemin est détecté dynamiquement, jamais codé en dur.
-- Une seconde sortie vidéo reprend le nom/fabricant DASUNG avec produit `0x253C`.
-  Sa nature et son câblage ne sont pas établis ; il ne faut pas en déduire un
-  second écran physique, ni supposer qu’elle est virtuelle.
+- La seconde sortie DASUNG, produit `0x253C` (9532), est un **second moniteur
+  physique** : le Revo Color, à côté du Paperlike 253 noir et blanc en produit
+  `0`. Voir « Deux moniteurs DASUNG » ci-dessus pour les champs qui les
+  distinguent.
 - Le client a été mis à jour pendant l’investigation. Sa fenêtre indique
   **V2.0.3**, mais son `Info.plist` conserve `CFBundleVersion = 1.2`.
   SHA-256 du binaire examiné après cette mise à jour :
@@ -106,13 +248,18 @@ Le keepalive est envoyé toutes les deux secondes pour conserver une marge par
 rapport au délai d’environ cinq secondes décrit par la source Linux. Aucune
 commande « reset », mise à jour de firmware ou extinction n’est exposée.
 
-Point identifié après le retour utilisateur : dans le client Mac V2.0.3,
-`updateDitheringInfo:` envoie la commande `0x20` avec l’état de désactivation du
-dithering, depuis `tryToDisableDithering`. Le message ne doit donc pas être
-interprété comme un simple keepalive indépendant de l’état graphique du Mac.
-Après retour au client officiel, les propriétés `enableDither` lues sont `No` ;
-cela ne prouve pas leur valeur pendant l’essai du POC. BetterDisplay est aussi
-actif. La cause du défaut visuel n’est pas encore identifiée.
+Dans le client Mac V2.0.3, `updateDitheringInfo:` envoie la commande `0x20` avec
+l’état de désactivation du dithering, depuis `tryToDisableDithering`. Ce message
+n’est donc pas un simple keepalive indépendant de l’état graphique du Mac : il
+annonce au moniteur ce que l’hôte fait du tramage. C’est pourquoi
+`requireDisabled` reste une **précondition sur le chemin série**, relue à chaque
+cycle, et non une simple conséquence de l’écriture faite par l’agent : si macOS
+remet `enableDither` à `Yes` entre l’écriture et l’émission, la trame `0x20/1`
+est omise pour ce cycle plutôt qu’envoyée à tort.
+
+BetterDisplay a été écarté comme cause : `systemVirtual@Display:*` et
+`thirdPartyVirtual@Display:*` valent tous `0` (aucun écran virtuel) et
+`intelEDIDOverride@v4707m0` vaut `0` (aucun override EDID actif sur le DASUNG).
 
 ## Validation réalisée
 

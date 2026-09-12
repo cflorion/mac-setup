@@ -57,7 +57,7 @@ PY
     stop)
         stop_agent
         echo "PaperlikeAgent arrêté et désactivé à l’ouverture de session."
-        echo "Si l’image DASUNG disparaît, relancer PaperLikeClient."
+        echo "Le tramage macOS va revenir sur le DASUNG : lancer PaperLikeClient pour le retirer."
         ;;
     uninstall)
         check_owned_app
@@ -65,7 +65,7 @@ PY
         rm -f "$PAPERLIKE_PLIST"
         rm -rf "$PAPERLIKE_APP"
         echo "Application et LaunchAgent supprimés. Sources et commande du dépôt conservées."
-        echo "Retour au client officiel : open -a PaperLikeClient"
+        echo "Retour au client officiel, nécessaire pour l’anti-tramage : open -a PaperLikeClient"
         ;;
     *) echo "Usage : $0 install|install-control|stop|uninstall" >&2; exit 2 ;;
 esac

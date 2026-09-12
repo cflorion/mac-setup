@@ -9,3 +9,7 @@ dotfiles/raycast/extensions/
 
 # Karabiner-Elements auto-generates these on every config change.
 dotfiles/karabiner/automatic_backups/
+
+# build.sh routes SwiftPM into cache/; this only appears when swift build or
+# swift test is run by hand from apps/paperlike-agent.
+apps/paperlike-agent/.build/

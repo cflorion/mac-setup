@@ -84,7 +84,7 @@ public struct Inventory: Codable {
         guard candidates.count == 1 else {
             throw PaperlikeError(candidates.isEmpty
                 ? "Écran détecté ; liaison USB de contrôle absente. Vérifier le câble USB de données."
-                : "Plusieurs adaptateurs CH340 détectés ; sélection automatique refusée.")
+                : "Plusieurs adaptateurs CH340 détectés, sélection automatique refusée : \(candidates.map(\.path).joined(separator: ", ")).")
         }
         return candidates[0]
     }
@@ -94,25 +94,82 @@ public struct Inventory: Codable {
     }
 }
 
+// A display's gamma table is host-side state and anything may write it:
+// BetterDisplay's software brightness, calibration tools, night-shift utilities.
+// On a backlit LCD a crushed table merely dims. On e-ink the grey levels *are*
+// the image, so a ceiling below 1.0 collapses contrast and the panel renders
+// vibrating black zones and muddy colour. Reported only, never corrected: the
+// agent writes one property on one vendor's framebuffers, and taking on a
+// contested second writer would undo that guarantee.
+public struct GammaState: Codable {
+    public let display: UInt32
+    public let product: UInt32
+    public let ceiling: Float
+    public let maxDeviation: Float
+    public var isLinear: Bool { maxDeviation < 0.01 }
+
+    public static func capture() -> [GammaState] {
+        var count: UInt32 = 0
+        CGGetOnlineDisplayList(0, nil, &count)
+        guard count > 0 else { return [] }
+        var ids = [CGDirectDisplayID](repeating: 0, count: Int(count))
+        CGGetOnlineDisplayList(count, &ids, &count)
+        return ids.prefix(Int(count)).filter { CGDisplayVendorNumber($0) == 0x1263 }.compactMap { id in
+            let capacity = CGDisplayGammaTableCapacity(id)
+            guard capacity > 1 else { return nil }
+            var red = [CGGammaValue](repeating: 0, count: Int(capacity))
+            var green = red, blue = red
+            var filled: UInt32 = 0
+            guard CGGetDisplayTransferByTable(id, capacity, &red, &green, &blue, &filled) == .success,
+                  filled > 1 else { return nil }
+            let last = Int(filled) - 1
+            var deviation: Float = 0
+            for i in 0...last {
+                let ideal = Float(i) / Float(last)
+                deviation = max(deviation, abs(red[i] - ideal), abs(green[i] - ideal), abs(blue[i] - ideal))
+            }
+            return GammaState(display: id, product: CGDisplayModelNumber(id),
+                              ceiling: max(red[last], green[last], blue[last]), maxDeviation: deviation)
+        }
+    }
+}
+
+public struct DitheringEnforcement: Codable {
+    public let product: UInt32
+    public let wasEnabled: Bool?
+    public let result: Int32
+    public var succeeded: Bool { result == KERN_SUCCESS }
+}
+
 public struct DitheringState: Codable {
     public let product: UInt32
     public let enabled: Bool?
 
+    // macOS applies temporal dithering to the video output. An e-ink panel
+    // renders that as grain, blotches and a darker image. Clearing the
+    // framebuffer's `enableDither` is what the official client does on a timer
+    // and what Stillcolor is sandbox-entitled for; macOS restores it on
+    // display reconnect, wake and mode changes, so it has to be re-asserted.
+    private static let framebufferClass = "IOMobileFramebufferAP"
+    private static let ditherKey = "enableDither" as CFString
+
     public static func capture() -> [DitheringState] {
-        var iterator: io_iterator_t = 0
-        guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("IOMobileFramebuffer"), &iterator) == KERN_SUCCESS else { return [] }
-        defer { IOObjectRelease(iterator) }
-        var result: [DitheringState] = []
-        while case let service = IOIteratorNext(iterator), service != 0 {
-            defer { IOObjectRelease(service) }
-            let attributes = IORegistryEntryCreateCFProperty(service, "DisplayAttributes" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? [String: Any]
-            guard let product = attributes?["ProductAttributes"] as? [String: Any],
-                  (product["LegacyManufacturerID"] as? NSNumber)?.uint32Value == 0x1263,
-                  let id = (product["ProductID"] as? NSNumber)?.uint32Value else { continue }
-            let enabled = IORegistryEntryCreateCFProperty(service, "enableDither" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? Bool
-            result.append(DitheringState(product: id, enabled: enabled))
+        withDasungFramebuffers { service, product in
+            DitheringState(product: product, enabled: read(service))
         }
-        return result
+    }
+
+    // Only DASUNG framebuffers are ever written. Dithering is wanted on the
+    // built-in XDR panel; removing it there produces visible banding. The
+    // DASUNG vendor match is the positive condition for writing, never the
+    // absence of some other match.
+    public static func disableOnDasung() -> [DitheringEnforcement] {
+        withDasungFramebuffers { service, product in
+            let current = read(service)
+            guard current != false else { return nil }
+            let result = IORegistryEntrySetCFProperty(service, ditherKey, kCFBooleanFalse)
+            return DitheringEnforcement(product: product, wasEnabled: current, result: result)
+        }
     }
 
     public static func requireDisabled(_ states: [DitheringState], products: Set<UInt32>) throws {
@@ -120,8 +177,32 @@ public struct DitheringState: Codable {
             let matching = states.filter { $0.product == product }
             return !matching.isEmpty && matching.allSatisfy { $0.enabled == false }
         }) else {
-            throw PaperlikeError("État anti-dithering DASUNG non confirmé. Aucun signal 0x20 envoyé ; conserver le client officiel ou vérifier BetterDisplay/Stillcolor.")
+            throw PaperlikeError("État anti-dithering DASUNG non confirmé ; aucun signal 0x20 envoyé pour ce cycle.")
         }
+    }
+
+    private static func read(_ service: io_registry_entry_t) -> Bool? {
+        IORegistryEntryCreateCFProperty(service, ditherKey, kCFAllocatorDefault, 0)?.takeRetainedValue() as? Bool
+    }
+
+    // The iterator also yields the built-in panel and framebuffers with no
+    // display attached; both are filtered out by the vendor match. Every
+    // io_object_t is released here: this runs on the agent's two-second tick.
+    private static func withDasungFramebuffers<T>(_ body: (io_registry_entry_t, UInt32) -> T?) -> [T] {
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching(framebufferClass), &iterator) == KERN_SUCCESS
+        else { return [] }
+        defer { IOObjectRelease(iterator) }
+        var result: [T] = []
+        while case let service = IOIteratorNext(iterator), service != 0 {
+            defer { IOObjectRelease(service) }
+            let attributes = IORegistryEntryCreateCFProperty(service, "DisplayAttributes" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? [String: Any]
+            guard let product = attributes?["ProductAttributes"] as? [String: Any],
+                  (product["LegacyManufacturerID"] as? NSNumber)?.uint32Value == 0x1263,
+                  let id = (product["ProductID"] as? NSNumber)?.uint32Value else { continue }
+            if let value = body(service, id) { result.append(value) }
+        }
+        return result
     }
 }
 
