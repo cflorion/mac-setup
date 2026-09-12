@@ -45,9 +45,9 @@ son minuteur, et `didWake` déclenche un cycle immédiat.
 
 Un agent Swift sans fenêtre, sans icône dans le Dock, Cmd-Tab ou la barre des
 menus. **Par défaut il applique l’anti-tramage et observe la présence du DASUNG
-et de sa liaison USB, sans ouvrir le port.** Un mode de contrôle expérimental
-séparé valide le MCU, entretient la connexion et reçoit les commandes de la CLI
-ou du raccourci global. Le contrôle USB n’est pas nécessaire à l’anti-tramage.
+et de sa liaison USB, sans ouvrir le port.** Le mode contrôle, séparé, valide le
+MCU, entretient la connexion et sert la CLI et les raccourcis globaux. Le
+contrôle USB n’est pas nécessaire à l’anti-tramage : les deux modes l’appliquent.
 
 Le matériel observé sur ce Mac est nommé **Paperlike253** par macOS : Color,
 3200 × 1800, MCU `0x30`, interface CH340 `1a86:7523`. Le POC ne constitue pas
@@ -72,7 +72,9 @@ Le mode par défaut peut coexister avec le client officiel et ne réserve aucun
 raccourci ; les deux écrivent la même propriété avec la même valeur.
 `paperlike status` expose `ditheringReasserts`, le nombre de fois où macOS a
 remis le tramage et où l’agent l’a retiré. Après diagnostic et validation visuelle, `make paperlike-control`
-permet d’activer explicitement le contrôle USB expérimental au login.
+active le contrôle USB au login. **L’agent réserve alors le port CH340 en
+exclusivité : PaperLikeClient ne pourra plus l’ouvrir tant qu’il tourne.**
+Revenir à l’anti-tramage seul, et rendre le port au client : `make paperlike`.
 
 En mode contrôle, **Control + Option + Command + R** envoie une demande
 d’effacement des rémanences depuis n’importe quelle application.

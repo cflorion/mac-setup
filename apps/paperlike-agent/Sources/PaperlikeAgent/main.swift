@@ -21,7 +21,8 @@ La luminosité frontale n’est acceptée que si la lumière est allumée
 
 L’agent retire en permanence le tramage macOS des sorties DASUNG ; c’est sa
 fonction principale et elle ne demande pas le port USB.
-Contrôle USB expérimental, optionnel : make paperlike-control.
+Réglages et raccourcis : make paperlike-control (l’agent garde alors le port
+CH340, PaperLikeClient ne pourra plus l’ouvrir).
 
 Raccourcis par défaut en mode contrôle (Control+Option+Command) :
 \(Configuration.defaultHotkeys.map { "  \($0.0.padding(toLength: 20, withPad: " ", startingAt: 0)) \($0.1.joined(separator: " "))" }.joined(separator: "\n"))
