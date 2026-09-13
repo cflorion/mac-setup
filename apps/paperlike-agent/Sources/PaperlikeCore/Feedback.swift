@@ -16,13 +16,13 @@ public struct HUDContent: Equatable {
     }
 
     private static let presentation: [String: (title: String, symbol: String)] = [
-        "contrast": ("Contraste", "circle.lefthalf.filled"),
-        "light": ("Lumière", "sun.max.fill"),
-        "light-mode": ("Mode de lumière", "lightbulb"),
-        "light-temp": ("Température", "thermometer.medium"),
-        "speed": ("Vitesse", "speedometer"),
+        "contrast": ("Contrast", "circle.lefthalf.filled"),
+        "light": ("Front light", "sun.max.fill"),
+        "light-mode": ("Light mode", "lightbulb"),
+        "light-temp": ("Temperature", "thermometer.medium"),
+        "speed": ("Speed", "speedometer"),
         "mode": ("Mode", "doc.text.image"),
-        "text-enhance": ("Rehaussement", "textformat"),
+        "text-enhance": ("Text enhance", "textformat"),
     ]
 
     public init(symbol: String, title: String, caption: String, gauge: Gauge?) {
@@ -33,17 +33,17 @@ public struct HUDContent: Equatable {
         guard reply["ok"] as? Bool == true else {
             switch reply["code"] as? String {
             case "light-off":
-                self.init(symbol: "lightbulb.slash", title: "Lumière", caption: "Éteinte", gauge: nil)
+                self.init(symbol: "lightbulb.slash", title: "Front light", caption: "Off", gauge: nil)
             case "unavailable":
-                self.init(symbol: "cable.connector.slash", title: "Paperlike", caption: "Écran non joignable", gauge: nil)
+                self.init(symbol: "cable.connector.slash", title: "Paperlike", caption: "Display unreachable", gauge: nil)
             default:
-                self.init(symbol: "exclamationmark.triangle", title: "Paperlike", caption: "Échec — paperlike status", gauge: nil)
+                self.init(symbol: "exclamationmark.triangle", title: "Paperlike", caption: "Failed — see paperlike status", gauge: nil)
             }
             return
         }
         if reply["action"] as? String == "refresh" {
             let acknowledged = reply["delivery"] as? String == "acknowledged_by_device"
-            self.init(symbol: "sparkles", title: "Rémanences", caption: acknowledged ? "Effacées" : "Effacement envoyé", gauge: nil)
+            self.init(symbol: "sparkles", title: "Ghost Cleanup", caption: acknowledged ? "Cleared" : "Cleanup sent", gauge: nil)
             return
         }
         if reply["power"] as? String == "off" {
@@ -51,14 +51,14 @@ public struct HUDContent: Equatable {
             // the same scale the previous presses were moving along.
             let bounds = reply["bounds"] as? [Int]
             let gauge = bounds.flatMap { $0.count == 2 && $0[0] < $0[1] ? HUDContent.gauge(value: $0[0], lower: $0[0], upper: $0[1]) : nil }
-            self.init(symbol: "lightbulb.slash", title: "Lumière", caption: "Éteinte", gauge: gauge)
+            self.init(symbol: "lightbulb.slash", title: "Front light", caption: "Off", gauge: gauge)
             return
         }
         guard let name = reply["setting"] as? String, let shown = HUDContent.presentation[name],
               let value = reply["value"] as? Int, let bounds = reply["bounds"] as? [Int], bounds.count == 2,
               bounds[0] < bounds[1] else { return nil }
         let (lower, upper) = (bounds[0], bounds[1])
-        var caption = (lower, upper) == (0, 100) ? "\(value) %" : "\(value) / \(upper)"
+        var caption = (lower, upper) == (0, 100) ? "\(value)%" : "\(value) / \(upper)"
         // The limit is spelled out because a full or empty bar alone does not
         // say whether another press would still do something.
         if value >= upper { caption += " · Max" } else if value <= lower { caption += " · Min" }

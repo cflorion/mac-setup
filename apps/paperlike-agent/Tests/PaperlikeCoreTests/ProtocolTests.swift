@@ -256,18 +256,18 @@ final class HUDContentTests: XCTestCase {
         XCTAssertEqual(bottom?.caption, "1 / 9 · Min")
         XCTAssertEqual(bottom?.gauge?.filled, 0)
         let light = HUDContent(reply: ["ok": true, "setting": "light", "value": 40, "bounds": [0, 100]])
-        XCTAssertEqual(light?.caption, "40 %")
+        XCTAssertEqual(light?.caption, "40%")
         XCTAssertEqual(light?.gauge, HUDContent.Gauge(segments: 10, filled: 4))
-        XCTAssertEqual(HUDContent(reply: ["ok": true, "setting": "light", "value": 100, "bounds": [0, 100]])?.caption, "100 % · Max")
+        XCTAssertEqual(HUDContent(reply: ["ok": true, "setting": "light", "value": 100, "bounds": [0, 100]])?.caption, "100% · Max")
     }
 
     func testLightStatesAndFailuresAreWordedForTheScreen() {
         let off = HUDContent(reply: ["ok": true, "setting": "light", "power": "off", "bounds": [0, 100]])
-        XCTAssertEqual(off?.caption, "Éteinte")
+        XCTAssertEqual(off?.caption, "Off")
         XCTAssertEqual(off?.gauge, HUDContent.Gauge(segments: 10, filled: 0))
-        XCTAssertEqual(HUDContent(reply: ["ok": false, "code": "light-off", "error": "…"])?.caption, "Éteinte")
+        XCTAssertEqual(HUDContent(reply: ["ok": false, "code": "light-off", "error": "…"])?.caption, "Off")
         XCTAssertEqual(HUDContent(reply: ["ok": false, "error": "…"])?.symbol, "exclamationmark.triangle")
-        XCTAssertEqual(HUDContent(reply: ["ok": true, "action": "refresh", "delivery": "sent"])?.caption, "Effacement envoyé")
+        XCTAssertEqual(HUDContent(reply: ["ok": true, "action": "refresh", "delivery": "sent"])?.caption, "Cleanup sent")
         // A reply the HUD cannot describe shows nothing rather than a guess.
         XCTAssertNil(HUDContent(reply: ["ok": true, "registers": [String: Int]()]))
     }

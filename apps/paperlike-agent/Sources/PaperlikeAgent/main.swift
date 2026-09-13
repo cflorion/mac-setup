@@ -2,43 +2,43 @@ import AppKit
 import PaperlikeCore
 
 let help = """
-PaperlikeAgent — contrôleur DASUNG en arrière-plan
+PaperlikeAgent — background controller for DASUNG e-ink displays
 
-  paperlike status            État de l’agent, écrans, gamma, raccourcis (JSON)
-  paperlike detect            Inventaire sans ouvrir le port USB
-  paperlike query             Relire tous les réglages connus de l’écran
-  paperlike read 09           Lire un registre brut, en hexadécimal
+  paperlike status            Agent state, displays, gamma, shortcuts (JSON)
+  paperlike detect            Inventory without opening the USB port
+  paperlike query             Read back every known display setting
+  paperlike read 09           Read a raw register, in hexadecimal
 
-  paperlike refresh           Effacer les rémanences (« Ghost Cleanup »)
-  paperlike light on|off|toggle  Allumer ou éteindre la lumière frontale
+  paperlike refresh           Clear ghosting (“Ghost Cleanup”)
+  paperlike light on|off|toggle  Switch the front light on or off
 \(Setting.all.map { "  paperlike \($0.name.padding(toLength: 12, withPad: " ", startingAt: 0)) \($0.bounds.lowerBound)..\($0.bounds.upperBound)\(String(repeating: " ", count: max(0, 7 - "\($0.bounds.lowerBound)..\($0.bounds.upperBound)".count)))\($0.summary)" }.joined(separator: "\n"))
 
-Une valeur signée agit relativement : « paperlike light +10 » monte de dix.
-Toute écriture est confirmée par relecture du registre ; sans confirmation,
-la commande échoue plutôt que de prétendre avoir abouti.
+A signed value is relative: “paperlike light +10” goes up by ten.
+Every write is confirmed by reading the register back; without that
+confirmation the command fails rather than claim success.
 
-La luminosité frontale se comporte comme une touche de luminosité : 0 éteint
-la lumière, une valeur positive l’allume (« light +10 » depuis éteinte : 10 %).
-« paperlike light on » rétablit le dernier niveau ; s’il vaut 0, 20.
+Front-light brightness works like a brightness key: 0 switches the light
+off, a positive value switches it on (“light +10” from off: 10%).
+“paperlike light on” restores the last level; if that level is 0, 20.
 
-L’agent retire en permanence le tramage macOS des sorties DASUNG ; c’est sa
-fonction principale et elle ne demande pas le port USB.
-Réglages et raccourcis : make paperlike-control (l’agent garde alors le port
-CH340, PaperLikeClient ne pourra plus l’ouvrir).
+The agent continuously removes macOS dithering from DASUNG outputs; that is
+its main job and it does not need the USB port.
+Settings and shortcuts: make paperlike-control (the agent then holds the
+CH340 port, and PaperLikeClient can no longer open it).
 
-Raccourcis par défaut en mode contrôle (Control+Option+Command) :
+Default shortcuts in control mode (Control+Option+Command):
 \(Configuration.defaultHotkeys.map { "  \($0.0.padding(toLength: 20, withPad: " ", startingAt: 0)) \($0.1.joined(separator: " "))" }.joined(separator: "\n"))
 
-Personnalisation facultative, lue au démarrage :
+Optional customization, read at startup:
   \(Configuration.path)
   {"hotkeys":[{"keys":"ctrl+alt+cmd+up","action":["light","+10"]}]}
-  {"hud":false}   Désactiver l’affichage à l’écran après un raccourci
-Fichier absent ou illisible : les valeurs par défaut s’appliquent et l’agent
-démarre quand même — l’anti-tramage ne dépend jamais de ce fichier.
+  {"hud":false}   Turn off the on-screen display after a shortcut
+Missing or unreadable file: the defaults apply and the agent starts
+anyway — anti-dithering never depends on this file.
 
-Installation/démarrage : make paperlike
-Arrêt et désactivation au login : make paperlike-stop
-Désinstallation : make paperlike-uninstall
+Install and start: make paperlike
+Stop and disable at login: make paperlike-stop
+Uninstall: make paperlike-uninstall
 """
 
 func output(_ value: Any) throws {

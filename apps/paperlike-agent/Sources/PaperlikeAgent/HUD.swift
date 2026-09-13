@@ -9,7 +9,7 @@ import PaperlikeCore
 // The panel is non-activating and ignores the mouse: the agent never becomes
 // the active application, so the focused window keeps the keyboard.
 final class HUD {
-    private static let size = NSSize(width: 280, height: 64)
+    private static let size = NSSize(width: 300, height: 64)
     private static let margin: CGFloat = 16
     private static let duration = 1.6
 

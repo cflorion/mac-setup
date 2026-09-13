@@ -1,160 +1,160 @@
-# PaperlikeAgent — POC natif macOS pour DASUNG
+# PaperlikeAgent — native macOS POC for DASUNG
 
-**Rôle principal : supprimer le tramage de macOS sur la dalle e-ink.** macOS
-active `enableDither` sur chaque framebuffer ; sur e-ink cela se voit comme du
-grain, des taches et une image sombre. L’agent remet cette propriété à `false`
-sur les seules sorties DASUNG, à chaque cycle de deux secondes, car macOS la
-restaure lors d’une reconnexion, d’un réveil ou d’un changement de mode. C’est
-exactement ce que fait le client officiel avec son `disableDitheringTimer` — et
-la raison pour laquelle fermer sa fenêtre par la croix ramenait le défaut.
+**Main job: remove macOS dithering on the e-ink panel.** macOS
+enables `enableDither` on every framebuffer; on e-ink this shows up as
+grain, blotches and a dark image. The agent resets this property to `false`
+on DASUNG outputs only, on every two-second cycle, because macOS
+restores it on reconnect, wake or mode change. This is
+exactly what the official client does with its `disableDitheringTimer` — and
+why closing its window with the close button brought the defect back.
 
-Ce réglage est appliqué **quel que soit le mode** : c’est une écriture de
-propriété IOKit sur le framebuffer, elle ne touche jamais au port USB. La dalle
-interne est délibérément exclue, y supprimer le tramage produirait du banding.
-Mécanisme, preuves et mesures : [RESEARCH.md](RESEARCH.md).
+This setting is applied **regardless of mode**: it is an IOKit property
+write on the framebuffer and never touches the USB port. The built-in
+panel is deliberately excluded: removing dithering there would cause banding.
+Mechanism, evidence and measurements: [RESEARCH.md](RESEARCH.md).
 
-**Plusieurs écrans DASUNG.** Toutes les sorties dont le fabricant EDID est
-`0x1263` sont traitées, chacune indépendamment : un Paperlike noir et blanc et
-un Revo Color branchés ensemble sont couverts sans réglage. Ne pas les
-identifier par leur `ProductName`, identique sur les deux ; utiliser
-`SerialNumber` et `YearOfManufacture`.
+**Multiple DASUNG monitors.** Every output whose EDID manufacturer is
+`0x1263` is handled, each independently: a black-and-white Paperlike and
+a Revo Color plugged in together are covered with no configuration. Do not
+identify them by their `ProductName`, which is identical on both; use
+`SerialNumber` and `YearOfManufacture`.
 
-**Branchement à chaud.** L’agent s’abonne à
-`CGDisplayRegisterReconfigurationCallback` et ré-applique l’anti-tramage dès la
-fin d’une reconfiguration, puis à 0,15 s, 0,4 s et 1 s — macOS pose parfois
-`enableDither` juste après l’apparition du framebuffer. Le minuteur de deux
-secondes reste le filet de sécurité si le callback est refusé, ce que
-`paperlike status` signale par `reconfigurationCallbackRegistered: false`.
+**Hotplug.** The agent subscribes to
+`CGDisplayRegisterReconfigurationCallback` and re-applies anti-dithering as soon as
+a reconfiguration ends, then at 0.15 s, 0.4 s and 1 s — macOS sometimes sets
+`enableDither` right after the framebuffer appears. The two-second
+timer remains the safety net if the callback is refused, which
+`paperlike status` reports as `reconfigurationCallbackRegistered: false`.
 
-**Surveillance de la table gamma.** `paperlike status` expose un champ `gamma`
-par sortie DASUNG (`ceiling`, `maxDeviation`), et l’agent journalise une erreur
-dès qu’une table cesse d’être linéaire. C’est le réglage hôte le plus destructeur
-pour de l’e-ink — un plafond sous `1.0` écrase tous les niveaux de gris, qui
-*sont* l’image — et il est invisible dans les Réglages d’affichage. Cause
-typique : la luminosité logicielle de BetterDisplay sur un écran sans contrôle
-matériel. **Signalé, jamais corrigé** : l’agent n’écrit qu’une propriété, sur les
-framebuffers d’un seul fabricant, et disputer la table gamma à un autre outil
-défairait cette garantie.
+**Gamma table monitoring.** `paperlike status` exposes a `gamma` field
+per DASUNG output (`ceiling`, `maxDeviation`), and the agent logs an error
+as soon as a table stops being linear. It is the most destructive host-side setting
+for e-ink — a ceiling below `1.0` crushes all grey levels, which
+*are* the image — and it is invisible in Display Settings. Typical
+cause: BetterDisplay's software brightness on a monitor without hardware
+control. **Reported, never corrected**: the agent writes only one property, on the
+framebuffers of a single manufacturer, and fighting another tool over the gamma table
+would undo that guarantee.
 
-**Veille écran et veille système sont deux cas distincts.** Éteindre un moniteur
-ou le laisser s’endormir n’émet aucune notification `NSWorkspace` : l’agent ne se
-met pas en pause, son minuteur continue et le rallumage est couvert par le
-minuteur comme par le callback de reconfiguration. C’est le cas courant avec ces
-écrans. Seule la veille du Mac émet `willSleep`/`didWake` : l’agent suspend alors
-son minuteur, et `didWake` déclenche un cycle immédiat.
+**Display sleep and system sleep are two distinct cases.** Turning off a monitor
+or letting it go to sleep emits no `NSWorkspace` notification: the agent does not
+pause, its timer keeps running, and turning the display back on is covered by the
+timer as well as by the reconfiguration callback. This is the common case with these
+monitors. Only Mac sleep emits `willSleep`/`didWake`: the agent then suspends
+its timer, and `didWake` triggers an immediate cycle.
 
-Un agent Swift sans icône dans le Dock, Cmd-Tab ou la barre des menus, qui ne
-prend jamais le focus. Sa seule fenêtre est le HUD affiché brièvement après un
-raccourci, en mode contrôle (voir plus bas). **Par défaut il applique l’anti-tramage et observe la présence du DASUNG
-et de sa liaison USB, sans ouvrir le port.** Le mode contrôle, séparé, valide le
-MCU, entretient la connexion et sert la CLI et les raccourcis globaux. Le
-contrôle USB n’est pas nécessaire à l’anti-tramage : les deux modes l’appliquent.
+A Swift agent with no icon in the Dock, Cmd-Tab or the menu bar, which never
+takes focus. Its only window is the HUD shown briefly after a
+shortcut, in control mode (see below). **By default it applies anti-dithering and observes the presence of the DASUNG
+and its USB link, without opening the port.** Control mode, which is separate, validates the
+MCU, keeps the connection alive, and serves the CLI and global shortcuts. USB
+control is not needed for anti-dithering: both modes apply it.
 
-Le matériel observé sur ce Mac est nommé **Paperlike253** par macOS : Color,
-3200 × 1800, MCU `0x30`, interface CH340 `1a86:7523`. Le POC ne constitue pas
-une validation de tous les modèles DASUNG. Voir [RESEARCH.md](RESEARCH.md).
+The hardware observed on this Mac is named **Paperlike253** by macOS: Color,
+3200 × 1800, MCU `0x30`, CH340 interface `1a86:7523`. The POC does not
+validate every DASUNG model. See [RESEARCH.md](RESEARCH.md).
 
-## Installation et commandes
+## Installation and commands
 
-Depuis `~/code/mac-setup`, avec les outils de développement Apple installés :
+From `~/code/mac-setup`, with Apple's developer tools installed:
 
 ```sh
-make paperlike-test       # Tests sans envoyer de commande à un écran
-make paperlike           # Compile, installe et démarre la détection au login
+make paperlike-test       # Tests without sending any command to a display
+make paperlike           # Build, install and start detection at login
 paperlike status
 ```
 
-L’application est installée dans `~/Applications/PaperlikeAgent.app`.
-La compilation est native pour le Mac utilisé, sans dépendance externe.
-La signature ad hoc convient à cet usage local ; ce n’est pas une distribution
-signée et notariée pour d’autres utilisateurs.
+The application is installed in `~/Applications/PaperlikeAgent.app`.
+It is built natively for the Mac in use, with no external dependencies.
+Ad hoc signing is fine for this local use; it is not a signed and
+notarized distribution for other users.
 
-Le mode par défaut peut coexister avec le client officiel et ne réserve aucun
-raccourci ; les deux écrivent la même propriété avec la même valeur.
-`paperlike status` expose `ditheringReasserts`, le nombre de fois où macOS a
-remis le tramage et où l’agent l’a retiré. Après diagnostic et validation visuelle, `make paperlike-control`
-active le contrôle USB au login. **L’agent réserve alors le port CH340 en
-exclusivité : PaperLikeClient ne pourra plus l’ouvrir tant qu’il tourne.**
-Revenir à l’anti-tramage seul, et rendre le port au client : `make paperlike`.
+Default mode can coexist with the official client and reserves no
+shortcut; both write the same property with the same value.
+`paperlike status` exposes `ditheringReasserts`, the number of times macOS
+re-enabled dithering and the agent removed it. After diagnostics and visual validation, `make paperlike-control`
+enables USB control at login. **The agent then takes exclusive hold of the CH340
+port: PaperLikeClient will no longer be able to open it while the agent runs.**
+To go back to anti-dithering only and hand the port back to the client: `make paperlike`.
 
-En mode contrôle, **Control + Option + Command + R** envoie une demande
-d’effacement des rémanences depuis n’importe quelle application.
-Cette combinaison n’inclut pas Maj et ne remplace donc pas Hyper+R.
-L’agent utilise `RegisterEventHotKey` : il n’écoute pas les frappes et ne demande
-pas de permission Accessibilité. Un conflit de raccourci est signalé dans
-`paperlike status` (`refreshShortcut.registered: false`).
+In control mode, **Control + Option + Command + R** sends a
+Ghost Cleanup request from any application.
+This combination does not include Shift, so it does not replace Hyper+R.
+The agent uses `RegisterEventHotKey`: it does not listen to keystrokes and does not request
+Accessibility permission. A shortcut conflict is reported in
+`paperlike status` (`hotkeys[].registered: false`).
 
-### Réglages de l'écran (mode contrôle)
+### Display settings (control mode)
 
-Chaque réglage du client officiel est exposé, avec ses bornes. Une valeur signée
-agit **relativement** (`paperlike light +10`), ce qui est ce dont un raccourci a
-besoin. **Toute écriture est confirmée par relecture du registre** : sans
-confirmation, la commande échoue au lieu de prétendre avoir abouti — c'est
-précisément le mode de défaillance rencontré avec le client propriétaire.
+Every setting of the official client is exposed, with its bounds. A signed value
+acts **relatively** (`paperlike light +10`), which is what a shortcut
+needs. **Every write is confirmed by register read-back**: without
+confirmation, the command fails instead of claiming it succeeded — this is
+precisely the failure mode encountered with the proprietary client.
 
-| Commande | Bornes | Réglage |
+| Command | Bounds | Setting |
 | --- | --- | --- |
-| `paperlike contrast` | 1–9 | Contraste |
-| `paperlike mode` | 1–2 | Texte / image |
-| `paperlike speed` | 1–5 | Vitesse de rafraîchissement |
-| `paperlike light on\|off\|toggle` | — | Lumière frontale : allumer / éteindre |
-| `paperlike light-mode` | 0–3 | Lumière frontale : 0 éteinte |
-| `paperlike light` | 0–100 | Lumière frontale : luminosité (0 éteint) |
-| `paperlike light-temp` | 0–100 | Lumière frontale : température |
-| `paperlike text-enhance` | 0–1 | Rehaussement du texte |
+| `paperlike contrast` | 1–9 | Contrast |
+| `paperlike mode` | 1–2 | Text / image |
+| `paperlike speed` | 1–5 | Refresh speed |
+| `paperlike light on\|off\|toggle` | — | Front light: on / off |
+| `paperlike light-mode` | 0–3 | Front light: 0 off |
+| `paperlike light` | 0–100 | Front light: brightness (0 off) |
+| `paperlike light-temp` | 0–100 | Front light: temperature |
+| `paperlike text-enhance` | 0–1 | Text enhancement |
 | `paperlike refresh` | — | Ghost Cleanup |
-| `paperlike read 09` | — | Lire un registre brut (diagnostic) |
+| `paperlike read 09` | — | Read a raw register (diagnostic) |
 
-La luminosité frontale se comporte **comme une touche de luminosité** : 0 veut
-dire éteinte. Depuis la lumière éteinte, `light +10` (Ctrl+Opt+Cmd+↑) l'allume
-au premier cran, 10 % ; descendre jusqu'à 0 l'éteint vraiment, au lieu de la
-laisser allumée à zéro. Le moniteur ignorant la luminosité lumière éteinte,
-l'allumage passe d'abord brièvement par le dernier niveau mémorisé.
-`paperlike light on` (Ctrl+Opt+Cmd+L) rétablit le dernier mode de lumière utilisé, retenu entre
-deux redémarrages de l'agent ; pour en choisir un, `paperlike light-mode 1..3`
-une fois. Si la luminosité vaut alors 0, elle est remontée à 20 pour que
-l'allumage se voie.
+Front light brightness behaves **like a brightness key**: 0 means
+off. From the light being off, `light +10` (Ctrl+Opt+Cmd+↑) turns it on
+at the first step, 10%; going down to 0 really turns it off, instead of
+leaving it on at zero. Because the monitor ignores brightness while the light is off,
+turning it on briefly passes through the last stored level first.
+`paperlike light on` (Ctrl+Opt+Cmd+L) restores the last light mode used, remembered across
+agent restarts; to choose one, run `paperlike light-mode 1..3`
+once. If brightness is 0 at that point, it is raised to 20 so that
+turning the light on is visible.
 
-Un réglage prend environ 0,1 s : lecture, écriture, relecture ; allumer ou
-éteindre la lumière un peu plus, le moniteur ignorant la relecture qui suit
-aussitôt, renvoyée alors 0,2 s plus tard. Les appuis rapprochés sur un même
-raccourci sont fusionnés en une seule écriture.
+A setting takes about 0.1 s: read, write, read-back; turning the light on or
+off takes a little longer, because the monitor ignores a read-back sent right
+after, which is then re-sent 0.2 s later. Rapid presses of the same
+shortcut are merged into a single write.
 
-### Raccourcis clavier
+### Keyboard shortcuts
 
-Actifs en mode contrôle, sur Control+Option+Command (« Meh », sans Maj, donc
-Hyper reste libre). Les flèches sont choisies exprès : leurs codes ne changent
-pas d'une disposition à l'autre, ce qu'une lettre ne garantit pas sur AZERTY.
+Active in control mode, on Control+Option+Command ("Meh", without Shift, so
+Hyper stays free). The arrows are chosen on purpose: their key codes do not change
+from one layout to another, which a letter does not guarantee on AZERTY.
 
-| Raccourci | Action |
+| Shortcut | Action |
 | --- | --- |
 | `Ctrl+Opt+Cmd+R` | Ghost Cleanup |
-| `Ctrl+Opt+Cmd+L` | Allumer / éteindre la lumière frontale |
-| `Ctrl+Opt+Cmd+↑ / ↓` | Luminosité frontale ±10 |
-| `Ctrl+Opt+Cmd+→ / ←` | Contraste ±1 |
+| `Ctrl+Opt+Cmd+L` | Turn the front light on / off |
+| `Ctrl+Opt+Cmd+↑ / ↓` | Front light brightness ±10 |
+| `Ctrl+Opt+Cmd+→ / ←` | Contrast ±1 |
 
-`L` occupe la même place en AZERTY et en QWERTY. `paperlike status` liste
-chaque raccourci avec son état d'enregistrement : un raccourci déjà pris par une
-autre application échoue silencieusement sinon.
+`L` is in the same position on AZERTY and QWERTY. `paperlike status` lists
+each shortcut with its registration state: otherwise, a shortcut already taken by another
+application fails silently.
 
 ### HUD
 
-Après chaque raccourci, un petit panneau apparaît 1,6 s en haut à droite de
-l'écran sous le pointeur, comme celui de la luminosité de macOS : réglage,
-valeur (`40 %`, `3 / 9`), jauge à un segment par cran, et **`Max` / `Min`**
-en butée. Il n'affiche que la réponse de la commande qui vient d'aboutir, sans
-échange série supplémentaire.
+After each shortcut, a small panel appears for 1.6 s at the top right of the
+display under the pointer, like the macOS brightness one: setting,
+value (`40%`, `3 / 9`), a gauge with one segment per step, and **`Max` / `Min`**
+at the limit. It shows only the response of the command that just succeeded, with no
+extra serial exchange.
 
-Il est dessiné pour l'e-ink : opaque, noir sur blanc, sans ombre ni animation
-— chaque image d'un fondu serait un rafraîchissement partiel de plus. Sur la
-dalle, son apparition et sa disparition coûtent tout de même deux petits
-rafraîchissements, et peuvent laisser une rémanence que Ctrl+Opt+Cmd+R efface.
-Le panneau n'est pas activant et ignore la souris : le focus reste à la fenêtre
-en cours. `"hud": false` dans la configuration le supprime.
+It is drawn for e-ink: opaque, black on white, with no shadow or animation
+— every frame of a fade would be one more partial refresh. On the
+panel, its appearance and disappearance still cost two small
+refreshes, and may leave ghosting that Ctrl+Opt+Cmd+R clears.
+The panel is non-activating and ignores the mouse: focus stays on the current
+window. `"hud": false` in the configuration disables it.
 
-### Personnalisation facultative
+### Optional customization
 
-Fichier lu **une fois au démarrage**, absent par défaut :
+File read **once at startup**, absent by default:
 `~/.config/paperlike/config.json`
 
 ```json
@@ -165,102 +165,103 @@ Fichier lu **une fois au démarrage**, absent par défaut :
   "hud": true }
 ```
 
-Pas de surveillance de fichier, pas de rechargement, pas de fenêtre de
-réglages : l'agent reste un processus d'arrière-plan. Un fichier absent ou illisible
-donne les valeurs par défaut et **l'agent démarre quand même** — l'anti-tramage,
-sa seule fonction essentielle, ne dépend jamais de ce fichier. Les erreurs de
-configuration apparaissent dans `paperlike status`.
+No file watching, no reloading, no settings window:
+the agent remains a background process. A missing or unreadable file
+yields the default values and **the agent starts anyway** — anti-dithering,
+its only essential function, never depends on this file. Configuration
+errors appear in `paperlike status`.
 
 ```sh
-paperlike detect         # Présence écran / USB, sans ouvrir le port
-paperlike status         # Connexion, processus, raccourci, dernières réponses
-paperlike query          # Relire MCU, contraste, mode et vitesse
-paperlike refresh        # Effacement des rémanences
-paperlike contrast 3     # Valeur de 1 à 9
-paperlike speed 4        # Valeur de 1 à 5
+paperlike detect         # Display / USB presence, without opening the port
+paperlike status         # Connection, process, shortcut, latest responses
+paperlike query          # Read back MCU, contrast, mode and speed
+paperlike refresh        # Ghost Cleanup
+paperlike contrast 3     # Value from 1 to 9
+paperlike speed 4        # Value from 1 to 5
 ```
 
-Ces commandes s’utilisent aussi dans une action « Exécuter un script shell » de
-Raccourcis ou un script Raycast. Si le PATH y est réduit, utiliser par exemple :
+These commands can also be used in a Shortcuts "Run Shell Script" action
+or a Raycast script. If the PATH is reduced there, use for example:
 
 ```sh
 "$HOME/.local/bin/paperlike" refresh
 ```
 
-La sortie est du JSON, avec un code de retour non nul en cas d’erreur. Pour un
-réglage, `confirmed_by_readback` signifie que l’écran a renvoyé la valeur
-demandée. Pour un effacement, `acknowledged_by_device` confirme sa réception,
-pas son résultat visuel. `sent` signifie seulement que l’écriture a abouti.
-`status.ok` concerne le diagnostic ; vérifier `state: connected` pour la liaison.
+Output is JSON, with a non-zero exit code on error. For a
+setting, `confirmed_by_readback` means the display returned the requested
+value. For a cleanup, `acknowledged_by_device` confirms it was received,
+not its visual result. `sent` only means the write succeeded.
+`status.ok` concerns diagnostics; check `state: connected` for the link.
 
-## Démarrage et retour au client officiel
+## Startup and returning to the official client
 
-Le LaunchAgent utilisateur est enregistré dans
-`~/Library/LaunchAgents/com.user.paperlike-agent.plist`. Il démarre à **l’ouverture
-de session**, sans terminal, et est relancé après un crash. Aucun service root
-ni extension noyau n’est ajouté. `LSUIElement` et une politique d’activation
-`prohibited` tiennent l’application hors du Dock et de Cmd-Tab ; `paperlike
-status` vérifie `takesFocus: false`. Le socket local et son verrou
-empêchent deux instances de piloter simultanément l’écran.
+The user LaunchAgent is registered in
+`~/Library/LaunchAgents/com.user.paperlike-agent.plist`. It starts at **login**,
+without a terminal, and is relaunched after a crash. No root service
+or kernel extension is added. `LSUIElement` and a `prohibited` activation
+policy keep the application out of the Dock and Cmd-Tab; `paperlike
+status` checks `takesFocus: false`. The local socket and its lock
+prevent two instances from driving the display at the same time.
 
-Un LaunchAgent correspond au fonctionnement de ce dépôt de configuration.
-Pour une application distribuée avec une interface de préférences, on choisirait
-plutôt `SMAppService` (macOS 13+) pour gérer le login depuis l’application.
-Le POC reste un module optionnel : `make install` / `make update` ne l’activent pas.
+A LaunchAgent fits the way this configuration repo works.
+For a distributed application with a preferences UI, one would rather
+choose `SMAppService` (macOS 13+) to manage login from within the application.
+The POC remains an optional module: `make install` / `make update` do not enable it.
 
 ```sh
-make paperlike-stop      # Arrête et désactive le lancement au login
-open -a PaperLikeClient  # Retour au logiciel DASUNG
+make paperlike-stop      # Stop and disable launch at login
+open -a PaperLikeClient  # Back to the DASUNG software
 ```
 
-Pour reprendre l’observation, lancer `make paperlike` ; le client officiel peut
-rester ouvert. Le remplacement expérimental suit la procédure de contrôle
-décrite plus haut, après diagnostic et validation visuelle.
-Pour retirer l’application et son LaunchAgent :
+To resume observation, run `make paperlike`; the official client can
+stay open. Replacing the official client follows the control procedure
+described above, after diagnostics and visual validation.
+To remove the application and its LaunchAgent:
 
 ```sh
 make paperlike-uninstall
 ```
 
-Les sources, le cache de compilation et la commande du dépôt restent présents.
-Si cette variante de l’écran dépend du keepalive, son image peut disparaître
-quand tous les clients sont arrêtés ; rouvrir PaperLikeClient rétablit son rôle.
+The sources, the build cache and the repo command remain in place.
+If this display variant depends on the keepalive, its image may disappear
+when all clients are stopped; reopening PaperLikeClient restores its role.
 
-En mode contrôle, l’agent attend si PaperLikeClient, PaperlikeMenu ou InkControl est ouvert.
-Désactiver « Launch at Startup » dans le client officiel lors du remplacement,
-pour éviter qu’il prenne la main au prochain login. Il peut toujours être
-rouvert manuellement. Aucune désinstallation du client DASUNG n’est nécessaire.
+In control mode, the agent waits if PaperLikeClient, PaperlikeMenu or InkControl is open.
+Disable "Launch at Startup" in the official client when replacing it,
+so that it does not take over at the next login. It can still be
+reopened manually. No uninstallation of the DASUNG client is needed.
 
-## Diagnostic et limites
+## Diagnostics and limitations
 
-- Un écran vidéo détecté ne prouve pas la liaison USB de contrôle. Le câble doit
-  aussi transporter les données USB ; HDMI seul ne suffit pas.
-- Sélection prudente : EDID DASUNG `0x1263`, un seul CH340 `1a86:7523`, puis une
-  réponse MCU reconnue. Ce VID/PID est générique ; en présence d’autres CH340,
-  le POC refuse de choisir. Il ne parcourt pas les autres ports série.
-- Reconnexion toutes les deux secondes, fermeture du port pendant la veille,
-  nouvelle identification au réveil. Les essais de veille/réveil, de débranchement
-  physique et d’ouverture de session réelle restent à faire.
-- Les opérations série sont sérialisées et bornées dans le temps ; une lecture
-  rend la main dès que sa réponse arrive, le délai ne sert qu’en cas d’échec.
-  Les réponses USB fragmentées ou regroupées sont reconstituées. Une écriture suivie d’une
-  réponse absente est rapportée comme non confirmée, jamais comme un succès.
-- Le mode se lit, mais son changement n’est pas exposé : les tables diffèrent
-  entre les générations. Le rétroéclairage et l’anti-dithering restent hors POC.
-  Le POC ne modifie aucun réglage graphique global de macOS.
-- Avant le message Mac `0x20/1`, le POC vérifie que `enableDither` est bien `No`
-  pour les sorties DASUNG observées. Si cet état est absent ou activé, il refuse
-  l’envoi. Cette vérification corrige une hypothèse du premier essai ; elle ne
-  démontre pas à elle seule la cause du problème d’affichage signalé.
-- Les raccourcis se redéfinissent dans `~/.config/paperlike/config.json`, relu
-  seulement au démarrage de l’agent (`make paperlike-control` pour le relancer).
+- A detected video display does not prove the USB control link. The cable must
+  also carry USB data; HDMI alone is not enough.
+- Conservative selection: DASUNG EDID `0x1263`, a single CH340 `1a86:7523`, then a
+  recognized MCU response. This VID/PID is generic; if other CH340s are present,
+  the POC refuses to choose. It does not scan other serial ports.
+- Reconnection every two seconds, port closed during sleep,
+  re-identification on wake. Sleep/wake, physical unplugging
+  and real login tests are still to be done.
+- Serial operations are serialized and time-bounded; a read
+  returns as soon as its response arrives, the timeout only applies on failure.
+  Fragmented or coalesced USB responses are reassembled. A write followed by a
+  missing response is reported as unconfirmed, never as a success.
+- Every setting the official client drives is exposed; the real-time clock
+  (`0x05`) and the unidentified `0x13` are never writable, which a test enforces.
+  Beyond `enableDither` on DASUNG outputs, the POC does not modify any global
+  macOS graphics setting.
+- Before the Mac message `0x20/1`, the POC checks that `enableDither` is indeed `No`
+  for the observed DASUNG outputs. If this state is missing or enabled, it refuses
+  to send. This check corrects an assumption from the first attempt; on its own it does not
+  demonstrate the cause of the reported display problem.
+- Shortcuts are redefined in `~/.config/paperlike/config.json`, read again
+  only when the agent starts (`make paperlike-control` to restart it).
 
-Les transitions et erreurs de connexion sont dans le journal unifié macOS :
+Connection transitions and errors are in the macOS unified log:
 
 ```sh
 log show --last 10m --predicate 'subsystem == "com.user.paperlike-agent"'
 ```
 
-Le canal de commandes est un socket Unix réservé à l’utilisateur, dans
-`~/Library/Application Support/PaperlikeAgent/`. Aucun serveur réseau, télémétrie
-ou téléchargement n’est utilisé par l’application.
+The command channel is a Unix socket restricted to the user, in
+`~/Library/Application Support/PaperlikeAgent/`. The application uses no network server,
+telemetry or downloads.

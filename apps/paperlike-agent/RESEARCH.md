@@ -1,380 +1,384 @@
-# Recherche et preuves — 12 septembre 2026
+# Research and evidence — September 12, 2026
 
-## Cause du défaut visuel : table gamma écrasée par BetterDisplay
+## Cause of the visual defect: gamma table crushed by BetterDisplay
 
-**Deux attributions erronées ont précédé celle-ci dans ce fichier. Les voici
-consignées, parce que chacune paraissait solide.**
+**Two mistaken attributions preceded this one in this file. They are recorded
+here, because each of them seemed solid.**
 
-Le défaut — image sombre, couleurs sales, larges zones noires qui vibrent au
-moindre mouvement — n'était causé ni par le moniteur, ni par ses registres, ni
-par le tramage de macOS. Il venait de la **table gamma de la sortie**, écrasée
-par la luminosité logicielle de BetterDisplay.
+The defect — dark image, dirty colors, large black areas that flicker at the
+slightest movement — was caused neither by the monitor, nor by its registers,
+nor by macOS dithering. It came from the **output's gamma table**, crushed by
+BetterDisplay's software brightness.
 
-### L'expérience qui l'a isolé
+### The experiment that isolated it
 
-L'utilisateur a ouvert une **session macOS vierge** sur le même Mac, avec le même
-écran et les mêmes câbles : l'affichage y est correct. Cela disqualifie d'un seul
-coup le matériel, l'état interne du moniteur et tout réglage système partagé, et
-désigne l'état propre à la session utilisateur. Aucune des mesures précédentes
-n'avait cette force de discrimination.
+The user opened a **fresh macOS user account** on the same Mac, with the same
+monitor and the same cables: the display is correct there. That rules out, in a
+single stroke, the hardware, the monitor's internal state and any shared system
+setting, and points to state specific to the user session. None of the previous
+measurements had that discriminating power.
 
-### La mesure confirmante
+### The confirming measurement
 
-| Écran | Plafond de la table gamma | Écart max à la rampe identité |
+| Display | Gamma table ceiling | Max deviation from the identity ramp |
 | --- | --- | --- |
-| Interne (`41038`) | `1.000` | `0.0000` |
+| Built-in (`41038`) | `1.000` | `0.0000` |
 | DASUNG `9532` | **`0.375`** | **`0.6250`** |
 
-Et dans les préférences de BetterDisplay :
+And in BetterDisplay's preferences:
 
 ```
 value@softwareBrightness-ColorController@Display:12 = 0.375   ← Revo Color
-value@softwareBrightness-ColorController@Display:2  = 1       ← écran interne
+value@softwareBrightness-ColorController@Display:2  = 1       ← built-in display
 value@hardwareBrightness-DDCController@Display:12   = 0
 ```
 
-Les deux valeurs `0.375` coïncident exactement. Le moniteur n'ayant pas de
-contrôle de luminosité matériel exploitable, BetterDisplay n'a d'autre moyen
-d'assombrir que d'écraser la table gamma. Sur un LCD rétroéclairé, cela ne fait
-qu'assombrir. Sur e-ink, **les niveaux de gris *sont* l'image** : tout se retrouve
-tassé dans le tiers bas de la plage, le contraste s'effondre et le waveform du
-panneau s'affole sur des valeurs devenues ambiguës.
+The two `0.375` values match exactly. Since the monitor has no usable hardware
+brightness control, BetterDisplay has no other way to dim than to crush the
+gamma table. On a backlit LCD, that only dims the image. On e-ink, **the grey
+levels *are* the image**: everything ends up packed into the bottom third of
+the range, contrast collapses and the panel's waveform goes haywire on values
+that have become ambiguous.
 
-Cela explique aussi ce qui résistait : la persistance après redémarrage
-(BetterDisplay restaure son réglage au login), l'échec du client officiel — qui
-met pourtant bien `enableDither = false` — et le fait que débrancher ou
-redémarrer le moniteur ne changeait rien, la table étant côté hôte.
+This also explains what had resisted: the persistence after reboot
+(BetterDisplay restores its setting at login), the failure of the official
+client — which does set `enableDither = false` — and the fact that unplugging
+or restarting the monitor changed nothing, since the table lives on the host
+side.
 
-### Propriété de la table gamma à connaître
+### A gamma table property to know about
 
-CoreGraphics **restaure la table gamma à la fin du processus qui l'a écrite.**
-Un correctif appliqué par un utilitaire à durée de vie courte ne tient donc pas,
-et l'assombrissement de BetterDisplay ne subsiste que tant qu'il tourne. Cette
-propriété a d'abord fait croire à l'échec d'un test de détection ; c'était le
-test qui était mal construit, pas la détection.
+CoreGraphics **restores the gamma table when the process that wrote it exits.**
+A fix applied by a short-lived utility therefore does not hold, and
+BetterDisplay's dimming persists only as long as BetterDisplay is running. This
+property first made a detection test look like a failure; it was the test that
+was badly built, not the detection.
 
-### Détection ajoutée à l'agent
+### Detection added to the agent
 
-`paperlike status` expose désormais un champ `gamma` par sortie DASUNG
-(`ceiling`, `maxDeviation`), et l'agent journalise une erreur dès qu'une table
-cesse d'être linéaire. **En lecture seule, délibérément** : corriger la table
-ferait de l'agent un second écrivain en conflit avec BetterDisplay ou tout outil
-de calibration légitime, alors que toute sa sûreté tient à ce qu'il n'écrive
-qu'une seule propriété, sur les framebuffers d'un seul fabricant.
+`paperlike status` now exposes a `gamma` field per DASUNG output
+(`ceiling`, `maxDeviation`), and the agent logs an error as soon as a table
+stops being linear. **Read-only, deliberately**: correcting the table would make
+the agent a second writer in conflict with BetterDisplay or any legitimate
+calibration tool, whereas all of its safety rests on writing only one property,
+on the framebuffers of only one manufacturer.
 
-Essai : table maintenue à `0.375` par un processus tiers → `ceiling: 0.375`,
-`maxDeviation: 0.625` et l'erreur journalisée ; au relâchement, retour à
-`ceiling: 1`, `maxDeviation: 0` et la notice de retour au linéaire.
+Test: table held at `0.375` by a third-party process → `ceiling: 0.375`,
+`maxDeviation: 0.625` and the error logged; on release, back to
+`ceiling: 1`, `maxDeviation: 0` and the back-to-linear notice.
 
-## Le tramage : un défaut réel, mais distinct
+## Dithering: a real defect, but a separate one
 
-Ce qui suit reste exact et utile — le tramage **était** activé et devait être
-désactivé — mais il faut cesser de lui attribuer le défaut visuel ci-dessus.
+What follows remains accurate and useful — dithering **was** enabled and had to
+be disabled — but it must stop being blamed for the visual defect above.
 
-macOS expose `enableDither` sur chaque framebuffer ; sur e-ink, le tramage
-ajoute du bruit. Le client officiel le désactive en boucle
+macOS exposes `enableDither` on each framebuffer; on e-ink, dithering adds
+noise. The official client disables it in a loop
 (`enableDisableDithering:`, `startDisableDithering`, `disableDitheringTimer`,
-`ditheringCheckAction while (true)`), car macOS restaure la valeur lors d'une
-reconnexion, d'un réveil ou d'un changement de mode. Fermer la fenêtre du client
-par sa croix quitte l'application, et plus rien ne maintenait le réglage.
+`ditheringCheckAction while (true)`), because macOS restores the value on
+reconnection, wake or mode change. Closing the client's window with its close
+button quits the application, and nothing was maintaining the setting anymore.
 
-| Moment | ProductID 9532 (DP) | ProductID 0 (HDMI) |
+| When | ProductID 9532 (DP) | ProductID 0 (HDMI) |
 | --- | --- | --- |
-| Client quitté, après redémarrage | `enableDither = Yes` | `enableDither = Yes` |
-| Après `open -a PaperLikeClient` | `enableDither = No` | `enableDither = No` |
+| Client quit, after reboot | `enableDither = Yes` | `enableDither = Yes` |
+| After `open -a PaperLikeClient` | `enableDither = No` | `enableDither = No` |
 
-**Le POC est hors de cause dans les deux défauts** : au moment du signalement il
-était en `state = waiting`, `lsof` ne montrait aucun détenteur du port, et son
-contrôle `requireDisabled` l'empêchait précisément d'émettre.
+**The POC is not implicated in either defect**: at the time of the report it
+was in `state = waiting`, `lsof` showed no holder of the port, and its
+`requireDisabled` check specifically prevented it from transmitting.
 
-### Mécanisme repris par l'agent
+### Mechanism adopted by the agent
 
-Les entitlements de `Stillcolor.app` donnent la clé exacte :
+The entitlements of `Stillcolor.app` give the exact key:
 
 ```
 (allow iokit-set-properties (iokit-property "enableDither") (iokit-property "uniformity2D"))
 ```
 
-La propriété écrite est **`enableDither`** ; la chaîne `disableDithering` visible
-dans ce binaire n'est que le nom de sa fonction Swift interne. Écrire une clé
-inconnue est refusé par le pilote avec `kIOReturnBadArgument` (`0xE00002C2`) —
-erreur obtenue et levée pendant l'étude.
+The property written is **`enableDither`**; the string `disableDithering`
+visible in that binary is only the name of its internal Swift function. Writing
+an unknown key is rejected by the driver with `kIOReturnBadArgument`
+(`0xE00002C2`) — an error hit and cleared up during the study.
 
-`IORegistryEntrySetCFProperty(service, "enableDither", kCFBooleanFalse)` sur les
-services `IOMobileFramebufferAP` renvoie `kern_return = 0` depuis un binaire
-ordinaire, **non sandboxé et sans entitlement** : Stillcolor n'a besoin de
-l'exception `com.apple.security.temporary-exception.sbpl` que parce qu'il est
-lui-même sandboxé. Le basculement a été vérifié par relecture dans les deux sens.
+`IORegistryEntrySetCFProperty(service, "enableDither", kCFBooleanFalse)` on the
+`IOMobileFramebufferAP` services returns `kern_return = 0` from an ordinary
+binary, **not sandboxed and without any entitlement**: Stillcolor needs the
+`com.apple.security.temporary-exception.sbpl` exception only because it is
+itself sandboxed. The toggle was verified by read-back in both directions.
 
-L'agent applique donc ce réglage lui-même à chaque tick de deux secondes, quel
-que soit le mode de contrôle : l'écriture est une propriété IOKit sur le
-framebuffer et ne touche jamais au port USB. Seules les sorties dont le
-fabricant EDID est DASUNG (`0x1263`) sont écrites — la correspondance fabricant
-est la condition positive d'écriture. La dalle interne est délibérément exclue :
-y supprimer le tramage produit du banding.
+The agent therefore applies this setting itself on every two-second tick,
+whatever the control mode: the write is an IOKit property on the framebuffer
+and never touches the USB port. Only outputs whose EDID manufacturer is DASUNG
+(`0x1263`) are written — the manufacturer match is the positive condition for
+writing. The built-in panel is deliberately excluded: removing dithering there
+produces banding.
 
-Essai de bout en bout réalisé : `enableDither` forcé à `true` sur les deux
-sorties, rétabli à `false` par l'agent en moins de deux secondes, `result = 0`,
-compteur `ditheringReasserts` incrémenté de deux et `wasEnabled = true`
-enregistré. La reprise après un cycle de veille système complet n'a pas été
-observée ; le minuteur périodique la couvre par construction, sans preuve.
+End-to-end test performed: `enableDither` forced to `true` on both outputs,
+restored to `false` by the agent in under two seconds, `result = 0`,
+`ditheringReasserts` counter incremented by two and `wasEnabled = true`
+recorded. Recovery after a full system sleep cycle has not been observed; the
+periodic timer covers it by construction, without proof.
 
-### Deux moniteurs DASUNG, pas un seul — comment les distinguer
+### Two DASUNG monitors, not one — how to tell them apart
 
-**Erreur commise pendant cette étude, consignée ici pour qu'elle ne se répète
-pas.** macOS expose deux connexions `Paperlike253`. Elles ont été prises pour un
-seul écran branché deux fois, et « débrancher le câble HDMI » a été conseillé à
-tort. L'utilisateur possède réellement **deux moniteurs DASUNG distincts** : un
-Paperlike 253 noir et blanc et un Paperlike 253 Revo Color.
+**A mistake made during this study, recorded here so that it is not repeated.**
+macOS exposes two `Paperlike253` connections. They were taken to be a single
+monitor plugged in twice, and "unplug the HDMI cable" was wrongly advised. The
+user actually owns **two distinct DASUNG monitors**: a black-and-white
+Paperlike 253 and a Paperlike 253 Revo Color.
 
-Le piège est que tout ce qui saute aux yeux est identique : même
-`ProductName = "Paperlike253"`, même fabricant EDID `0x1263`, même définition
-3200 × 1800. Les observations qui avaient servi à conclure (`SinkDeviceID`
-`AG6320`, portID 16, historique `RTK FHD`/`Yealink` sur le même port) sont
-exactes mais ne prouvent rien : elles décrivent un trajet par un dock, ce qui est
-tout aussi vrai pour deux écrans que pour deux câbles.
+The trap is that everything that jumps out is identical: same
+`ProductName = "Paperlike253"`, same EDID manufacturer `0x1263`, same
+3200 × 1800 resolution. The observations used to reach the conclusion
+(`SinkDeviceID` `AG6320`, portID 16, `RTK FHD`/`Yealink` history on the same
+port) are accurate but prove nothing: they describe a path through a dock,
+which is just as true for two monitors as for two cables.
 
-Les vrais discriminants :
+The real discriminators:
 
-| Champ | Noir et blanc | Revo Color |
+| Field | Black and white | Revo Color |
 | --- | --- | --- |
 | `ProductID` | `0` | `9532` (`0x253C`) |
 | `SerialNumber` | `0` | `25312` |
 | `YearOfManufacture` | 2020 | 2025 |
 | `DFP Type` | 3 (`HDMI`) | 0 (`DP`) |
-| `SupportsBT2020RGB` / `YCC` / `cYCC` | absents | présents |
+| `SupportsBT2020RGB` / `YCC` / `cYCC` | absent | present |
 
-Le numéro de série et l'année séparent les deux de façon fiable ; les champs
-`SupportsBT2020*` ne sont présents que sur le modèle couleur. Ne jamais
-identifier un écran DASUNG par son `ProductName`.
+The serial number and the year reliably separate the two; the
+`SupportsBT2020*` fields are present only on the color model. Never identify a
+DASUNG monitor by its `ProductName`.
 
-Conséquence pour le code : l'anti-tramage itère sur **toutes** les sorties dont
-le fabricant EDID est `0x1263` et écrit chacune. Deux moniteurs sont donc
-couverts sans traitement particulier, et la disparition de l'un n'affecte pas
-l'autre — `withDasungFramebuffers` ne conserve aucun état entre deux appels.
+Consequence for the code: anti-dithering iterates over **all** outputs whose
+EDID manufacturer is `0x1263` and writes each one. Two monitors are therefore
+covered with no special handling, and the disappearance of one does not affect
+the other — `withDasungFramebuffers` keeps no state between two calls.
 
-Un seul adaptateur CH340 est présent (`/dev/cu.usbserial-2115410`) : un seul des
-deux moniteurs a son câble USB de contrôle branché. `selectedDevice()` refuse
-toute sélection ambiguë si un second apparaît.
+Only one CH340 adapter is present (`/dev/cu.usbserial-2115410`): only one of
+the two monitors has its USB control cable connected. `selectedDevice()`
+refuses any ambiguous selection if a second one appears.
 
-### Écran noir : résolu par l'effacement
+### Black display: resolved by Ghost Cleanup
 
-Symptôme distinct des deux précédents : le Revo Color n'affichait plus rien du
-tout, ce que ni le tramage ni la table gamma n'expliquent — tous deux salissent
-l'image sans l'effacer. Les registres relus à ce moment étaient contraste 1,
-mode 2, vitesse 4, et le moniteur répondait normalement.
+A symptom distinct from the two previous ones: the Revo Color no longer
+displayed anything at all, which neither dithering nor the gamma table
+explains — both dirty the image without erasing it. The registers read back at
+that moment were contrast 1, mode 2, speed 4, and the monitor was responding
+normally.
 
-`paperlike refresh` (commande `0x03`) a suffi : acquittement `5FF5F003…` du
-moniteur, image revenue. Il s'agissait donc d'un état interne du panneau, pas
-d'un problème hôte. Une occurrence antérieure figurait dans les notes de
-passation, récupérée en changeant le contraste — ce qui déclenche le même
-redessin. Le geste à retenir pour un panneau resté noir est l'effacement, qui
-exige `--control` et le lien CH340.
+`paperlike refresh` (command `0x03`) was enough: acknowledgement `5FF5F003…`
+from the monitor, image back. It was therefore an internal state of the panel,
+not a host problem. An earlier occurrence appeared in the handoff notes,
+recovered by changing the contrast — which triggers the same redraw. The move
+to remember for a panel stuck black is Ghost Cleanup, which requires
+`--control` and the CH340 link.
 
-## Latence des réglages : l'attente venait de l'agent, pas du moniteur
+## Setting latency: the wait came from the agent, not the monitor
 
-Un raccourci mettait environ deux secondes à agir. Le moniteur n'y était pour
-rien : `SerialPort.readFrames` ne sortait qu'à l'expiration du délai, **même
-après avoir reçu la réponse attendue**. Chaque lecture coûtait donc son délai
-entier de 0,6 s, et un réglage en enchaîne trois ou quatre (condition de la
-lumière, valeur avant, attente de 0,25 s après l'écriture, relecture).
+A shortcut took about two seconds to act. The monitor had nothing to do with
+it: `SerialPort.readFrames` only returned when its timeout expired, **even after
+receiving the expected response**. Each read therefore cost its full 0.6 s
+timeout, and a setting chains three or four of them (front light precondition,
+previous value, 0.25 s wait after the write, read-back).
 
-| Mesure | Avant | Après |
+| Measurement | Before | After |
 | --- | --- | --- |
-| `paperlike read 07` | 0,63 s | 0,06 s |
-| `paperlike query` (4 registres) | 2,47 s | 0,20 s |
-| Écriture + relecture (`light-temp +1`) | ~1,5 s | 0,12 s |
+| `paperlike read 07` | 0.63 s | 0.06 s |
+| `paperlike query` (4 registers) | 2.47 s | 0.20 s |
+| Write + read-back (`light-temp +1`) | ~1.5 s | 0.12 s |
 
-Désormais une lecture rend la main dès que la réponse de son registre est
-analysée ; le délai ne sert plus qu'en cas d'échec. Le moniteur **acquitte aussi
-les écritures de réglage** par `5FF5F0<cmd>000000000000A0FA` (relevé :
-`F008` pour la température, `F009` pour la luminosité) : cet accusé met fin à
-l'attente, mais il n'est jamais pris pour une preuve — la relecture reste le
-contrat de chaque écriture.
+A read now returns as soon as the response for its register is parsed; the
+timeout only matters on failure. The monitor **also acknowledges setting
+writes** with `5FF5F0<cmd>000000000000A0FA` (observed: `F008` for temperature,
+`F009` for brightness): this acknowledgement ends the wait, but it is never
+taken as proof — read-back remains the contract of every write.
 
-La limite qui refusait deux commandes à moins de 0,5 s d'intervalle
-(« Commande trop rapprochée ») est remplacée par un espacement de 0,1 s qui
-retarde au lieu de refuser. Côté raccourcis, les appuis rapprochés sur la même
-touche relative sont fusionnés : cinq appuis sur ↑ pendant un échange donnent
-une seule écriture de +40 après la première.
+The limit that refused two commands less than 0.5 s apart
+("Command too soon") is replaced by 0.1 s spacing that delays instead of
+refusing. On the shortcut side, rapid presses of the same relative key are
+coalesced: five presses of ↑ during one exchange yield a single +40 write after
+the first one.
 
-## Lumière frontale : allumer et éteindre
+## Front light: switching on and off
 
-`paperlike light on|off|toggle` (raccourci ⌃⌥⌘L) écrit le registre `0x07`.
-Les modes 1 à 3 restent non identifiés ; l'agent rétablit le dernier mode vu
-non nul (3 a été observé), et 1 avant d'en avoir vu un. Ce mode est lu à la
-connexion et conservé dans les préférences de l'agent (`lastLightMode`) : sans
-cela, chaque réinstallation le ramenait à 1.
+`paperlike light on|off|toggle` (shortcut ⌃⌥⌘L) writes register `0x07`.
+Modes 1 to 3 remain unidentified; the agent restores the last non-zero mode
+seen (3 has been observed), and 1 before it has seen one. This mode is read on
+connection and kept in the agent's preferences (`lastLightMode`): without that,
+every reinstall reset it to 1.
 
-Le registre de luminosité `0x09` **se lit 0 tant que la lumière est éteinte**,
-et retrouve sa valeur à l'allumage (relevé : 0 éteinte, 40 après
-`light-mode 1`). Le moniteur la conserve donc. Une valeur réellement nulle
-donnerait une lumière « allumée » sans effet sur la dalle, qui passerait pour
-un raccourci en panne : dans ce seul cas, l'allumage la remonte à 20.
+The brightness register `0x09` **reads 0 while the light is off**, and gets its
+value back when the light is switched on (observed: 0 when off, 40 after
+`light-mode 1`). So the monitor retains it. A genuinely zero value would give a
+light that is "on" with no effect on the panel, which would look like a broken
+shortcut: in that case only, switching on raises it to 20.
 
-**Luminosité et allumage forment un seul niveau.** Puisque `0x09` est ignoré
-lumière éteinte, « plus lumineux » depuis éteinte doit d'abord écrire `0x07`, puis
-la luminosité (`FrontLight.step`, testé) ; et descendre à 0 écrit `0x07 = 0` sans
-toucher `0x09`, que le moniteur garde pour le prochain allumage. Conséquence
-inévitable : allumer depuis ↑ affiche un instant le niveau mémorisé avant le
-premier cran.
+**Brightness and on/off form a single level.** Since `0x09` is ignored while
+the light is off, "brighter" from off must first write `0x07`, then the
+brightness (`FrontLight.step`, tested); and going down to 0 writes `0x07 = 0`
+without touching `0x09`, which the monitor keeps for the next time the light is
+switched on. Unavoidable consequence: switching on from ↑ briefly shows the
+remembered level before the first step.
 
-**Requête ignorée après un changement de mode.** Juste après l'accusé d'une
-écriture de `0x07`, le moniteur **ignore** la lecture suivante : aucune réponse,
-même tardive, alors que la même lecture 50 ms plus tard répond. C'est ce qui
-faisait échouer le raccourci d'allumage une fois l'attente supprimée
-(l'ancienne pause fixe de 0,25 s après chaque écriture le masquait). Une
-requête est désormais renvoyée toutes les 0,2 s jusqu'à son délai de 0,6 s.
+**Query ignored after a mode change.** Right after the acknowledgement of a
+`0x07` write, the monitor **ignores** the next read: no response, not even a
+late one, whereas the same read 50 ms later does get a response. This is what
+made the switch-on shortcut fail once the wait was removed (the old fixed
+0.25 s pause after every write masked it). A query is now resent every 0.2 s
+until its 0.6 s timeout.
 
-## Carte des commandes du moniteur
+## Monitor command map
 
-Relevée en désassemblant les méthodes `updateView…` du client : chaque libellé de
-méthode précède immédiatement l'octet qu'elle envoie, sans inférence.
+Mapped by disassembling the client's `updateView…` methods: each method label
+immediately precedes the byte it sends, with no inference.
 
-| Cmd | Méthode du client | Réglage | Bornes | Valeur d'origine |
+| Cmd | Client method | Setting | Bounds | Original value |
 | --- | --- | --- | --- | --- |
-| `0x01` | `updateViewThresholdInfo:` | Contraste (« Contrast Level ») | 1–9 | 1 |
-| `0x02` | `updateViewModeInfo:` | Mode : texte / image | 1–2 | 2 |
+| `0x01` | `updateViewThresholdInfo:` | Contrast ("Contrast Level") | 1–9 | 1 |
+| `0x02` | `updateViewModeInfo:` | Mode: text / image | 1–2 | 2 |
 | `0x03` | `updateViewRefreshInfo:` | Ghost Cleanup | — | — |
 | `0x04` | `updateViewSpeedInfo:` | Refresh Speed | 1–5 | 4 |
-| `0x05` | `updateRealTimeClockInfo` | **Horloge temps réel** — non exposée | — | pas de réponse |
-| `0x07` | `updateViewFrontModeInfo:` | Lumière frontale : mode | 0–3 | 0 |
-| `0x08` | `updateViewFrontTemperatureValueInfo:` | Lumière frontale : température | 0–100 | 70 |
-| `0x09` | `updateViewFrontBrightnessValueInfo:` | Lumière frontale : luminosité | 0–100 | 0 |
-| `0x0A` | `requestUpdateViewInfo:` | préfixe de lecture | — | — |
+| `0x05` | `updateRealTimeClockInfo` | **Real-time clock** — not exposed | — | no response |
+| `0x07` | `updateViewFrontModeInfo:` | Front light: mode | 0–3 | 0 |
+| `0x08` | `updateViewFrontTemperatureValueInfo:` | Front light: temperature | 0–100 | 70 |
+| `0x09` | `updateViewFrontBrightnessValueInfo:` | Front light: brightness | 0–100 | 0 |
+| `0x0A` | `requestUpdateViewInfo:` | read prefix | — | — |
 | `0x10` | — | MCU | — | 48 (`0x30`) |
 | `0x12` | `updateTextEnhancementInfo:` | Text Enhancement | 0–1 | 1 |
-| `0x13` | — | **non identifié** — non exposé | — | 5 |
-| `0x20` | `updateDitheringInfo:` | état du tramage | — | pas de réponse |
+| `0x13` | — | **unidentified** — not exposed | — | 5 |
+| `0x20` | `updateDitheringInfo:` | dithering state | — | no response |
 
-`0x05` et `0x13` ne sont pas exposés en écriture : le premier est une horloge,
-le second reste inconnu. Un test l'impose (`testEverySettingIsUniquelyNamedAndCommanded`).
+`0x05` and `0x13` are not exposed for writing: the first is a clock, the second
+remains unknown. A test enforces this (`testEverySettingIsUniquelyNamedAndCommanded`).
 
-**Dépendance découverte :** `0x09` (luminosité frontale) est silencieusement
-ignoré tant que `0x07` vaut 0. Le moniteur conserve alors l'ancienne valeur sans
-rien signaler — d'où la relecture obligatoire après chaque écriture, et la
-déclaration explicite de cette dépendance dans `Setting.requires`, pour rendre un
-message utile plutôt qu'une erreur de bornes trompeuse.
+**Dependency discovered:** `0x09` (front light brightness) is silently ignored
+as long as `0x07` is 0. The monitor then keeps the old value without reporting
+anything — hence the mandatory read-back after every write, and the explicit
+declaration of this dependency in `Setting.requires`, to return a useful
+message rather than a misleading bounds error.
 
-Bornes établies par écriture puis relecture : le moniteur borne lui-même, donc
-une valeur refusée se manifeste par une relecture divergente et la commande
-échoue au lieu de prétendre avoir abouti. L'état d'origine ci-dessus a été
-restauré après les essais.
+Bounds established by writing then reading back: the monitor clamps values
+itself, so a rejected value shows up as a diverging read-back and the command
+fails instead of claiming to have succeeded. The original state above was
+restored after the tests.
 
-## Matériel et client examinés
+## Hardware and client examined
 
 - macOS 26.6.2, Apple M1 Max.
-- L’écran physique se présente à macOS comme `Paperlike253`, EDID fabricant
-  `0x1263`, produit `0x0000`, 3200 × 1800, mode observé à 40 Hz. Le « 153 »
-  mentionné initialement ne correspond pas au nom détecté.
-- Le client officiel affiche `PaperLike253(Color) [FrontLight]`.
-- La liaison de contrôle expose `/dev/cu.usbserial-2115410`, CH340
-  `1a86:7523`. Le chemin est détecté dynamiquement, jamais codé en dur.
-- La seconde sortie DASUNG, produit `0x253C` (9532), est un **second moniteur
-  physique** : le Revo Color, à côté du Paperlike 253 noir et blanc en produit
-  `0`. Voir « Deux moniteurs DASUNG » ci-dessus pour les champs qui les
-  distinguent.
-- Le client a été mis à jour pendant l’investigation. Sa fenêtre indique
-  **V2.0.3**, mais son `Info.plist` conserve `CFBundleVersion = 1.2`.
-  SHA-256 du binaire examiné après cette mise à jour :
+- The physical monitor presents itself to macOS as `Paperlike253`, EDID
+  manufacturer `0x1263`, product `0x0000`, 3200 × 1800, mode observed at 40 Hz.
+  The "153" mentioned initially does not match the detected name.
+- The official client shows `PaperLike253(Color) [FrontLight]`.
+- The control link exposes `/dev/cu.usbserial-2115410`, CH340
+  `1a86:7523`. The path is detected dynamically, never hard-coded.
+- The second DASUNG output, product `0x253C` (9532), is a **second physical
+  monitor**: the Revo Color, alongside the black-and-white Paperlike 253 as
+  product `0`. See "Two DASUNG monitors" above for the fields that tell them
+  apart.
+- The client was updated during the investigation. Its window shows
+  **V2.0.3**, but its `Info.plist` keeps `CFBundleVersion = 1.2`.
+  SHA-256 of the binary examined after this update:
   `c64c223493cae5d2fb86cdcbe8bddb7d75827dbd3e847500af66517b0e0e9304`.
 
-## Sources primaires
+## Primary sources
 
-1. [DASUNG — téléchargements officiels](https://www.dasung.com/h-col-112.html) :
-   client Mac V2.0.3 disponible au moment de l’étude.
-2. [PaperlikeMenu](https://github.com/WooHooDai/PaperlikeMenu) : alternative
-   macOS récente, menus, raccourcis et login. L’auteur ne déclare des essais que
-   sur PaperLike HD-FT M / Mac mini M4. Le dépôt consulté distribue le produit
-   et sa documentation ; il n’établit pas sa compatibilité avec ce Color Revo.
-   Aucun code ou binaire de ce projet n’est embarqué dans le POC.
-3. [Denis Sandmann — Dasung Paperlike 253 Linux Driver](https://github.com/dnsandmann/Dasung-Paperlike-253-Linux-Driver) :
-   rétro-ingénierie USB, CH340, protocole ASCII à 115200 bauds, identification et
-   keepalive. Annonce publique datée du 5 juin 2026. Le comportement Linux ne
-   prouve pas à lui seul celui du Mac ; les échanges ont été testés ici.
-4. [Philip Metzler — dasung253](https://github.com/cpmetz/dasung253/blob/master/dasung253.py) :
-   captures et commandes publiées en 2022 pour contraste, vitesse et effacement.
-   Les réglages ont été recoupés avec le client installé puis avec le moniteur.
+1. [DASUNG — official downloads](https://www.dasung.com/h-col-112.html):
+   Mac client V2.0.3, available at the time of the study.
+2. [PaperlikeMenu](https://github.com/WooHooDai/PaperlikeMenu): a recent macOS
+   alternative, with menus, shortcuts and login. The author only reports testing
+   on PaperLike HD-FT M / Mac mini M4. The repository consulted distributes the
+   product and its documentation; it does not establish its compatibility with
+   this Color Revo. No code or binary from this project is embedded in the POC.
+3. [Denis Sandmann — Dasung Paperlike 253 Linux Driver](https://github.com/dnsandmann/Dasung-Paperlike-253-Linux-Driver):
+   USB reverse engineering, CH340, ASCII protocol at 115200 baud, identification
+   and keepalive. Public announcement dated June 5, 2026. Linux behavior alone
+   does not prove the Mac's; the exchanges were tested here.
+4. [Philip Metzler — dasung253](https://github.com/cpmetz/dasung253/blob/master/dasung253.py):
+   captures and commands published in 2022 for contrast, speed and Ghost
+   Cleanup. The settings were cross-checked against the installed client, then
+   against the monitor.
 5. [Apple — LSUIElement](https://developer.apple.com/documentation/bundleresources/information-property-list/lsuielement)
-   et [Launch Services Keys](https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/LaunchServicesKeys.html) :
-   application agent masquée du Dock.
+   and [Launch Services Keys](https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/LaunchServicesKeys.html):
+   agent application hidden from the Dock.
 6. [Apple — SMAppService](https://developer.apple.com/documentation/servicemanagement/smappservice)
-   et [Launch Agents](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html) :
-   démarrage au login. Le POC utilise le LaunchAgent utilisateur déjà employé
-   dans mac-setup ; une version distribuée pourra employer SMAppService.
+   and [Launch Agents](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html):
+   launch at login. The POC uses the user LaunchAgent already used in
+   mac-setup; a distributed version could use SMAppService.
 
-## Protocole recoupé
+## Cross-checked protocol
 
-Les messages sont **24 caractères ASCII**, pas douze octets binaires :
-`5FF5` + commande hexadécimale + valeur hexadécimale + douze `0` + `A0FA`.
-L’implémentation Swift est indépendante ; elle ne charge ni ne redistribue le
-client propriétaire. Les scripts publics ont été consultés comme descriptions
-du protocole. Le binaire installé a été inspecté localement pour vérifier le
-format, les bornes des réglages et les MCU acceptés.
+Messages are **24 ASCII characters**, not twelve binary bytes:
+`5FF5` + hexadecimal command + hexadecimal value + twelve `0` + `A0FA`.
+The Swift implementation is independent; it neither loads nor redistributes the
+proprietary client. The public scripts were consulted as descriptions of the
+protocol. The installed binary was inspected locally to verify the format, the
+setting bounds and the accepted MCUs.
 
-| Action | Message hôte |
+| Action | Host message |
 | --- | --- |
-| Lire le MCU | `5FF50A10000000000000A0FA` |
-| Lire le contraste | `5FF50A01000000000000A0FA` |
-| Lire le mode | `5FF50A02000000000000A0FA` |
-| Lire la vitesse | `5FF50A04000000000000A0FA` |
-| Garder l’image active | `5FF52001000000000000A0FA` |
-| Effacer les rémanences | `5FF50300000000000000A0FA` |
-| Contraste 2 | `5FF50102000000000000A0FA` |
-| Vitesse 5 | `5FF50405000000000000A0FA` |
+| Read the MCU | `5FF50A10000000000000A0FA` |
+| Read contrast | `5FF50A01000000000000A0FA` |
+| Read mode | `5FF50A02000000000000A0FA` |
+| Read speed | `5FF50A04000000000000A0FA` |
+| Keep the image active | `5FF52001000000000000A0FA` |
+| Run Ghost Cleanup | `5FF50300000000000000A0FA` |
+| Contrast 2 | `5FF50102000000000000A0FA` |
+| Speed 5 | `5FF50405000000000000A0FA` |
 
-Réponses réelles enregistrées :
+Actual recorded responses:
 
 ```text
-5FF5F00A103011100001A0FA  MCU 0x30 ; autres octets conservés, non interprétés
-5FF5F00A010100000000A0FA  contraste 1
+5FF5F00A103011100001A0FA  MCU 0x30; other bytes kept, not interpreted
+5FF5F00A010100000000A0FA  contrast 1
 5FF5F00A020200000000A0FA  mode 2
-5FF5F00A040400000000A0FA  vitesse 4
-5FF5F020000000000000A0FA  accusé de réception du keepalive
-5FF5F003000000000000A0FA  accusé de réception de l’effacement
+5FF5F00A040400000000A0FA  speed 4
+5FF5F020000000000000A0FA  keepalive acknowledgement
+5FF5F003000000000000A0FA  Ghost Cleanup acknowledgement
 ```
 
-Le keepalive est envoyé toutes les deux secondes pour conserver une marge par
-rapport au délai d’environ cinq secondes décrit par la source Linux. Aucune
-commande « reset », mise à jour de firmware ou extinction n’est exposée.
+The keepalive is sent every two seconds to keep a margin against the timeout
+of about five seconds described by the Linux source. No "reset", firmware
+update or power-off command is exposed.
 
-Dans le client Mac V2.0.3, `updateDitheringInfo:` envoie la commande `0x20` avec
-l’état de désactivation du dithering, depuis `tryToDisableDithering`. Ce message
-n’est donc pas un simple keepalive indépendant de l’état graphique du Mac : il
-annonce au moniteur ce que l’hôte fait du tramage. C’est pourquoi
-`requireDisabled` reste une **précondition sur le chemin série**, relue à chaque
-cycle, et non une simple conséquence de l’écriture faite par l’agent : si macOS
-remet `enableDither` à `Yes` entre l’écriture et l’émission, la trame `0x20/1`
-est omise pour ce cycle plutôt qu’envoyée à tort.
+In the Mac client V2.0.3, `updateDitheringInfo:` sends command `0x20` with the
+dithering-disabled state, from `tryToDisableDithering`. This message is
+therefore not a mere keepalive independent of the Mac's graphics state: it tells
+the monitor what the host is doing with dithering. This is why
+`requireDisabled` remains a **precondition on the serial path**, read back on
+every cycle, and not a mere consequence of the write made by the agent: if macOS
+sets `enableDither` back to `Yes` between the write and the transmission, the
+`0x20/1` frame is skipped for that cycle rather than sent wrongly.
 
-BetterDisplay a été écarté comme cause : `systemVirtual@Display:*` et
-`thirdPartyVirtual@Display:*` valent tous `0` (aucun écran virtuel) et
-`intelEDIDOverride@v4707m0` vaut `0` (aucun override EDID actif sur le DASUNG).
+BetterDisplay was ruled out as a cause: `systemVirtual@Display:*` and
+`thirdPartyVirtual@Display:*` are all `0` (no virtual display) and
+`intelEDIDOverride@v4707m0` is `0` (no active EDID override on the DASUNG).
 
-## Validation réalisée
+## Validation performed
 
-- Compilation native et signature ad hoc de l’application.
-- Tests du protocole, bruit et fragmentation USB, filtrage des réponses,
-  bornes de commandes, refus de sélection ambiguë et échange par pseudo-terminal.
-- Installation réelle du LaunchAgent. macOS indique `running` et l’entrée de
-  démarrage est `enabled, allowed` dans `sfltool dumpbtm`.
-- `NSRunningApplication` indique `activationPolicy = 2` (prohibited),
-  `active = false`, et CoreGraphics compte **zéro fenêtre** du processus.
-  Depuis le HUD, une fenêtre non activante est visible 1,6 s après chaque
-  raccourci, puis aucune ; pendant l'affichage, `paperlike status` relève
-  `takesFocus: false` et `visibleWindowCount: 1`, puis `0` deux secondes après.
-  Capture faite : le HUD s'affiche en haut à droite de l'écran sous le pointeur.
-- Le POC attend pendant que le client officiel est ouvert. Après sa fermeture,
-  l’identification série réussit avec MCU `0x30`.
-- Contraste **1 → 2 → 1**, vitesse **4 → 5 → 4** : valeurs confirmées par
-  relecture après chaque écriture. État final identique à l’état initial.
-- Effacement reçu et acquitté par le moniteur. L’effet sur la dalle physique
-  nécessite l’observation de l’utilisateur.
-- Raccourci Control+Option+Command+R accepté par macOS (`OSStatus = 0`).
-  La frappe physique reste à essayer par l’utilisateur.
+- Native build and ad hoc signing of the application.
+- Tests of the protocol, USB noise and fragmentation, response filtering,
+  command bounds, refusal of ambiguous selection and exchange over a
+  pseudo-terminal.
+- Actual installation of the LaunchAgent. macOS reports `running` and the
+  login item is `enabled, allowed` in `sfltool dumpbtm`.
+- `NSRunningApplication` reports `activationPolicy = 2` (prohibited),
+  `active = false`, and CoreGraphics counts **zero windows** for the process.
+  Since the HUD was introduced, a non-activating window is visible for 1.6 s
+  after each shortcut, then none; while it is shown, `paperlike status` reports
+  `takesFocus: false` and `visibleWindowCount: 1`, then `0` two seconds later.
+  Screenshot taken: the HUD appears at the top right of the display under the
+  pointer.
+- The POC waits while the official client is open. After the client is closed,
+  serial identification succeeds with MCU `0x30`.
+- Contrast **1 → 2 → 1**, speed **4 → 5 → 4**: values confirmed by
+  read-back after each write. Final state identical to the initial state.
+- Ghost Cleanup received and acknowledged by the monitor. The effect on the
+  physical panel requires the user's observation.
+- Shortcut Control+Option+Command+R accepted by macOS (`OSStatus = 0`).
+  The physical keypress remains to be tried by the user.
 
-Le journal détaillé de l’essai de réglages reste local dans
-`cache/paperlike-agent/hardware-test.json` (ignoré par Git).
-Ces résultats prouvent les échanges sur ce Mac et cet écran pendant l’essai,
-pas la stabilité sur plusieurs jours ni les cycles de veille, débranchement ou
-redémarrage complet. Aucun diagnostic global du code propriétaire n’est revendiqué.
+The detailed log of the settings test stays local in
+`cache/paperlike-agent/hardware-test.json` (ignored by Git).
+These results prove the exchanges on this Mac and this monitor during the test,
+not stability over several days, nor sleep, unplug or full restart cycles. No
+overall diagnosis of the proprietary code is claimed.

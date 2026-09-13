@@ -3,7 +3,7 @@ set -euo pipefail
 
 PAPERLIKE_EXECUTABLE="$HOME/Applications/PaperlikeAgent.app/Contents/MacOS/PaperlikeAgent"
 if [[ ! -x "$PAPERLIKE_EXECUTABLE" ]]; then
-    echo "PaperlikeAgent n’est pas installé. Lancer : make -C ~/code/mac-setup paperlike" >&2
+    echo "PaperlikeAgent is not installed. Run: make -C ~/code/mac-setup paperlike" >&2
     exit 1
 fi
 if [[ $# -eq 0 ]]; then set -- help; fi

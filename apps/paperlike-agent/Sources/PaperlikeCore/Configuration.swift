@@ -48,13 +48,13 @@ public struct Configuration {
             var problems: [String] = []
             for entry in entries {
                 do { bindings.append(try binding(keys: entry.keys, action: entry.action)) }
-                catch { problems.append("\(entry.keys) : \(error)") }
+                catch { problems.append("\(entry.keys): \(error)") }
             }
             // A broken keybinding must never stop the agent: its one essential job
             // is keeping dithering off, and that has nothing to do with this file.
             return bindings.isEmpty ? fallback(problems, hud: hud) : Configuration(hotkeys: bindings, hud: hud, problems: problems)
         } catch {
-            return fallback(["\(path) illisible, valeurs par défaut appliquées : \(error)"])
+            return fallback(["\(path) unreadable, defaults applied: \(error)"])
         }
     }
 
@@ -65,7 +65,7 @@ public struct Configuration {
 
     public static func binding(keys: String, action: [String]) throws -> HotKeyBinding {
         guard let parsed = try? Action.parse(action) else {
-            throw PaperlikeError("action inconnue « \(action.joined(separator: " ")) »")
+            throw PaperlikeError("unknown action “\(action.joined(separator: " "))”")
         }
         var modifiers: UInt32 = 0
         var code: UInt32?
@@ -77,13 +77,13 @@ public struct Configuration {
             case "shift": modifiers |= UInt32(shiftKey)
             default:
                 guard code == nil, let resolved = keyCodes[part] else {
-                    throw PaperlikeError("touche inconnue ou en double « \(part) »")
+                    throw PaperlikeError("unknown or duplicate key “\(part)”")
                 }
                 code = resolved
             }
         }
-        guard let code else { throw PaperlikeError("aucune touche dans « \(keys) »") }
-        guard modifiers != 0 else { throw PaperlikeError("« \(keys) » n’a aucun modificateur") }
+        guard let code else { throw PaperlikeError("no key in “\(keys)”") }
+        guard modifiers != 0 else { throw PaperlikeError("“\(keys)” has no modifier") }
         return HotKeyBinding(keys: keys, action: action, parsed: parsed, keyCode: code, modifiers: modifiers)
     }
 

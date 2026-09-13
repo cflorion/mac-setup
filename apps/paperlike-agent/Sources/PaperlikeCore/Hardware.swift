@@ -67,7 +67,7 @@ public struct Inventory: Codable {
                 !$0.isTerminated && kill($0.processIdentifier, 0) == 0 &&
                 $0.bundleIdentifier != "com.user.paperlike-agent" &&
                 ["paperlikeclient", "paperlikemenu", "inkcontrol"].contains(($0.localizedName ?? "").lowercased())
-            }.map { $0.localizedName ?? "Client DASUNG" }
+            }.map { $0.localizedName ?? "DASUNG client" }
         }
         let competitors = Thread.isMainThread ? readApps() : DispatchQueue.main.sync(execute: readApps)
         return Inventory(displays: displays, serialDevices: devices.sorted { $0.path < $1.path }, competingApps: competitors)
@@ -75,16 +75,16 @@ public struct Inventory: Codable {
 
     public func selectedDevice() throws -> SerialDevice {
         guard competingApps.isEmpty else {
-            throw PaperlikeError("En attente : quitter \(competingApps.joined(separator: ", ")) pour libérer le port USB.")
+            throw PaperlikeError("Waiting: quit \(competingApps.joined(separator: ", ")) to free the USB port.")
         }
         guard displays.contains(where: \.isDasung) else {
-            throw PaperlikeError("En attente d’un écran DASUNG (EDID 0x1263).")
+            throw PaperlikeError("Waiting for a DASUNG display (EDID 0x1263).")
         }
         let candidates = serialDevices.filter(\.isCandidate)
         guard candidates.count == 1 else {
             throw PaperlikeError(candidates.isEmpty
-                ? "Écran détecté ; liaison USB de contrôle absente. Vérifier le câble USB de données."
-                : "Plusieurs adaptateurs CH340 détectés, sélection automatique refusée : \(candidates.map(\.path).joined(separator: ", ")).")
+                ? "Display detected; USB control link missing. Check that the USB cable carries data."
+                : "Several CH340 adapters detected, automatic selection refused: \(candidates.map(\.path).joined(separator: ", ")).")
         }
         return candidates[0]
     }
@@ -177,7 +177,7 @@ public struct DitheringState: Codable {
             let matching = states.filter { $0.product == product }
             return !matching.isEmpty && matching.allSatisfy { $0.enabled == false }
         }) else {
-            throw PaperlikeError("État anti-dithering DASUNG non confirmé ; aucun signal 0x20 envoyé pour ce cycle.")
+            throw PaperlikeError("DASUNG anti-dithering state not confirmed; no 0x20 signal sent this cycle.")
         }
     }
 
@@ -214,12 +214,12 @@ public final class SerialPort {
 
     public init(path: String) throws {
         fd = Darwin.open(path, O_RDWR | O_NOCTTY | O_NONBLOCK | O_CLOEXEC)
-        guard fd >= 0 else { throw PaperlikeError("Ouverture du port USB : \(String(cString: strerror(errno)))") }
+        guard fd >= 0 else { throw PaperlikeError("Opening the USB port: \(String(cString: strerror(errno)))") }
         guard ioctl(fd, TIOCEXCL) == 0 else {
-            Darwin.close(fd); throw PaperlikeError("Impossible de réserver le port USB.")
+            Darwin.close(fd); throw PaperlikeError("Cannot reserve the USB port.")
         }
         guard tcgetattr(fd, &original) == 0 else {
-            Darwin.close(fd); throw PaperlikeError("Lecture des paramètres du port impossible.")
+            Darwin.close(fd); throw PaperlikeError("Cannot read the port settings.")
         }
         var settings = original
         cfmakeraw(&settings)
@@ -229,7 +229,7 @@ public final class SerialPort {
         // Do not lower modem-control lines on close or reset the monitor.
         settings.c_cflag &= ~tcflag_t(HUPCL)
         guard tcsetattr(fd, TCSANOW, &settings) == 0 else {
-            Darwin.close(fd); throw PaperlikeError("Configuration 115200 8N1 impossible.")
+            Darwin.close(fd); throw PaperlikeError("Cannot configure 115200 8N1.")
         }
     }
 
@@ -257,13 +257,13 @@ public final class SerialPort {
             let result = poll(&p, 1, Int32(max(1, remaining * 1000)))
             if result < 0 && errno == EINTR { continue }
             if result < 0 || (p.revents & Int16(POLLERR | POLLHUP | POLLNVAL)) != 0 {
-                throw PaperlikeError("Liaison USB interrompue.")
+                throw PaperlikeError("USB link interrupted.")
             }
             if result == 0 { break }
             var buffer = [UInt8](repeating: 0, count: 1024)
             let size = Darwin.read(fd, &buffer, buffer.count)
             if size < 0 && [EAGAIN, EINTR].contains(errno) { continue }
-            guard size > 0 else { throw PaperlikeError("Liaison USB fermée.") }
+            guard size > 0 else { throw PaperlikeError("USB link closed.") }
             let received = parser.append(Data(buffer.prefix(size)))
             frames += received
             lastFrames = Array((lastFrames + received.map(\.ascii)).suffix(12))
@@ -287,7 +287,7 @@ public final class SerialPort {
             let frames = try readFrames(timeout: window) { $0.contains { $0.registerValue(register) != nil } }
             if let value = frames.compactMap({ $0.registerValue(register) }).last { return value }
         } while ProcessInfo.processInfo.systemUptime < end
-        throw PaperlikeError(String(format: "Aucune réponse valide au registre 0x%02X.", register))
+        throw PaperlikeError(String(format: "No valid reply for register 0x%02X.", register))
     }
 }
 
@@ -297,14 +297,14 @@ public func writeAll(fd: Int32, data: Data, timeout: TimeInterval) throws {
     try data.withUnsafeBytes { bytes in
         while offset < bytes.count {
             let remaining = end - ProcessInfo.processInfo.systemUptime
-            guard remaining > 0 else { throw PaperlikeError("Délai d’écriture dépassé.") }
+            guard remaining > 0 else { throw PaperlikeError("Write timed out.") }
             var p = pollfd(fd: fd, events: Int16(POLLOUT), revents: 0)
             let ready = poll(&p, 1, Int32(max(1, remaining * 1000)))
             if ready < 0 && errno == EINTR { continue }
-            guard ready > 0, (p.revents & Int16(POLLOUT)) != 0 else { throw PaperlikeError("Écriture impossible.") }
+            guard ready > 0, (p.revents & Int16(POLLOUT)) != 0 else { throw PaperlikeError("Cannot write.") }
             let count = Darwin.write(fd, bytes.baseAddress!.advanced(by: offset), bytes.count - offset)
             if count < 0 && [EAGAIN, EINTR].contains(errno) { continue }
-            guard count > 0 else { throw PaperlikeError("Écriture USB/socket interrompue.") }
+            guard count > 0 else { throw PaperlikeError("USB/socket write interrupted.") }
             offset += count
         }
     }

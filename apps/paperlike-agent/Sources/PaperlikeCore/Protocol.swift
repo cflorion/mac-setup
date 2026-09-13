@@ -87,21 +87,21 @@ public struct Setting: Equatable {
 
     public static let all: [Setting] = [
         Setting(name: "contrast", command: 0x01, bounds: 1...9,
-                summary: "Contraste (« Contrast Level » du client)", requires: nil),
+                summary: "Contrast (the client's “Contrast Level”)", requires: nil),
         Setting(name: "mode", command: 0x02, bounds: 1...2,
-                summary: "Mode d’affichage : 1 texte, 2 image", requires: nil),
+                summary: "Display mode: 1 text, 2 image", requires: nil),
         Setting(name: "speed", command: 0x04, bounds: 1...5,
-                summary: "Vitesse de rafraîchissement : 1 lent et propre, 5 rapide", requires: nil),
+                summary: "Refresh speed: 1 slow and clean, 5 fast", requires: nil),
         Setting(name: "light-mode", command: 0x07, bounds: 0...3,
-                summary: "Lumière frontale : mode (0 éteinte)", requires: nil),
+                summary: "Front light: mode (0 off)", requires: nil),
         Setting(name: "light-temp", command: 0x08, bounds: 0...100,
-                summary: "Lumière frontale : température, 0 froide à 100 chaude", requires: nil),
+                summary: "Front light: temperature, 0 cool to 100 warm", requires: nil),
         Setting(name: "light", command: 0x09, bounds: 0...100,
-                summary: "Lumière frontale : luminosité", requires: Requirement(command: 0x07,
-                    explanation: "la lumière frontale est éteinte ; l’allumer d’abord avec « paperlike light on »",
+                summary: "Front light: brightness (0 switches it off)", requires: Requirement(command: 0x07,
+                    explanation: "the front light is off; switch it on first with “paperlike light on”",
                     code: "light-off")),
         Setting(name: "text-enhance", command: 0x12, bounds: 0...1,
-                summary: "Rehaussement du texte : 0 désactivé, 1 activé", requires: nil),
+                summary: "Text enhancement: 0 off, 1 on", requires: nil),
     ]
 
     public static func named(_ name: String) -> Setting? { all.first { $0.name == name } }
@@ -159,7 +159,7 @@ public enum Action: Equatable {
         if args == ["refresh"] { return .refresh }
         if args.count == 2, args[0] == "light", let power = Power(rawValue: args[1]) { return .light(power) }
         guard args.count == 2, let setting = Setting.named(args[0]) else {
-            throw PaperlikeError("Commande inconnue. Utiliser paperlike help.")
+            throw PaperlikeError("Unknown command. See paperlike help.")
         }
         let raw = args[1]
         // A leading sign means "move by this much", so "light +10" differs from
@@ -168,7 +168,7 @@ public enum Action: Equatable {
             return .set(setting, .relative(delta))
         }
         guard let value = Int(raw), setting.bounds.contains(value) else {
-            throw PaperlikeError("\(setting.name) attend une valeur de \(setting.bounds.lowerBound) à \(setting.bounds.upperBound), ou un écart signé comme +1.")
+            throw PaperlikeError("\(setting.name) expects a value from \(setting.bounds.lowerBound) to \(setting.bounds.upperBound), or a signed step such as +1.")
         }
         return .set(setting, .absolute(value))
     }

@@ -11,7 +11,7 @@ check_owned_app() {
     if [[ -e "$PAPERLIKE_APP" ]]; then
         local identifier
         identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PAPERLIKE_APP/Contents/Info.plist")
-        [[ "$identifier" == "$PAPERLIKE_LABEL" ]] || { echo "Application existante non reconnue : $PAPERLIKE_APP" >&2; exit 1; }
+        [[ "$identifier" == "$PAPERLIKE_LABEL" ]] || { echo "Unrecognized existing application: $PAPERLIKE_APP" >&2; exit 1; }
     fi
 }
 
@@ -44,28 +44,28 @@ PY
         plutil -lint "$PAPERLIKE_PLIST"
         if [[ ! "$HOME/.local/bin/paperlike" -ef "$PAPERLIKE_ROOT/dotfiles/bin/paperlike" ]]; then
             if [[ -e "$HOME/.local/bin/paperlike" || -L "$HOME/.local/bin/paperlike" ]]; then
-                echo "Commande paperlike existante conservée ; utiliser $PAPERLIKE_ROOT/dotfiles/bin/paperlike" >&2
+                echo "Existing paperlike command kept; use $PAPERLIKE_ROOT/dotfiles/bin/paperlike" >&2
             else
                 ln -s "$PAPERLIKE_ROOT/dotfiles/bin/paperlike" "$HOME/.local/bin/paperlike"
             fi
         fi
         launchctl enable "$PAPERLIKE_DOMAIN/$PAPERLIKE_LABEL"
         launchctl bootstrap "$PAPERLIKE_DOMAIN" "$PAPERLIKE_PLIST"
-        echo "PaperlikeAgent installé et lancé ; démarrage automatique à l’ouverture de session."
-        echo "Diagnostic : paperlike status"
+        echo "PaperlikeAgent installed and running; it starts automatically at login."
+        echo "Diagnostics: paperlike status"
         ;;
     stop)
         stop_agent
-        echo "PaperlikeAgent arrêté et désactivé à l’ouverture de session."
-        echo "Le tramage macOS va revenir sur le DASUNG : lancer PaperLikeClient pour le retirer."
+        echo "PaperlikeAgent stopped and disabled at login."
+        echo "macOS dithering will come back on the DASUNG: launch PaperLikeClient to remove it."
         ;;
     uninstall)
         check_owned_app
         stop_agent
         rm -f "$PAPERLIKE_PLIST"
         rm -rf "$PAPERLIKE_APP"
-        echo "Application et LaunchAgent supprimés. Sources et commande du dépôt conservées."
-        echo "Retour au client officiel, nécessaire pour l’anti-tramage : open -a PaperLikeClient"
+        echo "Application and LaunchAgent removed. Repository sources and command kept."
+        echo "Back to the official client, needed for anti-dithering: open -a PaperLikeClient"
         ;;
-    *) echo "Usage : $0 install|install-control|stop|uninstall" >&2; exit 2 ;;
+    *) echo "Usage: $0 install|install-control|stop|uninstall" >&2; exit 2 ;;
 esac

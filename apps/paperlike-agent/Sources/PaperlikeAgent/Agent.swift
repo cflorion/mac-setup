@@ -19,7 +19,7 @@ final class Agent {
     private var inventory: Inventory?
     private var firmware: UInt8?
     private var state = "starting"
-    private var message = "Démarrage."
+    private var message = "Starting."
     private var sleeping = false
     private var lastHealthCheck = 0.0
     private var lastKeepalive: String?
@@ -47,7 +47,7 @@ final class Agent {
     private let configurationProblems: [String]
 
     private static let observationOnly = PaperlikeError(
-        "Mode observation : aucune commande USB n’est envoyée. Le contrôle expérimental est désactivé.", code: "observation")
+        "Observation mode: no USB command is sent. Control is disabled.", code: "observation")
     // Spacing between two setting commands. Rapid shortcut presses are merged
     // upstream, so this only ever delays a command, never refuses one.
     private static let minimumSpacing = 0.1
@@ -60,7 +60,7 @@ final class Agent {
         self.hudEnabled = hudEnabled
         self.configurationProblems = configurationProblems
         if !configurationProblems.isEmpty {
-            logger.error("Configuration : \(configurationProblems.joined(separator: " ; "), privacy: .public)")
+            logger.error("Configuration: \(configurationProblems.joined(separator: "; "), privacy: .public)")
         }
     }
 
@@ -89,7 +89,7 @@ final class Agent {
         let registration = CGDisplayRegisterReconfigurationCallback(reconfigurationCallback, Unmanaged.passUnretained(self).toOpaque())
         queue.async { self.reconfigurationCallbackRegistered = registration == .success }
         if registration != .success {
-            logger.error("Callback de reconfiguration refusé (\(registration.rawValue, privacy: .public)) ; seul le minuteur de deux secondes couvre les rebranchements.")
+            logger.error("Display reconfiguration callback refused (\(registration.rawValue, privacy: .public)); only the two-second timer covers hotplugs.")
         }
     }
 
@@ -118,7 +118,7 @@ final class Agent {
     func sleep(_ value: Bool) {
         queue.async {
             self.sleeping = value
-            if value { self.disconnect(); self.transition("sleeping", "Mac en veille.") }
+            if value { self.disconnect(); self.transition("sleeping", "Mac asleep.") }
             else { self.tick() }
         }
     }
@@ -136,7 +136,7 @@ final class Agent {
                     // Diagnostic: 0x0A + register is a non-destructive read, so an
                     // arbitrary register is safe to expose. Writing is not.
                     guard let register = UInt8(args[1].replacingOccurrences(of: "0x", with: ""), radix: 16) else {
-                        throw PaperlikeError("Registre attendu en hexadécimal, par exemple : paperlike read 09.")
+                        throw PaperlikeError("Expected a hexadecimal register, for example: paperlike read 09.")
                     }
                     guard let serial else { throw PaperlikeError(message) }
                     try sendMacStatus(serial)
@@ -179,7 +179,7 @@ final class Agent {
                     response["received"] = replies.map(\.ascii)
                     response["delivery"] = replies.contains(where: { $0.acknowledges(frame) })
                         ? "acknowledged_by_device" : "sent"
-                    response["note"] = "L’effet visuel de l’effacement reste à constater sur l’écran."
+                    response["note"] = "The visual effect of the cleanup can only be checked on the panel."
                 case .set(let setting, let adjustment):
                     try set(setting, adjustment, on: serial, into: &response)
                 case .light(let power):
@@ -199,7 +199,7 @@ final class Agent {
         response["bounds"] = [setting.bounds.lowerBound, setting.bounds.upperBound]
         if setting.name == "light" { return try adjustLight(setting, adjustment, on: serial, into: &response) }
         if let requirement = setting.requires, try serial.query(requirement.command) == 0 {
-            throw PaperlikeError("\(setting.name) ne peut pas être réglé : \(requirement.explanation).", code: requirement.code)
+            throw PaperlikeError("\(setting.name) cannot be set: \(requirement.explanation).", code: requirement.code)
         }
         // A relative change is resolved against a fresh read, never a cached
         // value: the monitor is also driven by its own buttons.
@@ -207,7 +207,7 @@ final class Agent {
         let target = adjustment.resolve(from: before, within: setting.bounds)
         response["from"] = before
         guard setting.bounds.contains(target) else {
-            throw PaperlikeError("\(setting.name) attend une valeur de \(setting.bounds.lowerBound) à \(setting.bounds.upperBound) ; \(target) est hors bornes.")
+            throw PaperlikeError("\(setting.name) expects a value from \(setting.bounds.lowerBound) to \(setting.bounds.upperBound); \(target) is out of range.")
         }
         guard target != before else {
             response["delivery"] = "unchanged"
@@ -292,7 +292,7 @@ final class Agent {
         let received = try serial.readFrames(timeout: 0.25) { $0.contains { $0.acknowledges(frame) } }
         let actual = Int(try serial.query(setting.command))
         guard actual == value else {
-            throw PaperlikeError("Commande envoyée, mais la relecture donne \(actual) au lieu de \(value). Le moniteur a peut-être borné la valeur.")
+            throw PaperlikeError("Command sent, but the read-back gives \(actual) instead of \(value). The monitor may have clamped the value.")
         }
         return received.map(\.ascii)
     }
@@ -314,7 +314,7 @@ final class Agent {
         do {
             guard controlEnabled else {
                 transition(current.displays.contains(where: \.isDasung) ? "detected" : "waiting",
-                           "Anti-dithering appliqué ; contrôle USB désactivé.")
+                           "Anti-dithering applied; USB control disabled.")
                 return
             }
             let device = try current.selectedDevice()
@@ -323,9 +323,9 @@ final class Agent {
                 let connection = try SerialPort(path: device.path)
                 let version: UInt8
                 do { version = try connection.query(0x10) }
-                catch { throw PaperlikeError("\(error) Réponses reçues : \(connection.lastFrames.joined(separator: ", "))") }
+                catch { throw PaperlikeError("\(error) Replies received: \(connection.lastFrames.joined(separator: ", "))") }
                 guard ProtocolIdentity.isSupported(version) else {
-                    throw PaperlikeError(String(format: "MCU non reconnu (0x%02X) ; aucune commande de réglage envoyée.", version))
+                    throw PaperlikeError(String(format: "Unrecognized MCU (0x%02X); no setting command sent.", version))
                 }
                 serial = connection; selectedPath = device.path; firmware = version
                 if let mode = try? connection.query(0x07), (1...3).contains(Int(mode)) { lastLightMode = Int(mode) }
@@ -338,11 +338,11 @@ final class Agent {
             if !replies.isEmpty { lastReply = lastKeepalive }
             if ProcessInfo.processInfo.systemUptime - lastHealthCheck >= 30 {
                 let version = try serial.query(0x10)
-                guard version == firmware else { throw PaperlikeError("L’identité de l’écran a changé.") }
+                guard version == firmware else { throw PaperlikeError("The display's identity changed.") }
                 lastHealthCheck = ProcessInfo.processInfo.systemUptime
                 lastReply = ISO8601DateFormatter().string(from: Date())
             }
-            transition("connected", "Écran DASUNG identifié ; contrôle USB actif.")
+            transition("connected", "DASUNG display identified; USB control active.")
         } catch {
             disconnect()
             transition("waiting", String(describing: error))
@@ -359,11 +359,11 @@ final class Agent {
         lastDitheringReassert = ISO8601DateFormatter().string(from: Date())
         lastDitheringApplied = applied
         for entry in applied where !entry.succeeded {
-            logger.error("Anti-dithering refusé sur ProductID \(entry.product, privacy: .public) : kern_return \(entry.result, privacy: .public).")
+            logger.error("Anti-dithering refused on ProductID \(entry.product, privacy: .public): kern_return \(entry.result, privacy: .public).")
         }
         let restored = applied.filter(\.succeeded).count
         if restored > 0 {
-            logger.notice("Anti-dithering rétabli sur \(restored, privacy: .public) sortie(s) DASUNG.")
+            logger.notice("Anti-dithering restored on \(restored, privacy: .public) DASUNG output(s).")
         }
     }
 
@@ -377,10 +377,10 @@ final class Agent {
         defer { gammaWasLinear = linear }
         guard gammaWasLinear != linear else { return }
         if linear {
-            logger.notice("Table gamma redevenue linéaire sur les sorties DASUNG.")
+            logger.notice("Gamma table back to linear on the DASUNG outputs.")
         } else {
             for state in states where !state.isLinear {
-                logger.error("Table gamma écrasée sur DASUNG ProductID \(state.product, privacy: .public) : plafond \(state.ceiling, privacy: .public) au lieu de 1.0. Sur e-ink cela effondre le contraste — vérifier la luminosité logicielle de BetterDisplay ou tout autre outil écrivant la table.")
+                logger.error("Gamma table crushed on DASUNG ProductID \(state.product, privacy: .public): ceiling \(state.ceiling, privacy: .public) instead of 1.0. On e-ink this collapses contrast — check BetterDisplay's software brightness or any other tool writing the table.")
             }
         }
     }
