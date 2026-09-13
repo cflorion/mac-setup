@@ -43,8 +43,9 @@ minuteur comme par le callback de reconfiguration. C’est le cas courant avec c
 écrans. Seule la veille du Mac émet `willSleep`/`didWake` : l’agent suspend alors
 son minuteur, et `didWake` déclenche un cycle immédiat.
 
-Un agent Swift sans fenêtre, sans icône dans le Dock, Cmd-Tab ou la barre des
-menus. **Par défaut il applique l’anti-tramage et observe la présence du DASUNG
+Un agent Swift sans icône dans le Dock, Cmd-Tab ou la barre des menus, qui ne
+prend jamais le focus. Sa seule fenêtre est le HUD affiché brièvement après un
+raccourci, en mode contrôle (voir plus bas). **Par défaut il applique l’anti-tramage et observe la présence du DASUNG
 et de sa liaison USB, sans ouvrir le port.** Le mode contrôle, séparé, valide le
 MCU, entretient la connexion et sert la CLI et les raccourcis globaux. Le
 contrôle USB n’est pas nécessaire à l’anti-tramage : les deux modes l’appliquent.
@@ -96,6 +97,7 @@ précisément le mode de défaillance rencontré avec le client propriétaire.
 | `paperlike contrast` | 1–9 | Contraste |
 | `paperlike mode` | 1–2 | Texte / image |
 | `paperlike speed` | 1–5 | Vitesse de rafraîchissement |
+| `paperlike light on\|off\|toggle` | — | Lumière frontale : allumer / éteindre |
 | `paperlike light-mode` | 0–3 | Lumière frontale : 0 éteinte |
 | `paperlike light` | 0–100 | Lumière frontale : luminosité |
 | `paperlike light-temp` | 0–100 | Lumière frontale : température |
@@ -105,6 +107,15 @@ précisément le mode de défaillance rencontré avec le client propriétaire.
 
 La luminosité frontale n'est acceptée **que si la lumière est allumée** : sinon le
 moniteur ignore l'écriture sans rien dire. L'agent le détecte et le signale.
+`paperlike light on` rétablit le dernier mode de lumière utilisé, retenu entre
+deux redémarrages de l'agent ; pour en choisir un, `paperlike light-mode 1..3`
+une fois. Si la luminosité vaut alors 0, elle est remontée à 20 pour que
+l'allumage se voie.
+
+Un réglage prend environ 0,1 s : lecture, écriture, relecture ; allumer ou
+éteindre la lumière un peu plus, le moniteur ignorant la relecture qui suit
+aussitôt, renvoyée alors 0,2 s plus tard. Les appuis rapprochés sur un même
+raccourci sont fusionnés en une seule écriture.
 
 ### Raccourcis clavier
 
@@ -115,11 +126,28 @@ pas d'une disposition à l'autre, ce qu'une lettre ne garantit pas sur AZERTY.
 | Raccourci | Action |
 | --- | --- |
 | `Ctrl+Opt+Cmd+R` | Ghost Cleanup |
+| `Ctrl+Opt+Cmd+L` | Allumer / éteindre la lumière frontale |
 | `Ctrl+Opt+Cmd+↑ / ↓` | Luminosité frontale ±10 |
 | `Ctrl+Opt+Cmd+→ / ←` | Contraste ±1 |
 
-`paperlike status` liste chaque raccourci avec son état d'enregistrement : un
-raccourci déjà pris par une autre application échoue silencieusement sinon.
+`L` occupe la même place en AZERTY et en QWERTY. `paperlike status` liste
+chaque raccourci avec son état d'enregistrement : un raccourci déjà pris par une
+autre application échoue silencieusement sinon.
+
+### HUD
+
+Après chaque raccourci, un petit panneau apparaît 1,6 s en haut à droite de
+l'écran sous le pointeur, comme celui de la luminosité de macOS : réglage,
+valeur (`40 %`, `3 / 9`), jauge à un segment par cran, et **`Max` / `Min`**
+en butée. Il n'affiche que la réponse de la commande qui vient d'aboutir, sans
+échange série supplémentaire.
+
+Il est dessiné pour l'e-ink : opaque, noir sur blanc, sans ombre ni animation
+— chaque image d'un fondu serait un rafraîchissement partiel de plus. Sur la
+dalle, son apparition et sa disparition coûtent tout de même deux petits
+rafraîchissements, et peuvent laisser une rémanence que Ctrl+Opt+Cmd+R efface.
+Le panneau n'est pas activant et ignore la souris : le focus reste à la fenêtre
+en cours. `"hud": false` dans la configuration le supprime.
 
 ### Personnalisation facultative
 
@@ -130,11 +158,12 @@ Fichier lu **une fois au démarrage**, absent par défaut :
 { "hotkeys": [
     { "keys": "ctrl+alt+cmd+up", "action": ["light", "+10"] },
     { "keys": "ctrl+alt+cmd+t",  "action": ["text-enhance", "1"] }
-] }
+  ],
+  "hud": true }
 ```
 
-Pas de surveillance de fichier, pas de rechargement, pas d'interface : l'agent
-reste un processus d'arrière-plan invisible. Un fichier absent ou illisible
+Pas de surveillance de fichier, pas de rechargement, pas de fenêtre de
+réglages : l'agent reste un processus d'arrière-plan. Un fichier absent ou illisible
 donne les valeurs par défaut et **l'agent démarre quand même** — l'anti-tramage,
 sa seule fonction essentielle, ne dépend jamais de ce fichier. Les erreurs de
 configuration apparaissent dans `paperlike status`.
@@ -167,7 +196,8 @@ Le LaunchAgent utilisateur est enregistré dans
 `~/Library/LaunchAgents/com.user.paperlike-agent.plist`. Il démarre à **l’ouverture
 de session**, sans terminal, et est relancé après un crash. Aucun service root
 ni extension noyau n’est ajouté. `LSUIElement` et une politique d’activation
-`prohibited` rendent l’application invisible. Le socket local et son verrou
+`prohibited` tiennent l’application hors du Dock et de Cmd-Tab ; `paperlike
+status` vérifie `takesFocus: false`. Le socket local et son verrou
 empêchent deux instances de piloter simultanément l’écran.
 
 Un LaunchAgent correspond au fonctionnement de ce dépôt de configuration.
@@ -208,8 +238,9 @@ rouvert manuellement. Aucune désinstallation du client DASUNG n’est nécessai
 - Reconnexion toutes les deux secondes, fermeture du port pendant la veille,
   nouvelle identification au réveil. Les essais de veille/réveil, de débranchement
   physique et d’ouverture de session réelle restent à faire.
-- Les opérations série sont sérialisées et bornées dans le temps. Les réponses
-  USB fragmentées ou regroupées sont reconstituées. Une écriture suivie d’une
+- Les opérations série sont sérialisées et bornées dans le temps ; une lecture
+  rend la main dès que sa réponse arrive, le délai ne sert qu’en cas d’échec.
+  Les réponses USB fragmentées ou regroupées sont reconstituées. Une écriture suivie d’une
   réponse absente est rapportée comme non confirmée, jamais comme un succès.
 - Le mode se lit, mais son changement n’est pas exposé : les tables diffèrent
   entre les générations. Le rétroéclairage et l’anti-dithering restent hors POC.
@@ -218,8 +249,8 @@ rouvert manuellement. Aucune désinstallation du client DASUNG n’est nécessai
   pour les sorties DASUNG observées. Si cet état est absent ou activé, il refuse
   l’envoi. Cette vérification corrige une hypothèse du premier essai ; elle ne
   démontre pas à elle seule la cause du problème d’affichage signalé.
-- Le raccourci est fixe dans cette première version. La CLI permet d’en définir
-  d’autres dans les outils existants sans ajouter une fenêtre de réglages.
+- Les raccourcis se redéfinissent dans `~/.config/paperlike/config.json`, relu
+  seulement au démarrage de l’agent (`make paperlike-control` pour le relancer).
 
 Les transitions et erreurs de connexion sont dans le journal unifié macOS :
 

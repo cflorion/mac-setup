@@ -2,7 +2,12 @@ import Foundation
 
 public struct PaperlikeError: Error, CustomStringConvertible {
     public let description: String
-    public init(_ description: String) { self.description = description }
+    // A stable identifier for the few failures the HUD words differently from
+    // the full sentence, which is written for the command line.
+    public let code: String?
+    public init(_ description: String, code: String? = nil) {
+        self.description = description; self.code = code
+    }
 }
 
 // ASCII protocol observed in the official macOS client and independent USB
@@ -77,6 +82,7 @@ public struct Setting: Equatable {
     public struct Requirement: Equatable {
         public let command: UInt8
         public let explanation: String
+        public let code: String
     }
 
     public static let all: [Setting] = [
@@ -92,7 +98,8 @@ public struct Setting: Equatable {
                 summary: "Lumière frontale : température, 0 froide à 100 chaude", requires: nil),
         Setting(name: "light", command: 0x09, bounds: 0...100,
                 summary: "Lumière frontale : luminosité", requires: Requirement(command: 0x07,
-                    explanation: "la lumière frontale est éteinte ; l’allumer d’abord avec « paperlike light-mode 1 »")),
+                    explanation: "la lumière frontale est éteinte ; l’allumer d’abord avec « paperlike light on »",
+                    code: "light-off")),
         Setting(name: "text-enhance", command: 0x12, bounds: 0...1,
                 summary: "Rehaussement du texte : 0 désactivé, 1 activé", requires: nil),
     ]
@@ -114,12 +121,21 @@ public enum Adjustment: Equatable {
     }
 }
 
+// Switching the front light is its own action rather than a value of
+// `light-mode`: on/off is what a shortcut wants, and 1–3 are panel modes the
+// agent has no business choosing between on the user's behalf.
+public enum Power: String, Equatable {
+    case on, off, toggle
+}
+
 public enum Action: Equatable {
     case refresh
     case set(Setting, Adjustment)
+    case light(Power)
 
     public static func parse(_ args: [String]) throws -> Action {
         if args == ["refresh"] { return .refresh }
+        if args.count == 2, args[0] == "light", let power = Power(rawValue: args[1]) { return .light(power) }
         guard args.count == 2, let setting = Setting.named(args[0]) else {
             throw PaperlikeError("Commande inconnue. Utiliser paperlike help.")
         }
@@ -139,6 +155,7 @@ public enum Action: Equatable {
         switch self {
         case .refresh: return nil
         case .set(let setting, _): return setting.command
+        case .light: return Setting.named("light-mode")?.command
         }
     }
 
@@ -146,7 +163,33 @@ public enum Action: Equatable {
         switch self {
         case .refresh: return Frame(0x03)
         case .set(let setting, _): return Frame(setting.command, UInt8(value))
+        case .light: return Frame(register ?? 0x07, UInt8(value))
         }
+    }
+
+    // The command-line form, so a reply can name what it did.
+    public var arguments: [String] {
+        switch self {
+        case .refresh: return ["refresh"]
+        case .set(let setting, .absolute(let value)): return [setting.name, String(value)]
+        case .set(let setting, .relative(let delta)): return [setting.name, delta > 0 ? "+\(delta)" : String(delta)]
+        case .light(let power): return ["light", power.rawValue]
+        }
+    }
+
+    // Rapid presses of one shortcut collapse into a single move: each exchange
+    // reads, writes and reads back, so five presses become one round-trip
+    // instead of five queued ones. Only relative moves of the same setting
+    // merge; everything else keeps its order.
+    public func merged(with next: Action) -> Action? {
+        guard case .set(let setting, .relative(let first)) = self,
+              case .set(let other, .relative(let second)) = next, setting == other else { return nil }
+        return .set(setting, .relative(first + second))
+    }
+
+    public var isNoOp: Bool {
+        if case .set(_, .relative(0)) = self { return true }
+        return false
     }
 }
 

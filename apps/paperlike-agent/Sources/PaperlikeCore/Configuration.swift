@@ -9,6 +9,7 @@ import Foundation
 public struct HotKeyBinding: Equatable {
     public let keys: String
     public let action: [String]
+    public let parsed: Action
     public let keyCode: UInt32
     public let modifiers: UInt32
 
@@ -17,6 +18,9 @@ public struct HotKeyBinding: Equatable {
 
 public struct Configuration {
     public let hotkeys: [HotKeyBinding]
+    // The on-screen feedback after a shortcut. On by default; `"hud": false`
+    // brings back a strictly windowless agent.
+    public let hud: Bool
     public let problems: [String]
 
     public static let path = NSString(string: "~/.config/paperlike/config.json").expandingTildeInPath
@@ -27,6 +31,7 @@ public struct Configuration {
     // on a different physical key than the one printed in the documentation.
     public static let defaultHotkeys: [(String, [String])] = [
         ("ctrl+alt+cmd+r", ["refresh"]),
+        ("ctrl+alt+cmd+l", ["light", "toggle"]),
         ("ctrl+alt+cmd+up", ["light", "+10"]),
         ("ctrl+alt+cmd+down", ["light", "-10"]),
         ("ctrl+alt+cmd+right", ["contrast", "+1"]),
@@ -37,7 +42,8 @@ public struct Configuration {
         guard let data = FileManager.default.contents(atPath: path) else { return fallback([]) }
         do {
             let file = try JSONDecoder().decode(File.self, from: data)
-            guard let entries = file.hotkeys, !entries.isEmpty else { return fallback([]) }
+            let hud = file.hud ?? true
+            guard let entries = file.hotkeys, !entries.isEmpty else { return fallback([], hud: hud) }
             var bindings: [HotKeyBinding] = []
             var problems: [String] = []
             for entry in entries {
@@ -46,19 +52,19 @@ public struct Configuration {
             }
             // A broken keybinding must never stop the agent: its one essential job
             // is keeping dithering off, and that has nothing to do with this file.
-            return bindings.isEmpty ? fallback(problems) : Configuration(hotkeys: bindings, problems: problems)
+            return bindings.isEmpty ? fallback(problems, hud: hud) : Configuration(hotkeys: bindings, hud: hud, problems: problems)
         } catch {
             return fallback(["\(path) illisible, valeurs par défaut appliquées : \(error)"])
         }
     }
 
-    private static func fallback(_ problems: [String]) -> Configuration {
+    private static func fallback(_ problems: [String], hud: Bool = true) -> Configuration {
         Configuration(hotkeys: defaultHotkeys.compactMap { try? binding(keys: $0.0, action: $0.1) },
-                      problems: problems)
+                      hud: hud, problems: problems)
     }
 
     public static func binding(keys: String, action: [String]) throws -> HotKeyBinding {
-        guard action == ["refresh"] || (try? Action.parse(action)) != nil else {
+        guard let parsed = try? Action.parse(action) else {
             throw PaperlikeError("action inconnue « \(action.joined(separator: " ")) »")
         }
         var modifiers: UInt32 = 0
@@ -78,12 +84,13 @@ public struct Configuration {
         }
         guard let code else { throw PaperlikeError("aucune touche dans « \(keys) »") }
         guard modifiers != 0 else { throw PaperlikeError("« \(keys) » n’a aucun modificateur") }
-        return HotKeyBinding(keys: keys, action: action, keyCode: code, modifiers: modifiers)
+        return HotKeyBinding(keys: keys, action: action, parsed: parsed, keyCode: code, modifiers: modifiers)
     }
 
     private struct File: Decodable {
         struct Entry: Decodable { let keys: String; let action: [String] }
         let hotkeys: [Entry]?
+        let hud: Bool?
     }
 
     static let keyCodes: [String: UInt32] = {

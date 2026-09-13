@@ -261,6 +261,12 @@ run = 'layout floating'
 if.app-id = 'com.raycast.macos'
 run = 'layout floating'
 
+# PaperlikeAgent's shortcut HUD is a non-activating panel that AeroSpace should
+# not manage at all; this rule is insurance so it is never tiled if it is.
+[[on-window-detected]]
+if.app-id = 'com.user.paperlike-agent'
+run = 'layout floating'
+
 # Notes — the "Brouillon" scratch window (Hyper+N, dotfiles/bin/notes-scratch)
 # must sit on top of the current work. The main Notes window floats too: the
 # cold path has to launch Notes, and a tiled browser window would rearrange the

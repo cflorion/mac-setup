@@ -171,6 +171,54 @@ passation, récupérée en changeant le contraste — ce qui déclenche le même
 redessin. Le geste à retenir pour un panneau resté noir est l'effacement, qui
 exige `--control` et le lien CH340.
 
+## Latence des réglages : l'attente venait de l'agent, pas du moniteur
+
+Un raccourci mettait environ deux secondes à agir. Le moniteur n'y était pour
+rien : `SerialPort.readFrames` ne sortait qu'à l'expiration du délai, **même
+après avoir reçu la réponse attendue**. Chaque lecture coûtait donc son délai
+entier de 0,6 s, et un réglage en enchaîne trois ou quatre (condition de la
+lumière, valeur avant, attente de 0,25 s après l'écriture, relecture).
+
+| Mesure | Avant | Après |
+| --- | --- | --- |
+| `paperlike read 07` | 0,63 s | 0,06 s |
+| `paperlike query` (4 registres) | 2,47 s | 0,20 s |
+| Écriture + relecture (`light-temp +1`) | ~1,5 s | 0,12 s |
+
+Désormais une lecture rend la main dès que la réponse de son registre est
+analysée ; le délai ne sert plus qu'en cas d'échec. Le moniteur **acquitte aussi
+les écritures de réglage** par `5FF5F0<cmd>000000000000A0FA` (relevé :
+`F008` pour la température, `F009` pour la luminosité) : cet accusé met fin à
+l'attente, mais il n'est jamais pris pour une preuve — la relecture reste le
+contrat de chaque écriture.
+
+La limite qui refusait deux commandes à moins de 0,5 s d'intervalle
+(« Commande trop rapprochée ») est remplacée par un espacement de 0,1 s qui
+retarde au lieu de refuser. Côté raccourcis, les appuis rapprochés sur la même
+touche relative sont fusionnés : cinq appuis sur ↑ pendant un échange donnent
+une seule écriture de +40 après la première.
+
+## Lumière frontale : allumer et éteindre
+
+`paperlike light on|off|toggle` (raccourci ⌃⌥⌘L) écrit le registre `0x07`.
+Les modes 1 à 3 restent non identifiés ; l'agent rétablit le dernier mode vu
+non nul (3 a été observé), et 1 avant d'en avoir vu un. Ce mode est lu à la
+connexion et conservé dans les préférences de l'agent (`lastLightMode`) : sans
+cela, chaque réinstallation le ramenait à 1.
+
+Le registre de luminosité `0x09` **se lit 0 tant que la lumière est éteinte**,
+et retrouve sa valeur à l'allumage (relevé : 0 éteinte, 40 après
+`light-mode 1`). Le moniteur la conserve donc. Une valeur réellement nulle
+donnerait une lumière « allumée » sans effet sur la dalle, qui passerait pour
+un raccourci en panne : dans ce seul cas, l'allumage la remonte à 20.
+
+**Requête ignorée après un changement de mode.** Juste après l'accusé d'une
+écriture de `0x07`, le moniteur **ignore** la lecture suivante : aucune réponse,
+même tardive, alors que la même lecture 50 ms plus tard répond. C'est ce qui
+faisait échouer le raccourci d'allumage une fois l'attente supprimée
+(l'ancienne pause fixe de 0,25 s après chaque écriture le masquait). Une
+requête est désormais renvoyée toutes les 0,2 s jusqu'à son délai de 0,6 s.
+
 ## Carte des commandes du moniteur
 
 Relevée en désassemblant les méthodes `updateView…` du client : chaque libellé de
@@ -305,6 +353,10 @@ BetterDisplay a été écarté comme cause : `systemVirtual@Display:*` et
   démarrage est `enabled, allowed` dans `sfltool dumpbtm`.
 - `NSRunningApplication` indique `activationPolicy = 2` (prohibited),
   `active = false`, et CoreGraphics compte **zéro fenêtre** du processus.
+  Depuis le HUD, une fenêtre non activante est visible 1,6 s après chaque
+  raccourci, puis aucune ; pendant l'affichage, `paperlike status` relève
+  `takesFocus: false` et `visibleWindowCount: 1`, puis `0` deux secondes après.
+  Capture faite : le HUD s'affiche en haut à droite de l'écran sous le pointeur.
 - Le POC attend pendant que le client officiel est ouvert. Après sa fermeture,
   l’identification série réussit avec MCU `0x30`.
 - Contraste **1 → 2 → 1**, vitesse **4 → 5 → 4** : valeurs confirmées par

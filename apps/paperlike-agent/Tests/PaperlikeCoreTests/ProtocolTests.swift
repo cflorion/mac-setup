@@ -187,6 +187,17 @@ final class SettingsTests: XCTestCase {
         XCTAssertTrue(config.problems.isEmpty)
     }
 
+    func testTheHUDCanBeTurnedOffWithoutLosingTheDefaultShortcuts() throws {
+        let path = NSTemporaryDirectory() + "paperlike-nohud.json"
+        try #"{ "hud": false }"#.write(toFile: path, atomically: true, encoding: .utf8)
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let config = Configuration.load(from: path)
+        XCTAssertFalse(config.hud)
+        XCTAssertEqual(config.hotkeys.count, Configuration.defaultHotkeys.count)
+        XCTAssertTrue(config.problems.isEmpty)
+        XCTAssertTrue(Configuration.load(from: "/nonexistent/paperlike.json").hud)
+    }
+
     func testAnUnparseableConfigurationStillYieldsWorkingDefaults() throws {
         let path = NSTemporaryDirectory() + "paperlike-broken.json"
         try "{ not json".write(toFile: path, atomically: true, encoding: .utf8)
@@ -194,5 +205,52 @@ final class SettingsTests: XCTestCase {
         let config = Configuration.load(from: path)
         XCTAssertEqual(config.hotkeys.count, Configuration.defaultHotkeys.count)
         XCTAssertFalse(config.problems.isEmpty)
+    }
+}
+
+final class LightAndShortcutTests: XCTestCase {
+    func testLightPowerParsesAndEveryActionRoundTrips() throws {
+        XCTAssertEqual(try Action.parse(["light", "toggle"]), .light(.toggle))
+        XCTAssertEqual(try Action.parse(["light", "on"]), .light(.on))
+        XCTAssertThrowsError(try Action.parse(["light", "maybe"]))
+        XCTAssertThrowsError(try Action.parse(["light-mode", "toggle"]))
+        for args in [["refresh"], ["light", "off"], ["contrast", "+1"], ["light", "-10"], ["speed", "3"]] {
+            XCTAssertEqual(try Action.parse(args).arguments, args)
+        }
+        XCTAssertEqual(Setting.named("light")?.requires?.code, "light-off")
+    }
+
+    func testRapidRelativePressesMergeAndOppositeOnesCancel() throws {
+        let up = try Action.parse(["light", "+10"]), down = try Action.parse(["light", "-10"])
+        XCTAssertEqual(up.merged(with: up), .set(Setting.named("light")!, .relative(20)))
+        XCTAssertEqual(up.merged(with: down)?.isNoOp, true)
+        XCTAssertNil(up.merged(with: try Action.parse(["contrast", "+1"])))
+        XCTAssertNil(up.merged(with: .light(.toggle)))
+        XCTAssertNil(try Action.parse(["light", "10"]).merged(with: up))
+        XCTAssertFalse(up.isNoOp)
+    }
+}
+
+final class HUDContentTests: XCTestCase {
+    func testLimitsAreSpelledOutAndEachPressMovesOneSegment() {
+        let top = HUDContent(reply: ["ok": true, "setting": "contrast", "value": 9, "bounds": [1, 9]])
+        XCTAssertEqual(top?.caption, "9 / 9 · Max")
+        XCTAssertEqual(top?.gauge, HUDContent.Gauge(segments: 8, filled: 8))
+        let bottom = HUDContent(reply: ["ok": true, "setting": "contrast", "value": 1, "bounds": [1, 9]])
+        XCTAssertEqual(bottom?.caption, "1 / 9 · Min")
+        XCTAssertEqual(bottom?.gauge?.filled, 0)
+        let light = HUDContent(reply: ["ok": true, "setting": "light", "value": 40, "bounds": [0, 100]])
+        XCTAssertEqual(light?.caption, "40 %")
+        XCTAssertEqual(light?.gauge, HUDContent.Gauge(segments: 10, filled: 4))
+        XCTAssertEqual(HUDContent(reply: ["ok": true, "setting": "light", "value": 100, "bounds": [0, 100]])?.caption, "100 % · Max")
+    }
+
+    func testLightStatesAndFailuresAreWordedForTheScreen() {
+        XCTAssertEqual(HUDContent(reply: ["ok": true, "setting": "light", "power": "off", "bounds": [0, 100]])?.caption, "Éteinte")
+        XCTAssertEqual(HUDContent(reply: ["ok": false, "code": "light-off", "error": "…"])?.caption, "Éteinte")
+        XCTAssertEqual(HUDContent(reply: ["ok": false, "error": "…"])?.symbol, "exclamationmark.triangle")
+        XCTAssertEqual(HUDContent(reply: ["ok": true, "action": "refresh", "delivery": "sent"])?.caption, "Effacement envoyé")
+        // A reply the HUD cannot describe shows nothing rather than a guess.
+        XCTAssertNil(HUDContent(reply: ["ok": true, "registers": [String: Int]()]))
     }
 }

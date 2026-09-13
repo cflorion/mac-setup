@@ -12,9 +12,15 @@ final class HotKeyCenter {
     private var registered: [UInt32: Registered] = [:]
     private var handler: EventHandlerRef?
     private let agent: Agent
+    private let hud: HUD?
+    // Main thread only. One exchange runs at a time; presses that arrive
+    // meanwhile wait here, where consecutive relative moves merge.
+    private var pending: [(keys: String, action: Action)] = []
+    private var running = false
 
-    init(agent: Agent, bindings: [HotKeyBinding]) {
+    init(agent: Agent, hud: HUD?, bindings: [HotKeyBinding]) {
         self.agent = agent
+        self.hud = hud
         var event = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         let installed = InstallEventHandler(GetApplicationEventTarget(), { _, event, context in
             guard let context, let event else { return OSStatus(eventNotHandledErr) }
@@ -24,11 +30,7 @@ final class HotKeyCenter {
             guard read == noErr, id.signature == HotKeyCenter.signature else { return OSStatus(eventNotHandledErr) }
             let center = Unmanaged<HotKeyCenter>.fromOpaque(context).takeUnretainedValue()
             guard let entry = center.registered[id.id] else { return OSStatus(eventNotHandledErr) }
-            // The serial exchange takes a few hundred milliseconds; keeping it off
-            // the main run loop leaves the rest of the system responsive.
-            DispatchQueue.global(qos: .userInitiated).async {
-                center.agent.recordShortcutResult(entry.binding.keys, center.agent.request(entry.binding.action))
-            }
+            center.press(entry.binding)
             return noErr
         }, 1, &event, Unmanaged.passUnretained(self).toOpaque(), &handler)
 
@@ -49,5 +51,32 @@ final class HotKeyCenter {
     deinit {
         for entry in registered.values { if let ref = entry.ref { UnregisterEventHotKey(ref) } }
         if let handler { RemoveEventHandler(handler) }
+    }
+
+    private func press(_ binding: HotKeyBinding) {
+        if let last = pending.last, let merged = last.action.merged(with: binding.parsed) {
+            pending.removeLast()
+            if !merged.isNoOp { pending.append((binding.keys, merged)) }
+        } else {
+            pending.append((binding.keys, binding.parsed))
+        }
+        runNext()
+    }
+
+    private func runNext() {
+        guard !running, !pending.isEmpty else { return }
+        let (keys, action) = pending.removeFirst()
+        running = true
+        // The serial exchange runs off the main run loop, which stays free for
+        // the next press and for drawing the HUD.
+        DispatchQueue.global(qos: .userInitiated).async { [self] in
+            let reply = agent.perform(action)
+            agent.recordShortcutResult(keys, reply)
+            DispatchQueue.main.async { [self] in
+                running = false
+                hud?.show(reply)
+                runNext()
+            }
+        }
     }
 }

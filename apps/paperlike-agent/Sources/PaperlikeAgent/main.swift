@@ -2,7 +2,7 @@ import AppKit
 import PaperlikeCore
 
 let help = """
-PaperlikeAgent — contrôleur DASUNG sans fenêtre
+PaperlikeAgent — contrôleur DASUNG en arrière-plan
 
   paperlike status            État de l’agent, écrans, gamma, raccourcis (JSON)
   paperlike detect            Inventaire sans ouvrir le port USB
@@ -10,6 +10,7 @@ PaperlikeAgent — contrôleur DASUNG sans fenêtre
   paperlike read 09           Lire un registre brut, en hexadécimal
 
   paperlike refresh           Effacer les rémanences (« Ghost Cleanup »)
+  paperlike light on|off|toggle  Allumer ou éteindre la lumière frontale
 \(Setting.all.map { "  paperlike \($0.name.padding(toLength: 12, withPad: " ", startingAt: 0)) \($0.bounds.lowerBound)..\($0.bounds.upperBound)\(String(repeating: " ", count: max(0, 7 - "\($0.bounds.lowerBound)..\($0.bounds.upperBound)".count)))\($0.summary)" }.joined(separator: "\n"))
 
 Une valeur signée agit relativement : « paperlike light +10 » monte de dix.
@@ -17,7 +18,7 @@ Toute écriture est confirmée par relecture du registre ; sans confirmation,
 la commande échoue plutôt que de prétendre avoir abouti.
 
 La luminosité frontale n’est acceptée que si la lumière est allumée
-(« paperlike light-mode 1 » d’abord, 0 pour l’éteindre).
+(« paperlike light on » d’abord). Allumer une lumière réglée à 0 la remonte à 20.
 
 L’agent retire en permanence le tramage macOS des sorties DASUNG ; c’est sa
 fonction principale et elle ne demande pas le port USB.
@@ -30,6 +31,7 @@ Raccourcis par défaut en mode contrôle (Control+Option+Command) :
 Personnalisation facultative, lue au démarrage :
   \(Configuration.path)
   {"hotkeys":[{"keys":"ctrl+alt+cmd+up","action":["light","+10"]}]}
+  {"hud":false}   Désactiver l’affichage à l’écran après un raccourci
 Fichier absent ou illisible : les valeurs par défaut s’appliquent et l’agent
 démarre quand même — l’anti-tramage ne dépend jamais de ce fichier.
 
@@ -52,15 +54,19 @@ do {
         application.setActivationPolicy(.prohibited)
         let controlEnabled = args.contains("--control")
         let configuration = Configuration.load()
-        let agent = Agent(controlEnabled: controlEnabled, configurationProblems: configuration.problems)
+        // The HUD only ever reports a shortcut's result, so it exists only
+        // where shortcuts do. Anti-dithering never depends on it.
+        let hud = controlEnabled && configuration.hud ? HUD() : nil
+        let agent = Agent(controlEnabled: controlEnabled, hudEnabled: hud != nil,
+                          configurationProblems: configuration.problems)
         let socket = LocalSocket()
         try socket.serve { agent.request($0) }
         let center = NSWorkspace.shared.notificationCenter
         let sleep = center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: nil) { _ in agent.sleep(true) }
         let wake = center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: nil) { _ in agent.sleep(false) }
         agent.start()
-        let hotkey = controlEnabled ? HotKeyCenter(agent: agent, bindings: configuration.hotkeys) : nil
-        withExtendedLifetime((agent, socket, sleep, wake, hotkey)) { application.run() }
+        let hotkey = controlEnabled ? HotKeyCenter(agent: agent, hud: hud, bindings: configuration.hotkeys) : nil
+        withExtendedLifetime((agent, socket, sleep, wake, hotkey, hud)) { application.run() }
     } else if args == ["help"] || args == ["--help"] {
         print(help)
     } else if args == ["detect"] {
