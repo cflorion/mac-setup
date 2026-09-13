@@ -13,3 +13,8 @@ dotfiles/karabiner/automatic_backups/
 # build.sh routes SwiftPM into cache/; this only appears when swift build or
 # swift test is run by hand from apps/paperlike-agent.
 apps/paperlike-agent/.build/
+
+# ~/.local/bin is a symlink to dotfiles/bin, so Claude Code's native installer
+# writes its launcher here: a symlink to ~/.local/share/claude/versions/<ver>
+# that it rewrites on every auto-update. The installer owns it, not the repo.
+dotfiles/bin/claude

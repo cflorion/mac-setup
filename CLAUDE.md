@@ -40,7 +40,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - **dotfiles/** — Symlinked into `~` and `~/.config/` by `make link`:
   - Hidden files (`.zshrc`, `.gitconfig`, `.gitignore_global`, `.finicky.js`) → `~/`
   - Directories (`nvim/`, `lazygit/`, `sketchybar/`, `atuin/`, `wezterm/`, `karabiner/`, `aerospace/`, `raycast/`) → `~/.config/<name>/`
-  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`, `popina-pdf`, `aerospace-focus-or-open`, `aerospace-workspace-cycle`, `notes-scratch`, `claude`)
+  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`, `popina-pdf`, `aerospace-focus-or-open`, `aerospace-workspace-cycle`, `notes-scratch`). Because `~/.local/bin` *is* this directory, installers that write there land in the repo: Claude Code's native installer keeps `claude` here as a symlink to `~/.local/share/claude/versions/<version>` and rewrites it on every auto-update, so it is gitignored.
     - `notes-scratch` — Hyper+N scratch pad (Antinote replacement): focuses, or opens, a dedicated Apple Notes window named `Brouillon`, floated by the `com.apple.Notes` rule in `aerospace.toml`, so the note syncs to the iPhone through iCloud. Two non-obvious constraints: Apple Notes derives a note's name — and therefore the window title the script matches on — from the note's **first line**, and the Window ▸ "Open Note in New Window" menu item is a silent no-op unless Notes was activated with `open "notes://"` first (`activate` is not enough).
   - `starship.toml` → `~/.config/starship.toml`
   - `zed/settings.json` → `~/.config/zed/settings.json` (only settings, not full dir)
