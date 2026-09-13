@@ -97,9 +97,41 @@ final class ProtocolTests: XCTestCase {
             }
             received.fulfill()
         }
-        XCTAssertEqual(try port.query(0x10, timeout: 0.2), 0x30)
+        // The timeout is the failure path only: a query must return as soon as
+        // its reply is parsed, not after waiting the timeout out.
+        let started = ProcessInfo.processInfo.systemUptime
+        XCTAssertEqual(try port.query(0x10, timeout: 2), 0x30)
+        XCTAssertLessThan(ProcessInfo.processInfo.systemUptime - started, 1)
         wait(for: [received], timeout: 2)
         XCTAssertThrowsError(try port.query(0x01, timeout: 0.05))
+    }
+
+    func testAQueryDroppedByTheMonitorIsSentAgain() throws {
+        var master: Int32 = -1, slave: Int32 = -1
+        var name = [CChar](repeating: 0, count: 256)
+        XCTAssertEqual(openpty(&master, &slave, &name, nil, nil), 0)
+        defer { Darwin.close(master); Darwin.close(slave) }
+        let port = try SerialPort(path: String(cString: name))
+        let answered = expectation(description: "resent query answered")
+        let masterFD = master
+        DispatchQueue.global().async {
+            // Right after a light switch the monitor ignores a query entirely;
+            // only the resent one gets a reply.
+            var total = 0
+            var bytes = [UInt8](repeating: 0, count: 256)
+            while total < 48 {
+                var p = pollfd(fd: masterFD, events: Int16(POLLIN), revents: 0)
+                guard poll(&p, 1, 1500) > 0 else { return }
+                total += max(Darwin.read(masterFD, &bytes, bytes.count), 0)
+            }
+            let reply = "5FF5F00A070100000000A0FA"
+            _ = reply.withCString { Darwin.write(masterFD, $0, reply.utf8.count) }
+            answered.fulfill()
+        }
+        let started = ProcessInfo.processInfo.systemUptime
+        XCTAssertEqual(try port.query(0x07, timeout: 1, attempt: 0.1), 1)
+        XCTAssertLessThan(ProcessInfo.processInfo.systemUptime - started, 0.5)
+        wait(for: [answered], timeout: 2)
     }
 }
 

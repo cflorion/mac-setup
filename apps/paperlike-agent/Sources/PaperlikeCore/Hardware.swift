@@ -243,10 +243,14 @@ public final class SerialPort {
         try writeAll(fd: fd, data: Data(frame.ascii.utf8), timeout: 0.5)
     }
 
-    public func readFrames(timeout: TimeInterval) throws -> [Frame] {
+    // Reads until `timeout`, or as soon as `done` accepts what has arrived. The
+    // timeout is the failure path only: waiting it out after the awaited reply
+    // cost every query its full 0.6 s, about two seconds per hotkey press.
+    public func readFrames(timeout: TimeInterval, until done: ([Frame]) -> Bool = { _ in false }) throws -> [Frame] {
         var frames: [Frame] = []
         let end = ProcessInfo.processInfo.systemUptime + timeout
         repeat {
+            if done(frames) { break }
             let remaining = end - ProcessInfo.processInfo.systemUptime
             if remaining <= 0 { break }
             var p = pollfd(fd: fd, events: Int16(POLLIN), revents: 0)
@@ -267,17 +271,23 @@ public final class SerialPort {
         return frames
     }
 
-    public func query(_ register: UInt8, timeout: TimeInterval = 0.6) throws -> UInt8 {
+    // The request is re-sent every `attempt` until `timeout`. Right after a
+    // light switch the monitor drops a query outright — no late reply, while
+    // the same read 50 ms later answers — so one long wait only fails slowly.
+    public func query(_ register: UInt8, timeout: TimeInterval = 0.6, attempt: TimeInterval = 0.2) throws -> UInt8 {
         // Drain complete replies before sending, so an earlier response cannot
-        // be mistaken for confirmation of a newly requested setting.
+        // be mistaken for confirmation of a newly requested setting. Replies
+        // to this query's own earlier attempts remain valid and are kept.
         _ = try readFrames(timeout: 0.01)
         parser = FrameParser()
-        try send(Frame(0x0a, register))
-        let frames = try readFrames(timeout: timeout)
-        guard let value = frames.compactMap({ $0.registerValue(register) }).last else {
-            throw PaperlikeError(String(format: "Aucune réponse valide au registre 0x%02X.", register))
-        }
-        return value
+        let end = ProcessInfo.processInfo.systemUptime + timeout
+        repeat {
+            try send(Frame(0x0a, register))
+            let window = max(0.001, min(attempt, end - ProcessInfo.processInfo.systemUptime))
+            let frames = try readFrames(timeout: window) { $0.contains { $0.registerValue(register) != nil } }
+            if let value = frames.compactMap({ $0.registerValue(register) }).last { return value }
+        } while ProcessInfo.processInfo.systemUptime < end
+        throw PaperlikeError(String(format: "Aucune réponse valide au registre 0x%02X.", register))
     }
 }
 
