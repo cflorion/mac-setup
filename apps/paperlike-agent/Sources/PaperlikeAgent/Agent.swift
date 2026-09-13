@@ -222,7 +222,8 @@ final class Agent {
     private func target(_ name: String?) throws -> Link {
         guard !links.isEmpty else { throw PaperlikeError(message, code: "unavailable") }
         let monitors = links.values.map(\.monitor).sorted { $0.path < $1.path }
-        let chosen = try Targeting.choose(monitors, named: name, pointer: name == nil ? Display.underPointer() : nil)
+        let chosen = try Targeting.choose(monitors, named: name, pointer: name == nil ? Display.underPointer() : nil,
+                                          screens: inventory?.displays ?? [])
         guard let link = links[chosen.path] else { throw PaperlikeError(message, code: "unavailable") }
         return link
     }

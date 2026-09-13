@@ -325,7 +325,8 @@ final class MonitorTests: XCTestCase {
     private let k13 = Monitor(path: "/dev/cu.usbserial-1120", firmware: 0x31, modelCode: 1)
     private let p253 = Monitor(path: "/dev/cu.usbserial-2115410", firmware: 0x30, modelCode: 5)
     private let k13Screen = Display(id: 2, vendor: 0x4a8b, product: 447, width: 3200, height: 2400)
-    private let p253Screen = Display(id: 5, vendor: 0x1263, product: 0, width: 3840, height: 2160)
+    private let p253Screen = Display(id: 5, vendor: 0x1263, product: 0x253c, width: 3200, height: 1800)
+    private let mono253Screen = Display(id: 6, vendor: 0x1263, product: 0, width: 3840, height: 2160)
     private let builtIn = Display(id: 1, vendor: 0x610, product: 41038, width: 3024, height: 1964)
 
     // The client's `DeviceDisplayNameForMode` table, indexed by register 0x13.
@@ -348,7 +349,10 @@ final class MonitorTests: XCTestCase {
         XCTAssertFalse(builtIn.isPaperlike)
         XCTAssertTrue(Model.color13K.drives(vendor: 0x4a8b, product: 447))
         XCTAssertFalse(Model.color13K.drives(vendor: 0x1263, product: 0))
-        XCTAssertTrue(Model.color253.drives(vendor: 0x1263, product: 0))
+        XCTAssertTrue(Model.color253.drives(vendor: 0x1263, product: 0x253c))
+        XCTAssertFalse(Model.color253.drives(vendor: 0x1263, product: 0))
+        XCTAssertTrue(Model.mono253.drives(vendor: 0x1263, product: 0))
+        XCTAssertFalse(Model.mono253.drives(vendor: 0x1263, product: 0x253c))
         XCTAssertFalse(Model.color253.drives(vendor: 0x4a8b, product: 447))
         XCTAssertTrue(Model.any(named: "13k", drives: k13Screen))
         XCTAssertFalse(Model.any(named: "253", drives: k13Screen))
@@ -403,5 +407,26 @@ final class MonitorTests: XCTestCase {
         let unknown = Monitor(path: "/dev/cu.usbserial-7", firmware: 0x30, modelCode: 0)
         XCTAssertEqual(try Targeting.choose([k13, unknown], named: nil, pointer: p253Screen), unknown)
         XCTAssertThrowsError(try Targeting.choose([p253, unknown], named: nil, pointer: p253Screen))
+    }
+
+    // Observed: the black-and-white 253 on screen, only the Color's USB cable
+    // plugged in. The Color's link must not take commands aimed at that screen.
+    func testAColor253LinkIsNeverPairedWithTheBlackAndWhite253Screen() {
+        XCTAssertThrowsError(try Targeting.choose([k13, p253], named: nil, pointer: mono253Screen)) {
+            XCTAssertEqual(($0 as? PaperlikeError)?.code, "unavailable")
+        }
+    }
+
+    // Observed after unplugging that 253: the Color's cable alone stays on the
+    // dock. From the built-in panel, a shortcut goes to the 13K, the one
+    // Paperlike actually on screen.
+    func testFromAnotherScreenALinkWithoutItsScreenIsSetAside() throws {
+        XCTAssertEqual(try Targeting.choose([k13, p253], named: nil, pointer: builtIn, screens: [builtIn, k13Screen]), k13)
+        XCTAssertEqual(try Targeting.choose([k13, p253], named: nil, pointer: builtIn, screens: [builtIn, k13Screen, mono253Screen]), k13)
+        XCTAssertThrowsError(try Targeting.choose([k13, p253], named: nil, pointer: builtIn, screens: [builtIn, k13Screen, p253Screen]))
+        // No Paperlike screen at all: every link stays a candidate.
+        XCTAssertEqual(try Targeting.choose([p253], named: nil, pointer: builtIn, screens: [builtIn]), p253)
+        // A name still reaches a link without a screen.
+        XCTAssertEqual(try Targeting.choose([k13, p253], named: "253", pointer: builtIn, screens: [builtIn, k13Screen]), p253)
     }
 }

@@ -109,12 +109,14 @@ Each Paperlike with its USB cable gets its own CH340 port, and the agent
 drives all of them at once. A port becomes a link only after answering a
 supported MCU; register `0x13` then gives the model (the official client's
 table: 1 13K Color, 2 13K, 3 103, 4 253, 5 253 Color). The model is what
-pairs a port with its screen — 13K ↔ Realtek EDID, the others ↔ DASUNG
-EDID — since USB and video take separate paths through a dock.
+pairs a port with its screen — 13K ↔ Realtek EDID, 253 Color ↔ DASUNG
+product `0x253C`, the other models ↔ any other DASUNG product — since USB
+and video take separate paths through a dock.
 
 A command or shortcut acts on **the Paperlike under the pointer**, as `clear`
 and the HUD do (AeroSpace moves the pointer with monitor focus). From
-another screen it acts on the only Paperlike under control; with several, it
+another screen it acts on the only Paperlike under control whose screen is
+connected — a USB cable plugged in alone is set aside; with several, it
 is refused — the HUD says "Point at the one to adjust" — rather than
 guessed. Naming the monitor first overrides the pointer:
 

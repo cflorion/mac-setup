@@ -9,6 +9,9 @@ public enum Panel {
     public static let dasungVendor: UInt32 = 0x1263
     public static let realtekVendor: UInt32 = 0x4a8b
     public static let paperlike13KProduct: UInt32 = 447
+    // Both 253s carry DASUNG's EDID; only the Revo Color reports this product,
+    // the black-and-white one reports 0. See RESEARCH.md, "Two DASUNG monitors".
+    public static let color253Product: UInt32 = 0x253c
 
     public static func is13K(vendor: UInt32, product: UInt32) -> Bool {
         vendor == realtekVendor && product == paperlike13KProduct
@@ -59,11 +62,14 @@ public enum Model: Int, CaseIterable {
 
     // The only link between a USB control port and a screen: the model the
     // port reports, against the EDID the screen reports. USB topology cannot
-    // provide it — video and USB take separate paths through a dock.
+    // provide it — video and USB take separate paths through a dock. The
+    // Color is held to its own product: matching any DASUNG EDID once paired
+    // the black-and-white 253's screen with the Color's USB cable.
     public func drives(vendor: UInt32, product: UInt32) -> Bool {
         switch self {
         case .color13K, .mono13K: return Panel.is13K(vendor: vendor, product: product)
-        case .paperlike103, .mono253, .color253: return vendor == Panel.dasungVendor
+        case .color253: return vendor == Panel.dasungVendor && product == Panel.color253Product
+        case .paperlike103, .mono253: return vendor == Panel.dasungVendor && product != Panel.color253Product
         }
     }
 
@@ -107,9 +113,11 @@ public enum Targeting {
     // Which monitor a command acts on. Named, that one. Otherwise the Paperlike
     // under the pointer — AeroSpace moves the pointer with monitor focus, as
     // for `clear` and the HUD — and from any other screen the only one under
-    // control. Several candidates are refused, never guessed between: a
-    // brightness key landing on the wrong panel reads as a broken shortcut.
-    public static func choose(_ monitors: [Monitor], named name: String?, pointer: Display?) throws -> Monitor {
+    // control whose screen is connected. Several candidates are refused, never
+    // guessed between: a brightness key landing on the wrong panel reads as a
+    // broken shortcut.
+    public static func choose(_ monitors: [Monitor], named name: String?, pointer: Display?,
+                              screens: [Display] = []) throws -> Monitor {
         if let name {
             let matching = monitors.filter { $0.model?.names.contains(name) == true }
             guard matching.count == 1 else {
@@ -126,6 +134,13 @@ public enum Targeting {
             guard !candidates.isEmpty else {
                 throw PaperlikeError("The Paperlike under the pointer has no USB control link; connected: \(list(monitors)).", code: "unavailable")
             }
+        } else {
+            // A USB cable plugged in without its screen is not the panel being
+            // worked on. With no Paperlike screen at all, every link stays.
+            let shown = monitors.filter { monitor in
+                screens.contains { $0.isPaperlike && (monitor.model?.drives(vendor: $0.vendor, product: $0.product) ?? true) }
+            }
+            if !shown.isEmpty { candidates = shown }
         }
         guard candidates.count == 1 else {
             throw PaperlikeError(candidates.isEmpty

@@ -9,14 +9,17 @@ below, whose single-adapter observation no longer holds).
 
 ### What macOS sees
 
-| | 253 Color | 13K Color |
+| | 253s | 13K Color |
 | --- | --- | --- |
-| macOS name | `Paperlike253` | `RTK FHD` |
-| EDID vendor / product | `0x1263` (DSC) / 0 | `0x4A8B` (RTK) / 447 |
-| Mode observed | 3840 × 2160, 40 Hz | 3200 × 2400, 37 Hz |
-| CH340 port | `/dev/cu.usbserial-2115410`, via the dock | `/dev/cu.usbserial-1120` |
-| MCU (`0x10`) | `0x30` | `0x31` |
-| Model (`0x13`) | 5 | 1 |
+| macOS name | `Paperlike253` — the black-and-white one on screen | `RTK FHD` |
+| EDID vendor / product | `0x1263` (DSC) / 0 black-and-white, `0x253C` Color | `0x4A8B` (RTK) / 447 |
+| Mode observed | 3840 × 2160, 40 Hz (black-and-white) | 3200 × 2400, 37 Hz |
+| CH340 port | `/dev/cu.usbserial-2115410`, via the dock — the Color's | `/dev/cu.usbserial-1120` |
+| MCU (`0x10`) | `0x30` (Color) | `0x31` |
+| Model (`0x13`) | 5 (Color) | 1 |
+
+The two 253 columns were first read as one monitor; see "The black-and-white
+253 unplugged" below.
 
 The 13K's video goes through a Realtek scaler that reports Realtek's generic
 EDID — year 2010, name `RTK FHD` despite 3200 × 2400. Nothing in it says
@@ -54,8 +57,9 @@ not the model: the client only tests `0x30`/`0x31` to append
 " [FrontLight]" to the name. `0x13` stays read-only.
 
 The model is what pairs a CH340 with a screen: 13K models with the Realtek
-EDID, the others with the DASUNG one. USB topology cannot do it — here the
-253's CH340 hangs off the CalDigit dock while its video takes another path.
+EDID, the 253 Color with DASUNG product `0x253C`, the other DASUNG models
+with any other DASUNG product. USB topology cannot do it — here the 253's
+CH340 hangs off the CalDigit dock while its video takes another path.
 
 The client also decodes the display-mode register (`0x02`) per model
 (`updateModeIndexFromValue:forDevice:`): values 2, 3 and 7 for the 13K
@@ -97,9 +101,29 @@ tests, which reads 100. Not verified on the 253.
 - A command acts on the Paperlike under the pointer, else on the only one,
   and is refused rather than guessed when several remain; `paperlike 13k …`
   names one. Checked with an unnamed `paperlike read 13`, the pointer warped
-  onto each screen: the 13K answered 1, the 253 answered 5, and from the
-  built-in panel the command was refused with `code: ambiguous`.
+  onto each screen: the 13K answered 1, and from the built-in panel the
+  command was refused with `code: ambiguous`. On the black-and-white 253's
+  screen it answered 5 — from the Color's link: the mispairing below.
 - The light mode restored by "light on" is remembered per model.
+
+### The black-and-white 253 unplugged: whose USB cable is on the dock
+
+With the 13K and the black-and-white 253 (product 0) on screen, the only 253
+CH340 answered model 5, PaperLike253(Color). When the black-and-white 253
+was unplugged, that link stayed up and kept answering, with only the 13K
+left on screen: the USB cable on the dock is the Revo Color's, whose own
+screen (product `0x253C`) was not connected. This agrees with "Two DASUNG
+monitors" below, where the client already named the one CH340
+`PaperLike253(Color)`.
+
+The first pairing was too loose: every 253 model matched any DASUNG EDID, so
+the black-and-white screen was paired with the Color's USB link, and a
+command aimed at that screen went to the other monitor. The Color is now
+paired only with product `0x253C`, the other DASUNG models only with other
+products. And from a screen that is not a Paperlike, a link whose screen is
+absent — its USB cable plugged in alone — is set aside, so a shortcut from
+the built-in panel reaches the one Paperlike actually on screen instead of
+being refused as ambiguous.
 
 ## Cause of the visual defect: gamma table crushed by BetterDisplay
 
