@@ -28,7 +28,12 @@ inner.horizontal = 8
 inner.vertical = 8
 outer.left = 0
 outer.bottom = 0
-outer.top = [{ monitor.'Built-in Retina Display' = 0 }, 32]
+# No top gap on any screen. The menu bar is auto-hidden (macos/desktop.sh), and
+# on the built-in display macOS keeps windows below the notch on its own (safe
+# area inset), so external screens keep their full height. When SketchyBar is
+# re-enabled (make sketchybar), restore room for its 32 px bar on externals:
+#   outer.top = [{ monitor.built-in = 0 }, 32]
+outer.top = 0
 outer.right = 0
 
 # Ensure Homebrew binaries are available in exec commands
