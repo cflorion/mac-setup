@@ -41,6 +41,9 @@ public struct HUDContent: Equatable {
             }
             return
         }
+        // The flash is its own feedback, and a panel drawn right after it would
+        // leave a fresh ghost on the area that was just cleared.
+        if reply["action"] as? String == "clear" { return nil }
         if reply["action"] as? String == "refresh" {
             let acknowledged = reply["delivery"] as? String == "acknowledged_by_device"
             self.init(symbol: "sparkles", title: "Ghost Cleanup", caption: acknowledged ? "Cleared" : "Cleanup sent", gauge: nil)

@@ -44,8 +44,8 @@ monitors. Only Mac sleep emits `willSleep`/`didWake`: the agent then suspends
 its timer, and `didWake` triggers an immediate cycle.
 
 A Swift agent with no icon in the Dock, Cmd-Tab or the menu bar, which never
-takes focus. Its only window is the HUD shown briefly after a
-shortcut, in control mode (see below). **By default it applies anti-dithering and observes the presence of the DASUNG
+takes focus. Its only windows are the HUD shown briefly after a
+shortcut and the full-screen flash of `clear` (see below). **By default it applies anti-dithering and observes the presence of the DASUNG
 and its USB link, without opening the port.** Control mode, which is separate, validates the
 MCU, keeps the connection alive, and serves the CLI and global shortcuts. USB
 control is not needed for anti-dithering: both modes apply it.
@@ -69,8 +69,9 @@ It is built natively for the Mac in use, with no external dependencies.
 Ad hoc signing is fine for this local use; it is not a signed and
 notarized distribution for other users.
 
-Default mode can coexist with the official client and reserves no
-shortcut; both write the same property with the same value.
+Default mode can coexist with the official client: both write the same
+property with the same value. It reserves a single shortcut,
+Ctrl+Opt+Cmd+C (`clear`, below), which needs no USB.
 `paperlike status` exposes `ditheringReasserts`, the number of times macOS
 re-enabled dithering and the agent removed it. After diagnostics and visual validation, `make paperlike-control`
 enables USB control at login. **The agent then takes exclusive hold of the CH340
@@ -83,6 +84,19 @@ This combination does not include Shift, so it does not replace Hyper+R.
 The agent uses `RegisterEventHotKey`: it does not listen to keystrokes and does not request
 Accessibility permission. A shortcut conflict is reported in
 `paperlike status` (`hotkeys[].registered: false`).
+
+### Clearing ghosting without USB
+
+`paperlike clear` (**Ctrl+Opt+Cmd+C**) covers the panel in black, then
+white, for 0.3 s each, then lets it redraw the desktop. Every pixel goes
+through its full range, an approximation of the monitor's own Ghost Cleanup.
+It is drawn by the Mac, so it needs **no USB link** and works in both modes:
+it is the only cleanup available for a Paperlike connected by HDMI alone.
+
+It clears the DASUNG display under the pointer; from any other display, every
+DASUNG display. No HUD follows it — the flash is its own feedback, and a panel
+drawn right after would leave a new ghost. `paperlike refresh` remains the
+monitor's own Ghost Cleanup, sent over USB.
 
 ### Display settings (control mode)
 
@@ -122,24 +136,26 @@ shortcut are merged into a single write.
 
 ### Keyboard shortcuts
 
-Active in control mode, on Control+Option+Command ("Meh", without Shift, so
-Hyper stays free). The arrows are chosen on purpose: their key codes do not change
+On Control+Option+Command ("Meh", without Shift, so Hyper stays free). All
+are active in control mode; default mode registers only `clear`, the one that
+needs no USB. The arrows are chosen on purpose: their key codes do not change
 from one layout to another, which a letter does not guarantee on AZERTY.
 
 | Shortcut | Action |
 | --- | --- |
-| `Ctrl+Opt+Cmd+R` | Ghost Cleanup |
+| `Ctrl+Opt+Cmd+R` | Ghost Cleanup, over USB |
+| `Ctrl+Opt+Cmd+C` | Clear by flashing the panel, no USB (both modes) |
 | `Ctrl+Opt+Cmd+L` | Turn the front light on / off |
 | `Ctrl+Opt+Cmd+↑ / ↓` | Front light brightness ±10 |
 | `Ctrl+Opt+Cmd+→ / ←` | Contrast ±1 |
 
-`L` is in the same position on AZERTY and QWERTY. `paperlike status` lists
+`R`, `L` and `C` are in the same position on AZERTY and QWERTY. `paperlike status` lists
 each shortcut with its registration state: otherwise, a shortcut already taken by another
 application fails silently.
 
 ### HUD
 
-After each shortcut, a small panel appears for 1.6 s at the top right of the
+After each shortcut but `clear`, a small panel appears for 1.6 s at the top right of the
 display under the pointer, like the macOS brightness one: setting,
 value (`40%`, `3 / 9`), a gauge with one segment per step, and **`Max` / `Min`**
 at the limit. It shows only the response of the command that just succeeded, with no
@@ -148,7 +164,7 @@ extra serial exchange.
 It is drawn for e-ink: opaque, black on white, with no shadow or animation
 — every frame of a fade would be one more partial refresh. On the
 panel, its appearance and disappearance still cost two small
-refreshes, and may leave ghosting that Ctrl+Opt+Cmd+R clears.
+refreshes, and may leave ghosting that Ctrl+Opt+Cmd+R or C clears.
 The panel is non-activating and ignores the mouse: focus stays on the current
 window. `"hud": false` in the configuration disables it.
 
@@ -175,7 +191,8 @@ errors appear in `paperlike status`.
 paperlike detect         # Display / USB presence, without opening the port
 paperlike status         # Connection, process, shortcut, latest responses
 paperlike query          # Read back MCU, contrast, mode and speed
-paperlike refresh        # Ghost Cleanup
+paperlike refresh        # Ghost Cleanup, over USB
+paperlike clear          # Flash black then white, no USB needed
 paperlike contrast 3     # Value from 1 to 9
 paperlike speed 4        # Value from 1 to 5
 ```

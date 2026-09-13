@@ -154,9 +154,15 @@ public enum Action: Equatable {
     case refresh
     case set(Setting, Adjustment)
     case light(Power)
+    // Ghost cleanup drawn by the host rather than asked of the monitor: the
+    // panel is flashed black then white, which drives every pixel through the
+    // full range. It needs no USB link, so it also serves a Paperlike plugged
+    // in by HDMI alone — which `refresh` cannot reach.
+    case clear
 
     public static func parse(_ args: [String]) throws -> Action {
         if args == ["refresh"] { return .refresh }
+        if args == ["clear"] { return .clear }
         if args.count == 2, args[0] == "light", let power = Power(rawValue: args[1]) { return .light(power) }
         guard args.count == 2, let setting = Setting.named(args[0]) else {
             throw PaperlikeError("Unknown command. See paperlike help.")
@@ -175,24 +181,31 @@ public enum Action: Equatable {
 
     public var register: UInt8? {
         switch self {
-        case .refresh: return nil
+        case .refresh, .clear: return nil
         case .set(let setting, _): return setting.command
         case .light: return Setting.named("light-mode")?.command
         }
     }
 
-    public func frame(value: Int) -> Frame {
+    // Nil for `clear`: it has no wire form, so it can never become a write.
+    public func frame(value: Int) -> Frame? {
         switch self {
         case .refresh: return Frame(0x03)
         case .set(let setting, _): return Frame(setting.command, UInt8(value))
         case .light: return Frame(register ?? 0x07, UInt8(value))
+        case .clear: return nil
         }
     }
+
+    // What observation mode keeps: it never opens the port, so only an action
+    // that does without it is worth a shortcut there.
+    public var needsUSB: Bool { self != .clear }
 
     // The command-line form, so a reply can name what it did.
     public var arguments: [String] {
         switch self {
         case .refresh: return ["refresh"]
+        case .clear: return ["clear"]
         case .set(let setting, .absolute(let value)): return [setting.name, String(value)]
         case .set(let setting, .relative(let delta)): return [setting.name, delta > 0 ? "+\(delta)" : String(delta)]
         case .light(let power): return ["light", power.rawValue]

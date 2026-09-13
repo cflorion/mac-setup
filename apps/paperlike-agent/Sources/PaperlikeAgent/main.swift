@@ -9,7 +9,9 @@ PaperlikeAgent — background controller for DASUNG e-ink displays
   paperlike query             Read back every known display setting
   paperlike read 09           Read a raw register, in hexadecimal
 
-  paperlike refresh           Clear ghosting (“Ghost Cleanup”)
+  paperlike refresh           Clear ghosting (“Ghost Cleanup”), over USB
+  paperlike clear             Clear ghosting by flashing the panel black then
+                              white; drawn by the Mac, no USB needed
   paperlike light on|off|toggle  Switch the front light on or off
 \(Setting.all.map { "  paperlike \($0.name.padding(toLength: 12, withPad: " ", startingAt: 0)) \($0.bounds.lowerBound)..\($0.bounds.upperBound)\(String(repeating: " ", count: max(0, 7 - "\($0.bounds.lowerBound)..\($0.bounds.upperBound)".count)))\($0.summary)" }.joined(separator: "\n"))
 
@@ -23,10 +25,11 @@ off, a positive value switches it on (“light +10” from off: 10%).
 
 The agent continuously removes macOS dithering from DASUNG outputs; that is
 its main job and it does not need the USB port.
-Settings and shortcuts: make paperlike-control (the agent then holds the
-CH340 port, and PaperLikeClient can no longer open it).
+Settings and their shortcuts: make paperlike-control (the agent then holds
+the CH340 port, and PaperLikeClient can no longer open it).
 
-Default shortcuts in control mode (Control+Option+Command):
+Default shortcuts (Control+Option+Command); without control mode, only
+clear is registered:
 \(Configuration.defaultHotkeys.map { "  \($0.0.padding(toLength: 20, withPad: " ", startingAt: 0)) \($0.1.joined(separator: " "))" }.joined(separator: "\n"))
 
 Optional customization, read at startup:
@@ -55,9 +58,10 @@ do {
         application.setActivationPolicy(.prohibited)
         let controlEnabled = args.contains("--control")
         let configuration = Configuration.load()
+        let bindings = configuration.activeHotkeys(controlEnabled: controlEnabled)
         // The HUD only ever reports a shortcut's result, so it exists only
         // where shortcuts do. Anti-dithering never depends on it.
-        let hud = controlEnabled && configuration.hud ? HUD() : nil
+        let hud = !bindings.isEmpty && configuration.hud ? HUD() : nil
         let agent = Agent(controlEnabled: controlEnabled, hudEnabled: hud != nil,
                           configurationProblems: configuration.problems)
         let socket = LocalSocket()
@@ -66,7 +70,7 @@ do {
         let sleep = center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: nil) { _ in agent.sleep(true) }
         let wake = center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: nil) { _ in agent.sleep(false) }
         agent.start()
-        let hotkey = controlEnabled ? HotKeyCenter(agent: agent, hud: hud, bindings: configuration.hotkeys) : nil
+        let hotkey = bindings.isEmpty ? nil : HotKeyCenter(agent: agent, hud: hud, bindings: bindings)
         withExtendedLifetime((agent, socket, sleep, wake, hotkey, hud)) { application.run() }
     } else if args == ["help"] || args == ["--help"] {
         print(help)

@@ -29,8 +29,10 @@ public struct Configuration {
     // free. Arrows are used for the adjustments because their key codes do not
     // move between keyboard layouts — on AZERTY a letter-based default would land
     // on a different physical key than the one printed in the documentation.
+    // R, L and C sit at the same place on AZERTY and QWERTY.
     public static let defaultHotkeys: [(String, [String])] = [
         ("ctrl+alt+cmd+r", ["refresh"]),
+        ("ctrl+alt+cmd+c", ["clear"]),
         ("ctrl+alt+cmd+l", ["light", "toggle"]),
         ("ctrl+alt+cmd+up", ["light", "+10"]),
         ("ctrl+alt+cmd+down", ["light", "-10"]),
@@ -56,6 +58,12 @@ public struct Configuration {
         } catch {
             return fallback(["\(path) unreadable, defaults applied: \(error)"])
         }
+    }
+
+    // Observation mode never opens the USB port, so a shortcut that needs it
+    // would only ever fail there; the ones that do without it stay.
+    public func activeHotkeys(controlEnabled: Bool) -> [HotKeyBinding] {
+        controlEnabled ? hotkeys : hotkeys.filter { !$0.parsed.needsUSB }
     }
 
     private static func fallback(_ problems: [String], hud: Bool = true) -> Configuration {

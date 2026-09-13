@@ -6,9 +6,9 @@ final class ProtocolTests: XCTestCase {
     func testPublishedWireCommands() throws {
         XCTAssertEqual(Frame(0x0a, 0x10).ascii, "5FF50A10000000000000A0FA")
         XCTAssertEqual(Frame(0x20, 1).ascii, "5FF52001000000000000A0FA")
-        XCTAssertEqual(try Action.parse(["refresh"]).frame(value: 0).ascii, "5FF50300000000000000A0FA")
-        XCTAssertEqual(try Action.parse(["contrast", "9"]).frame(value: 9).ascii, "5FF50109000000000000A0FA")
-        XCTAssertEqual(try Action.parse(["speed", "5"]).frame(value: 5).ascii, "5FF50405000000000000A0FA")
+        XCTAssertEqual(try Action.parse(["refresh"]).frame(value: 0)?.ascii, "5FF50300000000000000A0FA")
+        XCTAssertEqual(try Action.parse(["contrast", "9"]).frame(value: 9)?.ascii, "5FF50109000000000000A0FA")
+        XCTAssertEqual(try Action.parse(["speed", "5"]).frame(value: 5)?.ascii, "5FF50405000000000000A0FA")
     }
 
     func testParserSurvivesEveryUSBFragmentBoundary() {
@@ -162,8 +162,8 @@ final class SettingsTests: XCTestCase {
     }
 
     func testFramesCarryTheDocumentedCommandBytes() throws {
-        XCTAssertEqual(try Action.parse(["light", "20"]).frame(value: 20).ascii, "5FF50914000000000000A0FA")
-        XCTAssertEqual(try Action.parse(["text-enhance", "1"]).frame(value: 1).ascii, "5FF51201000000000000A0FA")
+        XCTAssertEqual(try Action.parse(["light", "20"]).frame(value: 20)?.ascii, "5FF50914000000000000A0FA")
+        XCTAssertEqual(try Action.parse(["text-enhance", "1"]).frame(value: 1)?.ascii, "5FF51201000000000000A0FA")
     }
 
     func testConfigurationRejectsUnusableBindingsAndKeepsWorkingOnes() throws {
@@ -214,7 +214,7 @@ final class LightAndShortcutTests: XCTestCase {
         XCTAssertEqual(try Action.parse(["light", "on"]), .light(.on))
         XCTAssertThrowsError(try Action.parse(["light", "maybe"]))
         XCTAssertThrowsError(try Action.parse(["light-mode", "toggle"]))
-        for args in [["refresh"], ["light", "off"], ["contrast", "+1"], ["light", "-10"], ["speed", "3"]] {
+        for args in [["refresh"], ["clear"], ["light", "off"], ["contrast", "+1"], ["light", "-10"], ["speed", "3"]] {
             XCTAssertEqual(try Action.parse(args).arguments, args)
         }
         XCTAssertEqual(Setting.named("light")?.requires?.code, "light-off")
@@ -244,6 +244,40 @@ final class LightAndShortcutTests: XCTestCase {
         XCTAssertNil(up.merged(with: .light(.toggle)))
         XCTAssertNil(try Action.parse(["light", "10"]).merged(with: up))
         XCTAssertFalse(up.isNoOp)
+    }
+}
+
+final class ScreenClearTests: XCTestCase {
+    // Clear is drawn by the Mac: nothing about it may ever reach the serial port.
+    func testClearHasNoWireFormAndNeedsNoUSB() throws {
+        let clear = try Action.parse(["clear"])
+        XCTAssertEqual(clear, .clear)
+        XCTAssertNil(clear.frame(value: 0))
+        XCTAssertNil(clear.register)
+        XCTAssertFalse(clear.needsUSB)
+        XCTAssertNil(clear.merged(with: clear))
+        XCTAssertThrowsError(try Action.parse(["clear", "1"]))
+        for args in [["refresh"], ["light", "toggle"], ["contrast", "+1"], ["speed", "3"]] {
+            XCTAssertTrue(try Action.parse(args).needsUSB, "\(args)")
+        }
+    }
+
+    func testClearTargetsThePanelUnderThePointerElseEveryPanel() {
+        XCTAssertEqual(ClearTarget.displays(dasung: [2, 5], pointer: 5), [5])
+        XCTAssertEqual(ClearTarget.displays(dasung: [2, 5], pointer: 1), [2, 5])
+        XCTAssertEqual(ClearTarget.displays(dasung: [2, 5], pointer: nil), [2, 5])
+        XCTAssertEqual(ClearTarget.displays(dasung: [], pointer: 1), [])
+    }
+
+    func testObservationModeKeepsOnlyTheShortcutsThatNeedNoUSB() {
+        let config = Configuration.load(from: "/nonexistent/paperlike.json")
+        XCTAssertEqual(config.activeHotkeys(controlEnabled: true).count, Configuration.defaultHotkeys.count)
+        XCTAssertEqual(config.activeHotkeys(controlEnabled: false).map(\.describedAction), ["clear"])
+    }
+
+    func testNoHUDFollowsASuccessfulClearButAFailureStillShows() {
+        XCTAssertNil(HUDContent(reply: ["ok": true, "action": "clear", "delivery": "drawn"]))
+        XCTAssertEqual(HUDContent(reply: ["ok": false, "action": "clear", "error": "…"])?.symbol, "exclamationmark.triangle")
     }
 }
 

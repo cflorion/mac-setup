@@ -43,6 +43,7 @@ final class Agent {
     }
     private let controlEnabled: Bool
     private let hudEnabled: Bool
+    private let screenClear = ScreenClear()
 
     private let configurationProblems: [String]
 
@@ -160,7 +161,10 @@ final class Agent {
     // carries what the HUD needs (setting, bounds, value), so feedback never
     // costs a serial exchange of its own.
     func perform(_ action: Action) -> [String: Any] {
-        queue.sync {
+        // Drawn on screen, not sent over USB: it runs in observation mode too,
+        // and off `queue`, so the flash never delays anti-dithering.
+        if action == .clear { return screenClear.run() }
+        return queue.sync {
             do {
                 guard controlEnabled else { throw Agent.observationOnly }
                 guard let serial else { throw PaperlikeError(message, code: "unavailable") }
@@ -172,8 +176,10 @@ final class Agent {
 
                 var response: [String: Any] = ["ok": true, "action": action.arguments.joined(separator: " ")]
                 switch action {
+                case .clear:
+                    break
                 case .refresh:
-                    let frame = action.frame(value: 0)
+                    guard let frame = action.frame(value: 0) else { break }
                     try serial.send(frame)
                     let replies = try serial.readFrames(timeout: 0.25) { $0.contains { $0.acknowledges(frame) } }
                     response["received"] = replies.map(\.ascii)

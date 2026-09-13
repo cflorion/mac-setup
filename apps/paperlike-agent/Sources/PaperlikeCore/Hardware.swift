@@ -11,6 +11,18 @@ public struct Display: Codable {
     public var isDasung: Bool { vendor == 0x1263 }
 }
 
+// The outputs a screen clear paints. The display under the pointer, as for the
+// HUD, when it is a DASUNG one: AeroSpace moves the pointer along with monitor
+// focus, so that is the panel being worked on. From any other display, every
+// DASUNG output — the shortcut was meant for e-ink, and guessing which panel
+// is not worth it.
+public enum ClearTarget {
+    public static func displays(dasung: [UInt32], pointer: UInt32?) -> [UInt32] {
+        if let pointer, dasung.contains(pointer) { return [pointer] }
+        return dasung
+    }
+}
+
 public struct SerialDevice: Codable, Equatable {
     public let path: String
     public let vendor: Int
