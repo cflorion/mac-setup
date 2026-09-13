@@ -13,6 +13,7 @@ PaperlikeAgent — background controller for DASUNG e-ink displays
   paperlike clear             Clear ghosting by flashing the panel black then
                               white; drawn by the Mac, no USB needed
   paperlike light on|off|toggle  Switch the front light on or off
+  paperlike 13k light on      Name the monitor first to aim at it
 \(Setting.all.map { "  paperlike \($0.name.padding(toLength: 12, withPad: " ", startingAt: 0)) \($0.bounds.lowerBound)..\($0.bounds.upperBound)\(String(repeating: " ", count: max(0, 7 - "\($0.bounds.lowerBound)..\($0.bounds.upperBound)".count)))\($0.summary)" }.joined(separator: "\n"))
 
 A signed value is relative: “paperlike light +10” goes up by ten.
@@ -23,8 +24,13 @@ Front-light brightness works like a brightness key: 0 switches the light
 off, a positive value switches it on (“light +10” from off: 10%).
 “paperlike light on” restores the last level; if that level is 0, 20.
 
-The agent continuously removes macOS dithering from DASUNG outputs; that is
-its main job and it does not need the USB port.
+With several Paperlike monitors under USB control, a command acts on the one
+under the pointer, or on the one named first: \(Model.allCases.flatMap(\.names).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }.joined(separator: ", ")).
+From another screen, a command without a name is refused rather than guessed.
+
+The agent continuously removes macOS dithering from Paperlike outputs (the
+253's DASUNG EDID and the 13K's Realtek one); that is its main job and it
+does not need the USB port.
 Settings and their shortcuts: make paperlike-control (the agent then holds
 the CH340 port, and PaperLikeClient can no longer open it).
 
@@ -78,8 +84,9 @@ do {
         let data = try JSONEncoder().encode(Inventory.capture())
         try output(JSONSerialization.jsonObject(with: data))
     } else {
-        let passthrough = args == ["status"] || args == ["query"] || (args.count == 2 && args[0] == "read")
-        if !passthrough { _ = try Action.parse(args) }
+        let request = Request(args).arguments
+        let passthrough = request == ["status"] || request == ["query"] || (request.count == 2 && request[0] == "read")
+        if !passthrough { _ = try Action.parse(request) }
         let reply = try LocalSocket.request(args)
         try output(reply)
         if reply["ok"] as? Bool != true { exit(1) }

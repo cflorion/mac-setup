@@ -15,7 +15,7 @@ final class HotKeyCenter {
     private let hud: HUD?
     // Main thread only. One exchange runs at a time; presses that arrive
     // meanwhile wait here, where consecutive relative moves merge.
-    private var pending: [(keys: String, action: Action)] = []
+    private var pending: [(keys: String, monitor: String?, action: Action)] = []
     private var running = false
 
     init(agent: Agent, hud: HUD?, bindings: [HotKeyBinding]) {
@@ -54,23 +54,24 @@ final class HotKeyCenter {
     }
 
     private func press(_ binding: HotKeyBinding) {
-        if let last = pending.last, let merged = last.action.merged(with: binding.parsed) {
+        if let last = pending.last, last.monitor == binding.monitor,
+           let merged = last.action.merged(with: binding.parsed) {
             pending.removeLast()
-            if !merged.isNoOp { pending.append((binding.keys, merged)) }
+            if !merged.isNoOp { pending.append((binding.keys, binding.monitor, merged)) }
         } else {
-            pending.append((binding.keys, binding.parsed))
+            pending.append((binding.keys, binding.monitor, binding.parsed))
         }
         runNext()
     }
 
     private func runNext() {
         guard !running, !pending.isEmpty else { return }
-        let (keys, action) = pending.removeFirst()
+        let (keys, monitor, action) = pending.removeFirst()
         running = true
         // The serial exchange runs off the main run loop, which stays free for
         // the next press and for drawing the HUD.
         DispatchQueue.global(qos: .userInitiated).async { [self] in
-            let reply = agent.perform(action)
+            let reply = agent.perform(action, monitor: monitor)
             agent.recordShortcutResult(keys, reply)
             DispatchQueue.main.async { [self] in
                 running = false

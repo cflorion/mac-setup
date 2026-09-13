@@ -3,7 +3,7 @@
 **Main job: remove macOS dithering on the e-ink panel.** macOS
 enables `enableDither` on every framebuffer; on e-ink this shows up as
 grain, blotches and a dark image. The agent resets this property to `false`
-on DASUNG outputs only, on every two-second cycle, because macOS
+on Paperlike outputs only, on every two-second cycle, because macOS
 restores it on reconnect, wake or mode change. This is
 exactly what the official client does with its `disableDitheringTimer` — and
 why closing its window with the close button brought the defect back.
@@ -13,11 +13,13 @@ write on the framebuffer and never touches the USB port. The built-in
 panel is deliberately excluded: removing dithering there would cause banding.
 Mechanism, evidence and measurements: [RESEARCH.md](RESEARCH.md).
 
-**Multiple DASUNG monitors.** Every output whose EDID manufacturer is
-`0x1263` is handled, each independently: a black-and-white Paperlike and
-a Revo Color plugged in together are covered with no configuration. Do not
-identify them by their `ProductName`, which is identical on both; use
-`SerialNumber` and `YearOfManufacture`.
+**Multiple Paperlike monitors.** Every Paperlike output is handled, each
+independently: the 253s by their DASUNG EDID (`0x1263`), the 13K by its
+scaler's Realtek EDID (`RTK FHD`, vendor `0x4A8B`, product 447 — matched on
+both, never on the Realtek vendor alone). A black-and-white 253, a Revo
+Color and a 13K plugged in together are covered with no configuration. Do
+not identify two 253s by their `ProductName`, which is identical on both;
+use `SerialNumber` and `YearOfManufacture`.
 
 **Hotplug.** The agent subscribes to
 `CGDisplayRegisterReconfigurationCallback` and re-applies anti-dithering as soon as
@@ -50,8 +52,10 @@ and its USB link, without opening the port.** Control mode, which is separate, v
 MCU, keeps the connection alive, and serves the CLI and global shortcuts. USB
 control is not needed for anti-dithering: both modes apply it.
 
-The hardware observed on this Mac is named **Paperlike253** by macOS: Color,
-3200 × 1800, MCU `0x30`, CH340 interface `1a86:7523`. The POC does not
+The hardware observed on this Mac: a **Paperlike 253 Color** (macOS name
+`Paperlike253`, MCU `0x30`) and a **Paperlike 13K Color** (macOS name
+`RTK FHD`, 3200 × 2400, MCU `0x31`), each with its own CH340 `1a86:7523`.
+Both speak the same protocol and expose the same settings. The POC does not
 validate every DASUNG model. See [RESEARCH.md](RESEARCH.md).
 
 ## Installation and commands
@@ -93,10 +97,37 @@ through its full range, an approximation of the monitor's own Ghost Cleanup.
 It is drawn by the Mac, so it needs **no USB link** and works in both modes:
 it is the only cleanup available for a Paperlike connected by HDMI alone.
 
-It clears the DASUNG display under the pointer; from any other display, every
-DASUNG display. No HUD follows it — the flash is its own feedback, and a panel
-drawn right after would leave a new ghost. `paperlike refresh` remains the
-monitor's own Ghost Cleanup, sent over USB.
+It clears the Paperlike under the pointer; from any other display, every
+Paperlike (`paperlike 13k clear` narrows it to one). No HUD follows it — the
+flash is its own feedback, and a panel drawn right after would leave a new
+ghost. `paperlike refresh` remains the monitor's own Ghost Cleanup, sent
+over USB.
+
+### Several Paperlike monitors
+
+Each Paperlike with its USB cable gets its own CH340 port, and the agent
+drives all of them at once. A port becomes a link only after answering a
+supported MCU; register `0x13` then gives the model (the official client's
+table: 1 13K Color, 2 13K, 3 103, 4 253, 5 253 Color). The model is what
+pairs a port with its screen — 13K ↔ Realtek EDID, the others ↔ DASUNG
+EDID — since USB and video take separate paths through a dock.
+
+A command or shortcut acts on **the Paperlike under the pointer**, as `clear`
+and the HUD do (AeroSpace moves the pointer with monitor focus). From
+another screen it acts on the only Paperlike under control; with several, it
+is refused — the HUD says "Point at the one to adjust" — rather than
+guessed. Naming the monitor first overrides the pointer:
+
+```sh
+paperlike 13k light on
+paperlike 253 contrast +1
+paperlike 13k query      # MCU, model and every setting of that monitor
+```
+
+Accepted names: `13k`, `253`, `103`, and `13k-color`, `13k-bw`,
+`253-color`, `253-bw` when two of one family are connected. A shortcut can
+name its monitor too: `{"keys": "ctrl+alt+cmd+1", "action": ["13k", "light", "toggle"]}`.
+The light mode restored by "light on" is remembered per monitor.
 
 ### Display settings (control mode)
 
@@ -128,6 +159,10 @@ turning it on briefly passes through the last stored level first.
 agent restarts; to choose one, run `paperlike light-mode 1..3`
 once. If brightness is 0 at that point, it is raised to 20 so that
 turning the light on is visible.
+
+The light mode is a temperature preset: writing mode 1 reads back a
+temperature of 100, and writing any temperature switches the light to mode 3,
+the custom one (observed on the 13K).
 
 A setting takes about 0.1 s: read, write, read-back; turning the light on or
 off takes a little longer, because the monitor ignores a read-back sent right
@@ -190,7 +225,7 @@ errors appear in `paperlike status`.
 ```sh
 paperlike detect         # Display / USB presence, without opening the port
 paperlike status         # Connection, process, shortcut, latest responses
-paperlike query          # Read back MCU, contrast, mode and speed
+paperlike query          # Read back the MCU, the model and every setting
 paperlike refresh        # Ghost Cleanup, over USB
 paperlike clear          # Flash black then white, no USB needed
 paperlike contrast 3     # Value from 1 to 9
@@ -252,22 +287,26 @@ reopened manually. No uninstallation of the DASUNG client is needed.
 
 - A detected video display does not prove the USB control link. The cable must
   also carry USB data; HDMI alone is not enough.
-- Conservative selection: DASUNG EDID `0x1263`, a single CH340 `1a86:7523`, then a
-  recognized MCU response. This VID/PID is generic; if other CH340s are present,
-  the POC refuses to choose. It does not scan other serial ports.
+- Selection: a Paperlike on screen, then every CH340 `1a86:7523`, each asked
+  for its MCU — a read that changes nothing — and kept only on a recognized
+  reply. This VID/PID is generic: a CH340 that is not a Paperlike only ever
+  receives that read, repeated every 10 s, never a setting. Other serial
+  ports are not scanned.
 - Reconnection every two seconds, port closed during sleep,
   re-identification on wake. Sleep/wake, physical unplugging
-  and real login tests are still to be done.
+  and real login tests are still to be done — including unplugging one of two
+  monitors while the other stays under control; the links were only ever
+  recreated together, by restarting the agent.
 - Serial operations are serialized and time-bounded; a read
   returns as soon as its response arrives, the timeout only applies on failure.
   Fragmented or coalesced USB responses are reassembled. A write followed by a
   missing response is reported as unconfirmed, never as a success.
 - Every setting the official client drives is exposed; the real-time clock
-  (`0x05`) and the unidentified `0x13` are never writable, which a test enforces.
-  Beyond `enableDither` on DASUNG outputs, the POC does not modify any global
-  macOS graphics setting.
+  (`0x05`) and the model identifier (`0x13`) are never writable, which a test
+  enforces. Beyond `enableDither` on Paperlike outputs, the POC does not modify
+  any global macOS graphics setting.
 - Before the Mac message `0x20/1`, the POC checks that `enableDither` is indeed `No`
-  for the observed DASUNG outputs. If this state is missing or enabled, it refuses
+  for every observed Paperlike output. If this state is missing or enabled, it refuses
   to send. This check corrects an assumption from the first attempt; on its own it does not
   demonstrate the cause of the reported display problem.
 - Shortcuts are redefined in `~/.config/paperlike/config.json`, read again

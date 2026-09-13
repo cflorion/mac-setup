@@ -9,6 +9,9 @@ import Foundation
 public struct HotKeyBinding: Equatable {
     public let keys: String
     public let action: [String]
+    // A binding may name its monitor (`["13k", "light", "toggle"]`); without
+    // one it acts on the Paperlike under the pointer.
+    public let monitor: String?
     public let parsed: Action
     public let keyCode: UInt32
     public let modifiers: UInt32
@@ -72,7 +75,8 @@ public struct Configuration {
     }
 
     public static func binding(keys: String, action: [String]) throws -> HotKeyBinding {
-        guard let parsed = try? Action.parse(action) else {
+        let request = Request(action)
+        guard let parsed = try? Action.parse(request.arguments) else {
             throw PaperlikeError("unknown action “\(action.joined(separator: " "))”")
         }
         var modifiers: UInt32 = 0
@@ -92,7 +96,8 @@ public struct Configuration {
         }
         guard let code else { throw PaperlikeError("no key in “\(keys)”") }
         guard modifiers != 0 else { throw PaperlikeError("“\(keys)” has no modifier") }
-        return HotKeyBinding(keys: keys, action: action, parsed: parsed, keyCode: code, modifiers: modifiers)
+        return HotKeyBinding(keys: keys, action: action, monitor: request.monitor, parsed: parsed,
+                             keyCode: code, modifiers: modifiers)
     }
 
     private struct File: Decodable {

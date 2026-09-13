@@ -1,5 +1,106 @@
 # Research and evidence — September 12, 2026
 
+## Paperlike 13K: a second monitor, same protocol — September 13, 2026
+
+A Paperlike 13K Color was added, over USB-C. Plugging it in cost **both**
+monitors their USB control: a second CH340 appeared, and the agent refused
+any selection as soon as there was more than one (see "Two DASUNG monitors"
+below, whose single-adapter observation no longer holds).
+
+### What macOS sees
+
+| | 253 Color | 13K Color |
+| --- | --- | --- |
+| macOS name | `Paperlike253` | `RTK FHD` |
+| EDID vendor / product | `0x1263` (DSC) / 0 | `0x4A8B` (RTK) / 447 |
+| Mode observed | 3840 × 2160, 40 Hz | 3200 × 2400, 37 Hz |
+| CH340 port | `/dev/cu.usbserial-2115410`, via the dock | `/dev/cu.usbserial-1120` |
+| MCU (`0x10`) | `0x30` | `0x31` |
+| Model (`0x13`) | 5 | 1 |
+
+The 13K's video goes through a Realtek scaler that reports Realtek's generic
+EDID — year 2010, name `RTK FHD` despite 3200 × 2400. Nothing in it says
+DASUNG, so the 13K was invisible to anti-dithering, `clear` and the gamma
+report, which all matched `0x1263`. It is now matched on vendor **and**
+product (`0x4A8B`/447): the vendor alone would catch any monitor built on
+that scaler family. Its framebuffer read `enableDither = No` when it was
+plugged in; the agent now watches it like the others. The reassert path
+itself has not been observed on the 13K: `ditheringReasserts` stayed at 0
+during the session, so macOS never re-enabled dithering there to be undone.
+
+Besides its CH340 (`1a86:7523`), the 13K's USB hub carries a CH341
+(`1a86:5512`, "USB UART-LPT") and a WCH touch controller (`1a86:e5e3`,
+"USB2IIC_CTP_CONTROL"). The agent uses neither.
+
+### Register 0x13 is the model
+
+It was recorded below as "unidentified". The client's reply dispatcher
+stores it with `setDisplayVersionMode:`, and `DeviceDisplayNameForMode`
+indexes a table of names by that value minus one (table at `0x100034248`; a
+parallel one at `0x100034220` holds the Chinese names, picked by a language
+flag):
+
+| `0x13` | Client's name |
+| --- | --- |
+| 1 | PaperLike133K(Color) |
+| 2 | PaperLike133K(B&W) |
+| 3 | PaperLike103 |
+| 4 | PaperLike253(B&W) |
+| 5 | PaperLike253(Color) |
+| other | PaperLike(Model%d) |
+
+The observations match: 1 on the 13K Color, 5 on the 253 Color. The MCU is
+not the model: the client only tests `0x30`/`0x31` to append
+" [FrontLight]" to the name. `0x13` stays read-only.
+
+The model is what pairs a CH340 with a screen: 13K models with the Realtek
+EDID, the others with the DASUNG one. USB topology cannot do it — here the
+253's CH340 hangs off the CalDigit dock while its video takes another path.
+
+The client also decodes the display-mode register (`0x02`) per model
+(`updateModeIndexFromValue:forDevice:`): values 2, 3 and 7 for the 13K
+models, 2 to 5 for the 253 models. The agent's `mode` bounds (1–2) predate
+this and were not revisited — an open item; read-back keeps every write
+honest.
+
+### Everything works on the 13K
+
+Written, read back, then restored on the 13K: light off → on (level 30
+restored), brightness 30 → 40 → 30, contrast 1 → 2 → 1, temperature, Ghost
+Cleanup (`0x03`, acknowledged), and the flash `clear` on its screen alone.
+
+### Front light: the mode is a temperature preset
+
+On the 13K, the light mode and the temperature are one state:
+
+| Write | Reads back |
+| --- | --- |
+| `light-mode 1` | mode 1, temperature **100** |
+| `light-temp 70` | mode **3**, temperature 70 |
+
+Modes 1 and 2 are presets that set the temperature themselves; 3 is the
+custom temperature, which any temperature write selects. The client's
+`updateViewFrontLightModeDisplay:` likewise singles out mode 3 when enabling
+its controls. Consequence: the state read before any test — mode 1 with
+temperature 70 — cannot be produced over USB; the 70 was presumably left over
+from an earlier custom setting. The 13K was put back in mode 1 after the
+tests, which reads 100. Not verified on the 253.
+
+### Several monitors in the agent
+
+- Once a Paperlike is on screen, every CH340 is asked for its MCU — a read,
+  never a setting — and each port answering a supported MCU becomes a link,
+  kept alive and health-checked on its own. A port that does not answer is
+  asked again every 10 s rather than on every tick.
+- The `0x20` frame is still gated on `enableDither = No` on **every**
+  Paperlike output, the 13K included.
+- A command acts on the Paperlike under the pointer, else on the only one,
+  and is refused rather than guessed when several remain; `paperlike 13k …`
+  names one. Checked with an unnamed `paperlike read 13`, the pointer warped
+  onto each screen: the 13K answered 1, the 253 answered 5, and from the
+  built-in panel the command was refused with `code: ambiguous`.
+- The light mode restored by "light on" is remembered per model.
+
 ## Cause of the visual defect: gamma table crushed by BetterDisplay
 
 **Two mistaken attributions preceded this one in this file. They are recorded
@@ -150,13 +251,14 @@ The serial number and the year reliably separate the two; the
 DASUNG monitor by its `ProductName`.
 
 Consequence for the code: anti-dithering iterates over **all** outputs whose
-EDID manufacturer is `0x1263` and writes each one. Two monitors are therefore
-covered with no special handling, and the disappearance of one does not affect
-the other — `withDasungFramebuffers` keeps no state between two calls.
+EDID manufacturer is `0x1263` (and, since the 13K, its Realtek EDID) and
+writes each one. Two monitors are therefore covered with no special handling,
+and the disappearance of one does not affect the other —
+`withPaperlikeFramebuffers` keeps no state between two calls.
 
-Only one CH340 adapter is present (`/dev/cu.usbserial-2115410`): only one of
-the two monitors has its USB control cable connected. `selectedDevice()`
-refuses any ambiguous selection if a second one appears.
+At the time, only one CH340 adapter was present (`/dev/cu.usbserial-2115410`),
+and the agent refused any selection if a second one appeared. That refusal
+was lifted when the 13K arrived — see its section above.
 
 ### Black display: resolved by Ghost Cleanup
 
@@ -245,11 +347,11 @@ immediately precedes the byte it sends, with no inference.
 | `0x0A` | `requestUpdateViewInfo:` | read prefix | — | — |
 | `0x10` | — | MCU | — | 48 (`0x30`) |
 | `0x12` | `updateTextEnhancementInfo:` | Text Enhancement | 0–1 | 1 |
-| `0x13` | — | **unidentified** — not exposed | — | 5 |
+| `0x13` | `setDisplayVersionMode:` | **Model** — read-only, see the 13K section | — | 5 (253 Color) |
 | `0x20` | `updateDitheringInfo:` | dithering state | — | no response |
 
 `0x05` and `0x13` are not exposed for writing: the first is a clock, the second
-remains unknown. A test enforces this (`testEverySettingIsUniquelyNamedAndCommanded`).
+the model identifier. A test enforces this (`testEverySettingIsUniquelyNamedAndCommanded`).
 
 **Dependency discovered:** `0x09` (front light brightness) is silently ignored
 as long as `0x07` is 0. The monitor then keeps the old value without reporting

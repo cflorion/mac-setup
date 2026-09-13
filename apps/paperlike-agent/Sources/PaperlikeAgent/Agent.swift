@@ -10,18 +10,31 @@ private let reconfigurationCallback: CGDisplayReconfigurationCallBack = { _, fla
     Unmanaged<Agent>.fromOpaque(userInfo).takeUnretainedValue().displayReconfigured()
 }
 
+// One Paperlike under USB control. Owned by the agent's queue; dropping it
+// closes the port.
+private final class Link {
+    let serial: SerialPort
+    let monitor: Monitor
+    var lastHealthCheck = ProcessInfo.processInfo.systemUptime
+    init(serial: SerialPort, monitor: Monitor) { self.serial = serial; self.monitor = monitor }
+}
+
 final class Agent {
     let queue = DispatchQueue(label: "com.user.paperlike-agent.hardware", qos: .utility)
     private let logger = Logger(subsystem: "com.user.paperlike-agent", category: "connection")
     private var timer: DispatchSourceTimer?
-    private var serial: SerialPort?
-    private var selectedPath: String?
+    // Every Paperlike under USB control, by port path. Each one is identified
+    // and kept alive on its own: a monitor unplugged or silent never costs the
+    // other one its link.
+    private var links: [String: Link] = [:]
+    // Ports that failed identification, and when to ask again. A CH340 that is
+    // not a Paperlike is asked for its MCU every `probeRetry` seconds, not on
+    // every tick.
+    private var probeFailures: [String: (retryAt: TimeInterval, reason: String)] = [:]
     private var inventory: Inventory?
-    private var firmware: UInt8?
     private var state = "starting"
     private var message = "Starting."
     private var sleeping = false
-    private var lastHealthCheck = 0.0
     private var lastKeepalive: String?
     private var lastReply: String?
     private let started = Date()
@@ -35,11 +48,11 @@ final class Agent {
     private var shortcuts: [[String: Any]] = []
     private var lastShortcutResult: [String: Any]?
     // Light modes 1–3 belong to the panel; switching back on restores whichever
-    // was last in use. It survives restarts — every reinstall restarts the
-    // agent — and falls back to 1 only before any mode has ever been seen.
-    private var lastLightMode = (1...3).contains(UserDefaults.standard.integer(forKey: "lastLightMode"))
-        ? UserDefaults.standard.integer(forKey: "lastLightMode") : 1 {
-        didSet { UserDefaults.standard.set(lastLightMode, forKey: "lastLightMode") }
+    // was last in use on that monitor. Kept per model, since two monitors do
+    // not share a mode, and across restarts, since every reinstall restarts
+    // the agent. Falls back to 1 before any mode has been seen.
+    private var lastLightModes = UserDefaults.standard.dictionary(forKey: "lastLightModes") as? [String: Int] ?? [:] {
+        didSet { UserDefaults.standard.set(lastLightModes, forKey: "lastLightModes") }
     }
     private let controlEnabled: Bool
     private let hudEnabled: Bool
@@ -55,6 +68,7 @@ final class Agent {
     // The level used when the light is switched on while its brightness
     // register reads zero; see `switchLight`.
     private static let initialBrightness = 20
+    private static let probeRetry = 10.0
 
     init(controlEnabled: Bool, hudEnabled: Bool = false, configurationProblems: [String] = []) {
         self.controlEnabled = controlEnabled
@@ -100,8 +114,8 @@ final class Agent {
 
     // macOS may set `enableDither` slightly after the reconfiguration ends, so
     // one write on the event is not enough. The schedule is fixed and bounded;
-    // repeated writes cost nothing because `disableOnDasung` skips any output
-    // already at false.
+    // repeated writes cost nothing because `disableOnPaperlike` skips any
+    // output already at false.
     private static let reapplyDelays: [Double] = [0, 0.15, 0.4, 1.0]
 
     // Called from the main run loop: every access to agent state has to hop
@@ -119,38 +133,39 @@ final class Agent {
     func sleep(_ value: Bool) {
         queue.async {
             self.sleeping = value
-            if value { self.disconnect(); self.transition("sleeping", "Mac asleep.") }
+            if value { self.links.removeAll(); self.transition("sleeping", "Mac asleep.") }
             else { self.tick() }
         }
     }
 
     func request(_ args: [String]) -> [String: Any] {
-        let diagnostic = args == ["status"] || args == ["query"] || (args.count == 2 && args[0] == "read")
+        let request = Request(args)
+        let arguments = request.arguments
+        if arguments == ["status"] { return queue.sync { status() } }
+        let diagnostic = arguments == ["query"] || (arguments.count == 2 && arguments[0] == "read")
         guard diagnostic else {
-            do { return perform(try Action.parse(args)) } catch { return Agent.failure(error) }
+            do { return perform(try Action.parse(arguments), monitor: request.monitor) } catch { return Agent.failure(error) }
         }
         return queue.sync {
             do {
-                if args == ["status"] { return status() }
                 guard controlEnabled else { throw Agent.observationOnly }
-                if args.count == 2, args[0] == "read" {
+                let link = try target(request.monitor)
+                let serial = link.serial
+                if arguments.count == 2 {
                     // Diagnostic: 0x0A + register is a non-destructive read, so an
                     // arbitrary register is safe to expose. Writing is not.
-                    guard let register = UInt8(args[1].replacingOccurrences(of: "0x", with: ""), radix: 16) else {
+                    guard let register = UInt8(arguments[1].replacingOccurrences(of: "0x", with: ""), radix: 16) else {
                         throw PaperlikeError("Expected a hexadecimal register, for example: paperlike read 09.")
                     }
-                    guard let serial else { throw PaperlikeError(message) }
                     try sendMacStatus(serial)
-                    return ["ok": true, "register": String(format: "0x%02X", register),
+                    return ["ok": true, "monitor": link.monitor.name, "register": String(format: "0x%02X", register),
                             "value": Int(try serial.query(register))]
                 }
-                guard let serial else { throw PaperlikeError(message) }
                 try sendMacStatus(serial)
-                var registers: [String: Int] = [:]
-                for (name, register) in [("firmware", UInt8(0x10)), ("contrast", 0x01), ("mode", 0x02), ("speed", 0x04)] {
-                    registers[name] = Int(try serial.query(register))
-                }
-                return ["ok": true, "registers": registers, "received": serial.lastFrames]
+                var registers = ["firmware": Int(try serial.query(0x10)), "model": Int(try serial.query(Model.register))]
+                for setting in Setting.all { registers[setting.name] = Int(try serial.query(setting.command)) }
+                return ["ok": true, "monitor": link.monitor.name, "port": link.monitor.path,
+                        "registers": registers, "received": serial.lastFrames]
             } catch {
                 return Agent.failure(error)
             }
@@ -160,21 +175,23 @@ final class Agent {
     // Every setting command, from the command line or a shortcut. The reply
     // carries what the HUD needs (setting, bounds, value), so feedback never
     // costs a serial exchange of its own.
-    func perform(_ action: Action) -> [String: Any] {
+    func perform(_ action: Action, monitor name: String? = nil) -> [String: Any] {
         // Drawn on screen, not sent over USB: it runs in observation mode too,
         // and off `queue`, so the flash never delays anti-dithering.
-        if action == .clear { return screenClear.run() }
+        if action == .clear { return screenClear.run(monitor: name) }
         return queue.sync {
             do {
                 guard controlEnabled else { throw Agent.observationOnly }
-                guard let serial else { throw PaperlikeError(message, code: "unavailable") }
+                let link = try target(name)
+                let serial = link.serial
                 let wait = lastAction + Agent.minimumSpacing - ProcessInfo.processInfo.systemUptime
                 if wait > 0 { Thread.sleep(forTimeInterval: wait) }
                 defer { lastAction = ProcessInfo.processInfo.systemUptime }
                 try sendMacStatus(serial)
                 _ = try serial.readFrames(timeout: 0.02)
 
-                var response: [String: Any] = ["ok": true, "action": action.arguments.joined(separator: " ")]
+                var response: [String: Any] = ["ok": true, "action": action.arguments.joined(separator: " "),
+                                               "monitor": link.monitor.name]
                 switch action {
                 case .clear:
                     break
@@ -187,9 +204,9 @@ final class Agent {
                         ? "acknowledged_by_device" : "sent"
                     response["note"] = "The visual effect of the cleanup can only be checked on the panel."
                 case .set(let setting, let adjustment):
-                    try set(setting, adjustment, on: serial, into: &response)
+                    try set(setting, adjustment, on: link, into: &response)
                 case .light(let power):
-                    try switchLight(power, on: serial, into: &response)
+                    try switchLight(power, on: link, into: &response)
                 }
                 lastReply = ISO8601DateFormatter().string(from: Date())
                 return response
@@ -199,11 +216,23 @@ final class Agent {
         }
     }
 
-    private func set(_ setting: Setting, _ adjustment: Adjustment, on serial: SerialPort,
+    // The monitor a command acts on — see Targeting. On `queue`; the display
+    // under the pointer is read through CoreGraphics, with no hop to the main
+    // thread.
+    private func target(_ name: String?) throws -> Link {
+        guard !links.isEmpty else { throw PaperlikeError(message, code: "unavailable") }
+        let monitors = links.values.map(\.monitor).sorted { $0.path < $1.path }
+        let chosen = try Targeting.choose(monitors, named: name, pointer: name == nil ? Display.underPointer() : nil)
+        guard let link = links[chosen.path] else { throw PaperlikeError(message, code: "unavailable") }
+        return link
+    }
+
+    private func set(_ setting: Setting, _ adjustment: Adjustment, on link: Link,
                      into response: inout [String: Any]) throws {
+        let serial = link.serial
         response["setting"] = setting.name
         response["bounds"] = [setting.bounds.lowerBound, setting.bounds.upperBound]
-        if setting.name == "light" { return try adjustLight(setting, adjustment, on: serial, into: &response) }
+        if setting.name == "light" { return try adjustLight(setting, adjustment, on: link, into: &response) }
         if let requirement = setting.requires, try serial.query(requirement.command) == 0 {
             throw PaperlikeError("\(setting.name) cannot be set: \(requirement.explanation).", code: requirement.code)
         }
@@ -224,17 +253,18 @@ final class Agent {
         response["delivery"] = "confirmed_by_readback"
         response["value"] = target
         // `paperlike light-mode 3` is how a mode is chosen for the toggle.
-        if setting.name == "light-mode", target != 0 { lastLightMode = target }
+        if setting.name == "light-mode" { rememberLightMode(target, of: link.monitor) }
     }
 
     // Brightness as one level where 0 means off — see FrontLight. Switching
     // off leaves the brightness register alone, so the toggle brings the last
     // level back.
-    private func adjustLight(_ light: Setting, _ adjustment: Adjustment, on serial: SerialPort,
+    private func adjustLight(_ light: Setting, _ adjustment: Adjustment, on link: Link,
                              into response: inout [String: Any]) throws {
         guard let mode = Setting.named("light-mode") else { return }
+        let serial = link.serial
         let current = Int(try serial.query(mode.command))
-        if current != 0 { lastLightMode = current }
+        rememberLightMode(current, of: link.monitor)
         let level = current != 0 ? Int(try serial.query(light.command)) : 0
         response["from"] = level
         var received: [String] = []
@@ -250,7 +280,7 @@ final class Agent {
             received += try write(light, value, on: serial)
             response["value"] = value
         case .switchOn(let value):
-            received += try write(mode, lastLightMode, on: serial)
+            received += try write(mode, lastLightMode(of: link.monitor), on: serial)
             received += try write(light, value, on: serial)
             response["value"] = value
             response["power"] = "on"
@@ -263,10 +293,11 @@ final class Agent {
     // switching back on normally restores the previous level. Only a level of
     // zero is raised: a light switched "on" at zero changes nothing on the
     // panel, which reads as a broken shortcut.
-    private func switchLight(_ power: Power, on serial: SerialPort, into response: inout [String: Any]) throws {
+    private func switchLight(_ power: Power, on link: Link, into response: inout [String: Any]) throws {
         guard let mode = Setting.named("light-mode"), let light = Setting.named("light") else { return }
+        let serial = link.serial
         let current = Int(try serial.query(mode.command))
-        if current != 0 { lastLightMode = current }
+        rememberLightMode(current, of: link.monitor)
         let on = power == .toggle ? current == 0 : power == .on
         response["setting"] = light.name
         response["bounds"] = [light.bounds.lowerBound, light.bounds.upperBound]
@@ -277,7 +308,7 @@ final class Agent {
             return
         }
         var received: [String] = []
-        if current == 0 { received += try write(mode, lastLightMode, on: serial) }
+        if current == 0 { received += try write(mode, lastLightMode(of: link.monitor), on: serial) }
         var level = Int(try serial.query(light.command))
         if level == 0 {
             received += try write(light, Agent.initialBrightness, on: serial)
@@ -286,6 +317,17 @@ final class Agent {
         response["received"] = received
         response["value"] = level
         response["delivery"] = current == 0 || !received.isEmpty ? "confirmed_by_readback" : "unchanged"
+    }
+
+    private func lastLightMode(of monitor: Monitor) -> Int {
+        let mode = lastLightModes[monitor.key] ?? 1
+        return (1...3).contains(mode) ? mode : 1
+    }
+
+    // Only a lit mode is remembered: 0 is "off", not a mode to restore.
+    private func rememberLightMode(_ mode: Int, of monitor: Monitor) {
+        guard (1...3).contains(mode), lastLightModes[monitor.key] != mode else { return }
+        lastLightModes[monitor.key] = mode
     }
 
     // Read-back is the contract for every write: the vendor client
@@ -317,41 +359,73 @@ final class Agent {
         // property write on the framebuffer and never touches the USB port.
         enforceDithering()
         reportGamma()
-        do {
-            guard controlEnabled else {
-                transition(current.displays.contains(where: \.isDasung) ? "detected" : "waiting",
-                           "Anti-dithering applied; USB control disabled.")
-                return
-            }
-            let device = try current.selectedDevice()
-            if selectedPath != device.path { disconnect() }
-            if serial == nil {
-                let connection = try SerialPort(path: device.path)
-                let version: UInt8
-                do { version = try connection.query(0x10) }
-                catch { throw PaperlikeError("\(error) Replies received: \(connection.lastFrames.joined(separator: ", "))") }
-                guard ProtocolIdentity.isSupported(version) else {
-                    throw PaperlikeError(String(format: "Unrecognized MCU (0x%02X); no setting command sent.", version))
-                }
-                serial = connection; selectedPath = device.path; firmware = version
-                if let mode = try? connection.query(0x07), (1...3).contains(Int(mode)) { lastLightMode = Int(mode) }
-                lastHealthCheck = ProcessInfo.processInfo.systemUptime
-            }
-            guard let serial else { return }
-            try sendMacStatus(serial)
-            lastKeepalive = ISO8601DateFormatter().string(from: Date())
-            let replies = try serial.readFrames(timeout: 0.02)
-            if !replies.isEmpty { lastReply = lastKeepalive }
-            if ProcessInfo.processInfo.systemUptime - lastHealthCheck >= 30 {
-                let version = try serial.query(0x10)
-                guard version == firmware else { throw PaperlikeError("The display's identity changed.") }
-                lastHealthCheck = ProcessInfo.processInfo.systemUptime
-                lastReply = ISO8601DateFormatter().string(from: Date())
-            }
-            transition("connected", "DASUNG display identified; USB control active.")
-        } catch {
-            disconnect()
+        guard controlEnabled else {
+            transition(current.displays.contains(where: \.isPaperlike) ? "detected" : "waiting",
+                       "Anti-dithering applied; USB control disabled.")
+            return
+        }
+        let candidates: [SerialDevice]
+        do { candidates = try current.controlCandidates() } catch {
+            links.removeAll(); probeFailures.removeAll()
             transition("waiting", String(describing: error))
+            return
+        }
+        let paths = Set(candidates.map(\.path))
+        links = links.filter { paths.contains($0.key) }
+        probeFailures = probeFailures.filter { paths.contains($0.key) }
+        let now = ProcessInfo.processInfo.systemUptime
+        for device in candidates where links[device.path] == nil {
+            if let failure = probeFailures[device.path], now < failure.retryAt { continue }
+            do {
+                links[device.path] = try connect(device.path)
+                probeFailures[device.path] = nil
+            } catch {
+                probeFailures[device.path] = (now + Agent.probeRetry, String(describing: error))
+            }
+        }
+        for (path, link) in links {
+            do { try keepAlive(link) } catch {
+                // Identified once, so not a foreign adapter: retried next tick.
+                links[path] = nil
+                probeFailures[path] = (now, "\(link.monitor.name): \(error)")
+            }
+        }
+        guard !links.isEmpty else {
+            transition("waiting", probeFailures.sorted { $0.key < $1.key }
+                .map { "\($0.key): \($0.value.reason)" }.joined(separator: " "))
+            return
+        }
+        transition("connected", "USB control active: " + links.values.map(\.monitor).sorted { $0.path < $1.path }
+            .map { "\($0.name) on \($0.path)" }.joined(separator: ", ") + ".")
+    }
+
+    private func connect(_ path: String) throws -> Link {
+        let connection = try SerialPort(path: path)
+        let version: UInt8
+        do { version = try connection.query(0x10) }
+        catch { throw PaperlikeError("\(error) Replies received: \(connection.lastFrames.joined(separator: ", "))") }
+        guard ProtocolIdentity.isSupported(version) else {
+            throw PaperlikeError(String(format: "Unrecognized MCU (0x%02X); no setting command sent.", version))
+        }
+        // An unknown model still connects: the MCU vouches for the protocol,
+        // and only choosing a monitor by the pointer needs the model.
+        let monitor = Monitor(path: path, firmware: version, modelCode: (try? connection.query(Model.register)) ?? 0)
+        if let mode = try? connection.query(0x07) { rememberLightMode(Int(mode), of: monitor) }
+        logger.notice("Identified \(monitor.name, privacy: .public) on \(path, privacy: .public).")
+        return Link(serial: connection, monitor: monitor)
+    }
+
+    private func keepAlive(_ link: Link) throws {
+        try sendMacStatus(link.serial)
+        lastKeepalive = ISO8601DateFormatter().string(from: Date())
+        let replies = try link.serial.readFrames(timeout: 0.02)
+        if !replies.isEmpty { lastReply = lastKeepalive }
+        if ProcessInfo.processInfo.systemUptime - link.lastHealthCheck >= 30 {
+            guard try link.serial.query(0x10) == link.monitor.firmware else {
+                throw PaperlikeError("The display's identity changed.")
+            }
+            link.lastHealthCheck = ProcessInfo.processInfo.systemUptime
+            lastReply = ISO8601DateFormatter().string(from: Date())
         }
     }
 
@@ -359,17 +433,17 @@ final class Agent {
     // framebuffer whose value is not already false is written, so the counter
     // below measures how often macOS actually resets it.
     private func enforceDithering() {
-        let applied = DitheringState.disableOnDasung()
+        let applied = DitheringState.disableOnPaperlike()
         guard !applied.isEmpty else { return }
         ditheringReasserts += applied.count
         lastDitheringReassert = ISO8601DateFormatter().string(from: Date())
         lastDitheringApplied = applied
         for entry in applied where !entry.succeeded {
-            logger.error("Anti-dithering refused on ProductID \(entry.product, privacy: .public): kern_return \(entry.result, privacy: .public).")
+            logger.error("Anti-dithering refused on vendor \(entry.vendor, privacy: .public) ProductID \(entry.product, privacy: .public): kern_return \(entry.result, privacy: .public).")
         }
         let restored = applied.filter(\.succeeded).count
         if restored > 0 {
-            logger.notice("Anti-dithering restored on \(restored, privacy: .public) DASUNG output(s).")
+            logger.notice("Anti-dithering restored on \(restored, privacy: .public) Paperlike output(s).")
         }
     }
 
@@ -383,21 +457,19 @@ final class Agent {
         defer { gammaWasLinear = linear }
         guard gammaWasLinear != linear else { return }
         if linear {
-            logger.notice("Gamma table back to linear on the DASUNG outputs.")
+            logger.notice("Gamma table back to linear on the Paperlike outputs.")
         } else {
             for state in states where !state.isLinear {
-                logger.error("Gamma table crushed on DASUNG ProductID \(state.product, privacy: .public): ceiling \(state.ceiling, privacy: .public) instead of 1.0. On e-ink this collapses contrast — check BetterDisplay's software brightness or any other tool writing the table.")
+                logger.error("Gamma table crushed on Paperlike ProductID \(state.product, privacy: .public): ceiling \(state.ceiling, privacy: .public) instead of 1.0. On e-ink this collapses contrast — check BetterDisplay's software brightness or any other tool writing the table.")
             }
         }
     }
 
-    private func disconnect() {
-        serial = nil; selectedPath = nil; firmware = nil
-    }
-
+    // The 0x20 frame tells the monitor the host has dithering off, so it is
+    // only sent once every Paperlike output reads back `enableDither = No`.
     private func sendMacStatus(_ serial: SerialPort) throws {
-        let products = Set((inventory?.displays ?? []).filter(\.isDasung).map(\.product))
-        try DitheringState.requireDisabled(DitheringState.capture(), products: products)
+        let panels = Set((inventory?.displays ?? []).filter(\.isPaperlike).map(\.panel))
+        try DitheringState.requireDisabled(DitheringState.capture(), panels: panels)
         try serial.send(Frame(0x20, 1))
     }
 
@@ -421,11 +493,15 @@ final class Agent {
             "keepaliveIntervalSeconds": 2, "takesFocus": ui.0 == .regular || ui.1,
             "activationPolicy": ui.0.rawValue, "visibleWindowCount": ui.2, "hud": hudEnabled]
         result["controlEnabled"] = controlEnabled
-        result["port"] = selectedPath
-        result["firmware"] = firmware.map { String(format: "0x%02X", $0) }
+        result["monitors"] = links.values.sorted { $0.monitor.path < $1.monitor.path }.map { link -> [String: Any] in
+            ["name": link.monitor.name, "port": link.monitor.path,
+             "firmware": String(format: "0x%02X", link.monitor.firmware),
+             "model": Int(link.monitor.modelCode), "names": link.monitor.model?.names ?? [],
+             "lightModeRestored": lastLightMode(of: link.monitor), "recentFrames": link.serial.lastFrames]
+        }
+        result["portProblems"] = probeFailures.mapValues(\.reason)
         result["lastKeepaliveSentAt"] = lastKeepalive
         result["lastReplyAt"] = lastReply
-        result["recentFrames"] = serial?.lastFrames
         result["ditheringReasserts"] = ditheringReasserts
         result["displayReconfigurations"] = displayReconfigurations
         result["reconfigurationCallbackRegistered"] = reconfigurationCallbackRegistered

@@ -2,7 +2,7 @@ import AppKit
 import PaperlikeCore
 
 // Ghost cleanup drawn by the host: full-screen black, then white, over the
-// DASUNG output chosen by ClearTarget, then the panel redraws the desktop. Each
+// Paperlike output chosen by ClearTarget, then the panel redraws the desktop. Each
 // full-range transition overwrites every pixel, an approximation of the
 // monitor's own Ghost Cleanup that needs no USB link.
 //
@@ -18,18 +18,20 @@ final class ScreenClear {
     // Blocks the calling thread for the length of the flash, so it must never
     // be the main thread, which draws it. Shortcuts and the socket both call
     // from a global queue.
-    func run() -> [String: Any] {
+    // A named monitor (`paperlike 13k clear`) narrows the candidates to the
+    // screens that model drives.
+    func run(monitor: String? = nil) -> [String: Any] {
         dispatchPrecondition(condition: .notOnQueue(.main))
         let done = DispatchSemaphore(value: 0)
         var reply: [String: Any] = [:]
         DispatchQueue.main.async {
-            self.start { reply = $0; done.signal() }
+            self.start(monitor: monitor) { reply = $0; done.signal() }
         }
         done.wait()
         return reply
     }
 
-    private func start(_ finish: @escaping ([String: Any]) -> Void) {
+    private func start(monitor: String?, _ finish: @escaping ([String: Any]) -> Void) {
         guard !running else { return finish(["ok": true, "action": "clear", "delivery": "already_running"]) }
         let screens = NSScreen.screens.compactMap { screen -> (NSScreen, CGDirectDisplayID)? in
             guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber
@@ -37,11 +39,15 @@ final class ScreenClear {
             return (screen, number.uint32Value)
         }
         let pointer = NSEvent.mouseLocation
+        let paperlike = screens.map(\.1).filter { id in
+            let display = Display(id: id)
+            return display.isPaperlike && (monitor.map { Model.any(named: $0, drives: display) } ?? true)
+        }
         let targets = ClearTarget.displays(
-            dasung: screens.map(\.1).filter { CGDisplayVendorNumber($0) == 0x1263 },
+            paperlike: paperlike,
             pointer: screens.first { NSMouseInRect(pointer, $0.0.frame, false) }?.1)
         guard !targets.isEmpty else {
-            return finish(["ok": false, "action": "clear", "error": "No DASUNG display to clear."])
+            return finish(["ok": false, "action": "clear", "error": "No Paperlike display to clear."])
         }
         running = true
         let covers = screens.filter { targets.contains($0.1) }.map { ScreenClear.cover($0.0) }

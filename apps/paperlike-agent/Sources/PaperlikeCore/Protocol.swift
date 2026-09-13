@@ -68,7 +68,8 @@ public struct FrameParser {
 // Every writable setting the official client drives, with the command byte each
 // one carries. The mapping was read off the client's own update methods — see
 // RESEARCH.md. Two commands are deliberately absent: 0x05 is the device's
-// real-time clock, and 0x13 is unidentified. Neither is exposed for writing.
+// real-time clock, and 0x13 is the model identifier (see Model). Neither is
+// exposed for writing.
 public struct Setting: Equatable {
     public let name: String
     public let command: UInt8
@@ -92,10 +93,12 @@ public struct Setting: Equatable {
                 summary: "Display mode: 1 text, 2 image", requires: nil),
         Setting(name: "speed", command: 0x04, bounds: 1...5,
                 summary: "Refresh speed: 1 slow and clean, 5 fast", requires: nil),
+        // The mode is a temperature preset: mode 1 reads back temperature 100,
+        // and writing a temperature switches to mode 3 (observed on the 13K).
         Setting(name: "light-mode", command: 0x07, bounds: 0...3,
-                summary: "Front light: mode (0 off)", requires: nil),
+                summary: "Front light: mode (0 off, 3 custom temperature)", requires: nil),
         Setting(name: "light-temp", command: 0x08, bounds: 0...100,
-                summary: "Front light: temperature, 0 cool to 100 warm", requires: nil),
+                summary: "Front light: temperature, 0 cool to 100 warm (selects mode 3)", requires: nil),
         Setting(name: "light", command: 0x09, bounds: 0...100,
                 summary: "Front light: brightness (0 switches it off)", requires: Requirement(command: 0x07,
                     explanation: "the front light is off; switch it on first with “paperlike light on”",

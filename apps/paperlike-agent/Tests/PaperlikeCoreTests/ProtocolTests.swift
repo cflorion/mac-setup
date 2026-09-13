@@ -57,23 +57,35 @@ final class ProtocolTests: XCTestCase {
         XCTAssertTrue(ProtocolIdentity.isSupported(0x31))
     }
 
-    func testSelectionRequiresDisplayUniqueUSBAndNoCompetitor() throws {
+    // Two monitors mean two CH340 adapters: every one is a candidate, and the
+    // MCU reply — not the adapter count — decides which ones are a Paperlike.
+    func testEveryCH340IsACandidateOnceAPaperlikeIsOnScreen() throws {
         let display = Display(id: 3, vendor: 0x1263, product: 0, width: 3200, height: 1800)
+        let k13 = Display(id: 2, vendor: 0x4a8b, product: 447, width: 3200, height: 2400)
+        let otherRealtek = Display(id: 4, vendor: 0x4a8b, product: 446, width: 1920, height: 1080)
         let usb = SerialDevice(path: "/dev/cu.test", vendor: 0x1a86, product: 0x7523)
-        XCTAssertEqual(try Inventory(displays: [display], serialDevices: [usb], competingApps: []).selectedDevice(), usb)
-        XCTAssertThrowsError(try Inventory(displays: [], serialDevices: [usb], competingApps: []).selectedDevice())
-        XCTAssertThrowsError(try Inventory(displays: [display], serialDevices: [], competingApps: []).selectedDevice())
-        XCTAssertThrowsError(try Inventory(displays: [display], serialDevices: [usb, usb], competingApps: []).selectedDevice())
-        XCTAssertThrowsError(try Inventory(displays: [display], serialDevices: [usb], competingApps: ["PaperLikeClient"]).selectedDevice())
+        let second = SerialDevice(path: "/dev/cu.second", vendor: 0x1a86, product: 0x7523)
+        let other = SerialDevice(path: "/dev/cu.other", vendor: 0x0403, product: 0x6001)
+        XCTAssertEqual(try Inventory(displays: [display], serialDevices: [usb], competingApps: []).controlCandidates(), [usb])
+        XCTAssertEqual(try Inventory(displays: [display, k13], serialDevices: [usb, other, second], competingApps: []).controlCandidates(), [usb, second])
+        XCTAssertEqual(try Inventory(displays: [k13], serialDevices: [usb], competingApps: []).controlCandidates(), [usb])
+        XCTAssertThrowsError(try Inventory(displays: [], serialDevices: [usb], competingApps: []).controlCandidates())
+        XCTAssertThrowsError(try Inventory(displays: [otherRealtek], serialDevices: [usb], competingApps: []).controlCandidates())
+        XCTAssertThrowsError(try Inventory(displays: [display], serialDevices: [other], competingApps: []).controlCandidates())
+        XCTAssertThrowsError(try Inventory(displays: [display], serialDevices: [usb], competingApps: ["PaperLikeClient"]).controlCandidates())
     }
 
-    func testMacHandshakeRequiresKnownDisabledDitheringOnEveryDasungOutput() throws {
-        let disabled = DitheringState(product: 0, enabled: false)
-        XCTAssertNoThrow(try DitheringState.requireDisabled([disabled], products: [0]))
-        XCTAssertThrowsError(try DitheringState.requireDisabled([], products: [0]))
-        XCTAssertThrowsError(try DitheringState.requireDisabled([disabled], products: [0, 9532]))
-        XCTAssertThrowsError(try DitheringState.requireDisabled([DitheringState(product: 0, enabled: true)], products: [0]))
-        XCTAssertThrowsError(try DitheringState.requireDisabled([DitheringState(product: 0, enabled: nil)], products: [0]))
+    func testMacHandshakeRequiresKnownDisabledDitheringOnEveryPaperlikeOutput() throws {
+        let p253 = PanelID(vendor: 0x1263, product: 0), k13 = PanelID(vendor: 0x4a8b, product: 447)
+        let disabled = DitheringState(vendor: 0x1263, product: 0, enabled: false)
+        XCTAssertNoThrow(try DitheringState.requireDisabled([disabled], panels: [p253]))
+        XCTAssertThrowsError(try DitheringState.requireDisabled([], panels: [p253]))
+        XCTAssertThrowsError(try DitheringState.requireDisabled([disabled], panels: [p253, PanelID(vendor: 0x1263, product: 9532)]))
+        XCTAssertThrowsError(try DitheringState.requireDisabled([DitheringState(vendor: 0x1263, product: 0, enabled: true)], panels: [p253]))
+        XCTAssertThrowsError(try DitheringState.requireDisabled([DitheringState(vendor: 0x1263, product: 0, enabled: nil)], panels: [p253]))
+        // The 13K counts like any other output: a dithered 13K blocks the signal.
+        XCTAssertThrowsError(try DitheringState.requireDisabled([disabled, DitheringState(vendor: 0x4a8b, product: 447, enabled: true)], panels: [p253, k13]))
+        XCTAssertNoThrow(try DitheringState.requireDisabled([disabled, DitheringState(vendor: 0x4a8b, product: 447, enabled: false)], panels: [p253, k13]))
     }
 
     func testSerialQueryThroughRealPseudoTerminal() throws {
@@ -142,6 +154,7 @@ final class SettingsTests: XCTestCase {
         // 0x05 is the device's real-time clock and 0x13 is unidentified; neither
         // may become writable by accident.
         XCTAssertFalse(Setting.all.contains { [0x05, 0x13, 0x0a, 0x10, 0x20].contains($0.command) })
+        XCTAssertEqual(Model.register, 0x13)
     }
 
     func testAbsoluteValuesAreBoundedAndRelativeOnesAreNot() throws {
@@ -263,10 +276,10 @@ final class ScreenClearTests: XCTestCase {
     }
 
     func testClearTargetsThePanelUnderThePointerElseEveryPanel() {
-        XCTAssertEqual(ClearTarget.displays(dasung: [2, 5], pointer: 5), [5])
-        XCTAssertEqual(ClearTarget.displays(dasung: [2, 5], pointer: 1), [2, 5])
-        XCTAssertEqual(ClearTarget.displays(dasung: [2, 5], pointer: nil), [2, 5])
-        XCTAssertEqual(ClearTarget.displays(dasung: [], pointer: 1), [])
+        XCTAssertEqual(ClearTarget.displays(paperlike: [2, 5], pointer: 5), [5])
+        XCTAssertEqual(ClearTarget.displays(paperlike: [2, 5], pointer: 1), [2, 5])
+        XCTAssertEqual(ClearTarget.displays(paperlike: [2, 5], pointer: nil), [2, 5])
+        XCTAssertEqual(ClearTarget.displays(paperlike: [], pointer: 1), [])
     }
 
     func testObservationModeKeepsOnlyTheShortcutsThatNeedNoUSB() {
@@ -304,5 +317,91 @@ final class HUDContentTests: XCTestCase {
         XCTAssertEqual(HUDContent(reply: ["ok": true, "action": "refresh", "delivery": "sent"])?.caption, "Cleanup sent")
         // A reply the HUD cannot describe shows nothing rather than a guess.
         XCTAssertNil(HUDContent(reply: ["ok": true, "registers": [String: Int]()]))
+        XCTAssertEqual(HUDContent(reply: ["ok": false, "code": "ambiguous", "error": "…"])?.caption, "Point at the one to adjust")
+    }
+}
+
+final class MonitorTests: XCTestCase {
+    private let k13 = Monitor(path: "/dev/cu.usbserial-1120", firmware: 0x31, modelCode: 1)
+    private let p253 = Monitor(path: "/dev/cu.usbserial-2115410", firmware: 0x30, modelCode: 5)
+    private let k13Screen = Display(id: 2, vendor: 0x4a8b, product: 447, width: 3200, height: 2400)
+    private let p253Screen = Display(id: 5, vendor: 0x1263, product: 0, width: 3840, height: 2160)
+    private let builtIn = Display(id: 1, vendor: 0x610, product: 41038, width: 3024, height: 1964)
+
+    // The client's `DeviceDisplayNameForMode` table, indexed by register 0x13.
+    func testModelRegisterFollowsTheClientTable() {
+        XCTAssertEqual(Model.allCases.map(\.rawValue), [1, 2, 3, 4, 5])
+        XCTAssertEqual(k13.name, "13K Color")
+        XCTAssertEqual(p253.name, "253 Color")
+        XCTAssertEqual(Model(rawValue: 2)?.name, "13K")
+        XCTAssertEqual(Model(rawValue: 4)?.name, "253")
+        XCTAssertNil(Monitor(path: "x", firmware: 0x30, modelCode: 9).model)
+        XCTAssertEqual(Monitor(path: "x", firmware: 0x30, modelCode: 9).name, "Paperlike (model 9)")
+        XCTAssertEqual(k13.key, "13k-color")
+    }
+
+    func testThe13KIsMatchedOnItsScalerEDIDNeverOnTheRealtekVendorAlone() {
+        XCTAssertTrue(k13Screen.isPaperlike)
+        XCTAssertTrue(p253Screen.isPaperlike)
+        XCTAssertTrue(Display(id: 9, vendor: 0x1263, product: 9532, width: 0, height: 0).isPaperlike)
+        XCTAssertFalse(Display(id: 9, vendor: 0x4a8b, product: 446, width: 0, height: 0).isPaperlike)
+        XCTAssertFalse(builtIn.isPaperlike)
+        XCTAssertTrue(Model.color13K.drives(vendor: 0x4a8b, product: 447))
+        XCTAssertFalse(Model.color13K.drives(vendor: 0x1263, product: 0))
+        XCTAssertTrue(Model.color253.drives(vendor: 0x1263, product: 0))
+        XCTAssertFalse(Model.color253.drives(vendor: 0x4a8b, product: 447))
+        XCTAssertTrue(Model.any(named: "13k", drives: k13Screen))
+        XCTAssertFalse(Model.any(named: "253", drives: k13Screen))
+    }
+
+    func testAMonitorNameMayPrefixAnyCommand() throws {
+        XCTAssertEqual(Request(["13k", "light", "+10"]), Request(["13K", "light", "+10"]))
+        XCTAssertEqual(Request(["13k", "light", "+10"]).monitor, "13k")
+        XCTAssertEqual(Request(["13k", "light", "+10"]).arguments, ["light", "+10"])
+        XCTAssertEqual(Request(["253-color", "refresh"]).monitor, "253-color")
+        XCTAssertNil(Request(["light", "on"]).monitor)
+        XCTAssertEqual(Request(["status"]).arguments, ["status"])
+        let binding = try Configuration.binding(keys: "ctrl+alt+cmd+1", action: ["13k", "light", "toggle"])
+        XCTAssertEqual(binding.monitor, "13k")
+        XCTAssertEqual(binding.parsed, .light(.toggle))
+        XCTAssertEqual(binding.describedAction, "13k light toggle")
+        XCTAssertNil(try Configuration.binding(keys: "ctrl+alt+cmd+l", action: ["light", "toggle"]).monitor)
+    }
+
+    func testTheMonitorUnderThePointerIsChosenAndNoneIsGuessed() throws {
+        let both = [k13, p253]
+        XCTAssertEqual(try Targeting.choose(both, named: nil, pointer: k13Screen), k13)
+        XCTAssertEqual(try Targeting.choose(both, named: nil, pointer: p253Screen), p253)
+        // From another screen, two candidates are refused, never guessed.
+        XCTAssertThrowsError(try Targeting.choose(both, named: nil, pointer: builtIn)) {
+            XCTAssertEqual(($0 as? PaperlikeError)?.code, "ambiguous")
+        }
+        XCTAssertThrowsError(try Targeting.choose(both, named: nil, pointer: nil))
+        // Alone, it is the one, wherever the pointer is — except on a
+        // Paperlike it does not drive: that one simply has no USB link.
+        XCTAssertEqual(try Targeting.choose([k13], named: nil, pointer: builtIn), k13)
+        XCTAssertThrowsError(try Targeting.choose([k13], named: nil, pointer: p253Screen)) {
+            XCTAssertEqual(($0 as? PaperlikeError)?.code, "unavailable")
+        }
+        XCTAssertThrowsError(try Targeting.choose([], named: nil, pointer: builtIn))
+    }
+
+    func testANamedMonitorWinsOverThePointer() throws {
+        XCTAssertEqual(try Targeting.choose([k13, p253], named: "13k", pointer: p253Screen), k13)
+        XCTAssertEqual(try Targeting.choose([k13, p253], named: "253-color", pointer: nil), p253)
+        XCTAssertThrowsError(try Targeting.choose([k13, p253], named: "253-bw", pointer: nil)) {
+            XCTAssertEqual(($0 as? PaperlikeError)?.code, "unavailable")
+        }
+        let mono253 = Monitor(path: "/dev/cu.usbserial-9", firmware: 0x10, modelCode: 4)
+        XCTAssertThrowsError(try Targeting.choose([p253, mono253], named: "253", pointer: nil)) {
+            XCTAssertEqual(($0 as? PaperlikeError)?.code, "ambiguous")
+        }
+        XCTAssertEqual(try Targeting.choose([p253, mono253], named: "253-bw", pointer: nil), mono253)
+    }
+
+    func testAMonitorOfUnknownModelIsNotRuledOutByThePointer() throws {
+        let unknown = Monitor(path: "/dev/cu.usbserial-7", firmware: 0x30, modelCode: 0)
+        XCTAssertEqual(try Targeting.choose([k13, unknown], named: nil, pointer: p253Screen), unknown)
+        XCTAssertThrowsError(try Targeting.choose([p253, unknown], named: nil, pointer: p253Screen))
     }
 }

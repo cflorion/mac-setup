@@ -36,6 +36,8 @@ public struct HUDContent: Equatable {
                 self.init(symbol: "lightbulb.slash", title: "Front light", caption: "Off", gauge: nil)
             case "unavailable":
                 self.init(symbol: "cable.connector.slash", title: "Paperlike", caption: "Display unreachable", gauge: nil)
+            case "ambiguous":
+                self.init(symbol: "cursorarrow", title: "Paperlike", caption: "Point at the one to adjust", gauge: nil)
             default:
                 self.init(symbol: "exclamationmark.triangle", title: "Paperlike", caption: "Failed — see paperlike status", gauge: nil)
             }

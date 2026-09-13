@@ -8,18 +8,37 @@ public struct Display: Codable {
     public let product: UInt32
     public let width: Int
     public let height: Int
-    public var isDasung: Bool { vendor == 0x1263 }
+    public init(id: UInt32, vendor: UInt32, product: UInt32, width: Int, height: Int) {
+        self.id = id; self.vendor = vendor; self.product = product; self.width = width; self.height = height
+    }
+    public var isPaperlike: Bool { Panel.isPaperlike(vendor: vendor, product: product) }
+    public var panel: PanelID { PanelID(vendor: vendor, product: product) }
+
+    public init(id: CGDirectDisplayID) {
+        self.init(id: id, vendor: CGDisplayVendorNumber(id), product: CGDisplayModelNumber(id),
+                  width: CGDisplayCopyDisplayMode(id)?.pixelWidth ?? CGDisplayPixelsWide(id),
+                  height: CGDisplayCopyDisplayMode(id)?.pixelHeight ?? CGDisplayPixelsHigh(id))
+    }
+
+    // CoreGraphics only, so it is safe off the main thread, where commands run.
+    public static func underPointer() -> Display? {
+        guard let location = CGEvent(source: nil)?.location else { return nil }
+        var id: CGDirectDisplayID = 0
+        var count: UInt32 = 0
+        guard CGGetDisplaysWithPoint(location, 1, &id, &count) == .success, count > 0 else { return nil }
+        return Display(id: id)
+    }
 }
 
 // The outputs a screen clear paints. The display under the pointer, as for the
-// HUD, when it is a DASUNG one: AeroSpace moves the pointer along with monitor
+// HUD, when it is a Paperlike: AeroSpace moves the pointer along with monitor
 // focus, so that is the panel being worked on. From any other display, every
-// DASUNG output — the shortcut was meant for e-ink, and guessing which panel
-// is not worth it.
+// Paperlike output — the shortcut was meant for e-ink, and guessing which
+// panel is not worth it.
 public enum ClearTarget {
-    public static func displays(dasung: [UInt32], pointer: UInt32?) -> [UInt32] {
-        if let pointer, dasung.contains(pointer) { return [pointer] }
-        return dasung
+    public static func displays(paperlike: [UInt32], pointer: UInt32?) -> [UInt32] {
+        if let pointer, paperlike.contains(pointer) { return [pointer] }
+        return paperlike
     }
 }
 
@@ -43,11 +62,7 @@ public struct Inventory: Codable {
         CGGetOnlineDisplayList(0, nil, &count)
         var ids = [CGDirectDisplayID](repeating: 0, count: Int(count))
         if count > 0 { CGGetOnlineDisplayList(count, &ids, &count) }
-        let displays = ids.prefix(Int(count)).map {
-            Display(id: $0, vendor: CGDisplayVendorNumber($0), product: CGDisplayModelNumber($0),
-                    width: CGDisplayCopyDisplayMode($0)?.pixelWidth ?? CGDisplayPixelsWide($0),
-                    height: CGDisplayCopyDisplayMode($0)?.pixelHeight ?? CGDisplayPixelsHigh($0))
-        }
+        let displays = ids.prefix(Int(count)).map { Display(id: $0) }
         var devices: [SerialDevice] = []
         var iterator: io_iterator_t = 0
         if IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("IOSerialBSDClient"), &iterator) == KERN_SUCCESS {
@@ -85,20 +100,22 @@ public struct Inventory: Codable {
         return Inventory(displays: displays, serialDevices: devices.sorted { $0.path < $1.path }, competingApps: competitors)
     }
 
-    public func selectedDevice() throws -> SerialDevice {
+    // Every CH340 is a candidate once a Paperlike is on screen: two monitors
+    // mean two adapters. Which of them is a Paperlike is settled afterwards by
+    // its reply to an MCU read, a query that changes nothing; no setting is
+    // ever sent to a port that has not answered with a supported MCU.
+    public func controlCandidates() throws -> [SerialDevice] {
         guard competingApps.isEmpty else {
             throw PaperlikeError("Waiting: quit \(competingApps.joined(separator: ", ")) to free the USB port.")
         }
-        guard displays.contains(where: \.isDasung) else {
-            throw PaperlikeError("Waiting for a DASUNG display (EDID 0x1263).")
+        guard displays.contains(where: \.isPaperlike) else {
+            throw PaperlikeError("Waiting for a Paperlike display (DASUNG EDID 0x1263, or the 13K's Realtek EDID).")
         }
         let candidates = serialDevices.filter(\.isCandidate)
-        guard candidates.count == 1 else {
-            throw PaperlikeError(candidates.isEmpty
-                ? "Display detected; USB control link missing. Check that the USB cable carries data."
-                : "Several CH340 adapters detected, automatic selection refused: \(candidates.map(\.path).joined(separator: ", ")).")
+        guard !candidates.isEmpty else {
+            throw PaperlikeError("Display detected; USB control link missing. Check that the USB cable carries data.")
         }
-        return candidates[0]
+        return candidates
     }
 
     private static func property(_ service: io_registry_entry_t, _ key: String) -> Any? {
@@ -126,7 +143,7 @@ public struct GammaState: Codable {
         guard count > 0 else { return [] }
         var ids = [CGDirectDisplayID](repeating: 0, count: Int(count))
         CGGetOnlineDisplayList(count, &ids, &count)
-        return ids.prefix(Int(count)).filter { CGDisplayVendorNumber($0) == 0x1263 }.compactMap { id in
+        return ids.prefix(Int(count)).filter { Display(id: $0).isPaperlike }.compactMap { id in
             let capacity = CGDisplayGammaTableCapacity(id)
             guard capacity > 1 else { return nil }
             var red = [CGGammaValue](repeating: 0, count: Int(capacity))
@@ -147,6 +164,7 @@ public struct GammaState: Codable {
 }
 
 public struct DitheringEnforcement: Codable {
+    public let vendor: UInt32
     public let product: UInt32
     public let wasEnabled: Bool?
     public let result: Int32
@@ -154,8 +172,13 @@ public struct DitheringEnforcement: Codable {
 }
 
 public struct DitheringState: Codable {
+    public let vendor: UInt32
     public let product: UInt32
     public let enabled: Bool?
+    public init(vendor: UInt32, product: UInt32, enabled: Bool?) {
+        self.vendor = vendor; self.product = product; self.enabled = enabled
+    }
+    public var panel: PanelID { PanelID(vendor: vendor, product: product) }
 
     // macOS applies temporal dithering to the video output. An e-ink panel
     // renders that as grain, blotches and a darker image. Clearing the
@@ -166,30 +189,30 @@ public struct DitheringState: Codable {
     private static let ditherKey = "enableDither" as CFString
 
     public static func capture() -> [DitheringState] {
-        withDasungFramebuffers { service, product in
-            DitheringState(product: product, enabled: read(service))
+        withPaperlikeFramebuffers { service, panel in
+            DitheringState(vendor: panel.vendor, product: panel.product, enabled: read(service))
         }
     }
 
-    // Only DASUNG framebuffers are ever written. Dithering is wanted on the
+    // Only Paperlike framebuffers are ever written. Dithering is wanted on the
     // built-in XDR panel; removing it there produces visible banding. The
-    // DASUNG vendor match is the positive condition for writing, never the
-    // absence of some other match.
-    public static func disableOnDasung() -> [DitheringEnforcement] {
-        withDasungFramebuffers { service, product in
+    // Paperlike EDID match (see Panel) is the positive condition for writing,
+    // never the absence of some other match.
+    public static func disableOnPaperlike() -> [DitheringEnforcement] {
+        withPaperlikeFramebuffers { service, panel in
             let current = read(service)
             guard current != false else { return nil }
             let result = IORegistryEntrySetCFProperty(service, ditherKey, kCFBooleanFalse)
-            return DitheringEnforcement(product: product, wasEnabled: current, result: result)
+            return DitheringEnforcement(vendor: panel.vendor, product: panel.product, wasEnabled: current, result: result)
         }
     }
 
-    public static func requireDisabled(_ states: [DitheringState], products: Set<UInt32>) throws {
-        guard !products.isEmpty, products.allSatisfy({ product in
-            let matching = states.filter { $0.product == product }
+    public static func requireDisabled(_ states: [DitheringState], panels: Set<PanelID>) throws {
+        guard !panels.isEmpty, panels.allSatisfy({ panel in
+            let matching = states.filter { $0.panel == panel }
             return !matching.isEmpty && matching.allSatisfy { $0.enabled == false }
         }) else {
-            throw PaperlikeError("DASUNG anti-dithering state not confirmed; no 0x20 signal sent this cycle.")
+            throw PaperlikeError("Paperlike anti-dithering state not confirmed; no 0x20 signal sent this cycle.")
         }
     }
 
@@ -198,9 +221,9 @@ public struct DitheringState: Codable {
     }
 
     // The iterator also yields the built-in panel and framebuffers with no
-    // display attached; both are filtered out by the vendor match. Every
+    // display attached; both are filtered out by the EDID match. Every
     // io_object_t is released here: this runs on the agent's two-second tick.
-    private static func withDasungFramebuffers<T>(_ body: (io_registry_entry_t, UInt32) -> T?) -> [T] {
+    private static func withPaperlikeFramebuffers<T>(_ body: (io_registry_entry_t, PanelID) -> T?) -> [T] {
         var iterator: io_iterator_t = 0
         guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching(framebufferClass), &iterator) == KERN_SUCCESS
         else { return [] }
@@ -210,9 +233,10 @@ public struct DitheringState: Codable {
             defer { IOObjectRelease(service) }
             let attributes = IORegistryEntryCreateCFProperty(service, "DisplayAttributes" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? [String: Any]
             guard let product = attributes?["ProductAttributes"] as? [String: Any],
-                  (product["LegacyManufacturerID"] as? NSNumber)?.uint32Value == 0x1263,
-                  let id = (product["ProductID"] as? NSNumber)?.uint32Value else { continue }
-            if let value = body(service, id) { result.append(value) }
+                  let vendor = (product["LegacyManufacturerID"] as? NSNumber)?.uint32Value,
+                  let id = (product["ProductID"] as? NSNumber)?.uint32Value,
+                  Panel.isPaperlike(vendor: vendor, product: id) else { continue }
+            if let value = body(service, PanelID(vendor: vendor, product: id)) { result.append(value) }
         }
         return result
     }
