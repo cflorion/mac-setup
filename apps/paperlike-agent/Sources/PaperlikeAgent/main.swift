@@ -17,8 +17,9 @@ Une valeur signée agit relativement : « paperlike light +10 » monte de dix.
 Toute écriture est confirmée par relecture du registre ; sans confirmation,
 la commande échoue plutôt que de prétendre avoir abouti.
 
-La luminosité frontale n’est acceptée que si la lumière est allumée
-(« paperlike light on » d’abord). Allumer une lumière réglée à 0 la remonte à 20.
+La luminosité frontale se comporte comme une touche de luminosité : 0 éteint
+la lumière, une valeur positive l’allume (« light +10 » depuis éteinte : 10 %).
+« paperlike light on » rétablit le dernier niveau ; s’il vaut 0, 20.
 
 L’agent retire en permanence le tramage macOS des sorties DASUNG ; c’est sa
 fonction principale et elle ne demande pas le port USB.

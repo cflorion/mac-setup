@@ -121,6 +121,28 @@ public enum Adjustment: Equatable {
     }
 }
 
+// The front light as a single level where 0 means off, the way a brightness
+// key behaves. The monitor ignores brightness while its light is off, so
+// "brighter" from off has to switch it on, and reaching zero switches it off
+// instead of leaving it lit at a zero level.
+public enum FrontLight {
+    public enum Step: Equatable {
+        case stay(Int)       // nothing to write; the level as seen, 0 when off
+        case switchOff       // mode 0; the brightness register keeps its value
+        case setLevel(Int)   // light already on: write the brightness
+        case switchOn(Int)   // write the mode, then the brightness
+    }
+
+    public static func step(isOn: Bool, level: Int, by adjustment: Adjustment,
+                            within bounds: ClosedRange<Int>) -> Step {
+        let current = isOn ? level : 0
+        let target = adjustment.resolve(from: current, within: bounds)
+        if target <= 0 { return isOn ? .switchOff : .stay(0) }
+        if target == current { return .stay(current) }
+        return isOn ? .setLevel(target) : .switchOn(target)
+    }
+}
+
 // Switching the front light is its own action rather than a value of
 // `light-mode`: on/off is what a shortcut wants, and 1–3 are panel modes the
 // agent has no business choosing between on the user's behalf.

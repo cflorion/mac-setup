@@ -220,6 +220,22 @@ final class LightAndShortcutTests: XCTestCase {
         XCTAssertEqual(Setting.named("light")?.requires?.code, "light-off")
     }
 
+    func testBrightnessKeysSwitchTheLightOnAndOff() {
+        let bounds = Setting.named("light")!.bounds
+        // ↑ from off lights it at the first step, whatever level is stored.
+        XCTAssertEqual(FrontLight.step(isOn: false, level: 0, by: .relative(10), within: bounds), .switchOn(10))
+        XCTAssertEqual(FrontLight.step(isOn: true, level: 40, by: .relative(10), within: bounds), .setLevel(50))
+        // ↓ to the bottom really switches it off, including a light lit at zero.
+        XCTAssertEqual(FrontLight.step(isOn: true, level: 10, by: .relative(-10), within: bounds), .switchOff)
+        XCTAssertEqual(FrontLight.step(isOn: true, level: 5, by: .relative(-10), within: bounds), .switchOff)
+        XCTAssertEqual(FrontLight.step(isOn: true, level: 0, by: .relative(-10), within: bounds), .switchOff)
+        XCTAssertEqual(FrontLight.step(isOn: false, level: 0, by: .relative(-10), within: bounds), .stay(0))
+        XCTAssertEqual(FrontLight.step(isOn: true, level: 100, by: .relative(10), within: bounds), .stay(100))
+        // Absolute values follow the same rule: 0 is off, anything else is on.
+        XCTAssertEqual(FrontLight.step(isOn: true, level: 40, by: .absolute(0), within: bounds), .switchOff)
+        XCTAssertEqual(FrontLight.step(isOn: false, level: 0, by: .absolute(30), within: bounds), .switchOn(30))
+    }
+
     func testRapidRelativePressesMergeAndOppositeOnesCancel() throws {
         let up = try Action.parse(["light", "+10"]), down = try Action.parse(["light", "-10"])
         XCTAssertEqual(up.merged(with: up), .set(Setting.named("light")!, .relative(20)))
@@ -246,7 +262,9 @@ final class HUDContentTests: XCTestCase {
     }
 
     func testLightStatesAndFailuresAreWordedForTheScreen() {
-        XCTAssertEqual(HUDContent(reply: ["ok": true, "setting": "light", "power": "off", "bounds": [0, 100]])?.caption, "Éteinte")
+        let off = HUDContent(reply: ["ok": true, "setting": "light", "power": "off", "bounds": [0, 100]])
+        XCTAssertEqual(off?.caption, "Éteinte")
+        XCTAssertEqual(off?.gauge, HUDContent.Gauge(segments: 10, filled: 0))
         XCTAssertEqual(HUDContent(reply: ["ok": false, "code": "light-off", "error": "…"])?.caption, "Éteinte")
         XCTAssertEqual(HUDContent(reply: ["ok": false, "error": "…"])?.symbol, "exclamationmark.triangle")
         XCTAssertEqual(HUDContent(reply: ["ok": true, "action": "refresh", "delivery": "sent"])?.caption, "Effacement envoyé")

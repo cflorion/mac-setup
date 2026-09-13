@@ -47,7 +47,11 @@ public struct HUDContent: Equatable {
             return
         }
         if reply["power"] as? String == "off" {
-            self.init(symbol: "lightbulb.slash", title: "Lumière", caption: "Éteinte", gauge: nil)
+            // An empty gauge rather than none: after ↓ it shows the bottom of
+            // the same scale the previous presses were moving along.
+            let bounds = reply["bounds"] as? [Int]
+            let gauge = bounds.flatMap { $0.count == 2 && $0[0] < $0[1] ? HUDContent.gauge(value: $0[0], lower: $0[0], upper: $0[1]) : nil }
+            self.init(symbol: "lightbulb.slash", title: "Lumière", caption: "Éteinte", gauge: gauge)
             return
         }
         guard let name = reply["setting"] as? String, let shown = HUDContent.presentation[name],

@@ -212,6 +212,13 @@ et retrouve sa valeur à l'allumage (relevé : 0 éteinte, 40 après
 donnerait une lumière « allumée » sans effet sur la dalle, qui passerait pour
 un raccourci en panne : dans ce seul cas, l'allumage la remonte à 20.
 
+**Luminosité et allumage forment un seul niveau.** Puisque `0x09` est ignoré
+lumière éteinte, « plus lumineux » depuis éteinte doit d'abord écrire `0x07`, puis
+la luminosité (`FrontLight.step`, testé) ; et descendre à 0 écrit `0x07 = 0` sans
+toucher `0x09`, que le moniteur garde pour le prochain allumage. Conséquence
+inévitable : allumer depuis ↑ affiche un instant le niveau mémorisé avant le
+premier cran.
+
 **Requête ignorée après un changement de mode.** Juste après l'accusé d'une
 écriture de `0x07`, le moniteur **ignore** la lecture suivante : aucune réponse,
 même tardive, alors que la même lecture 50 ms plus tard répond. C'est ce qui

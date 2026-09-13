@@ -99,15 +99,18 @@ précisément le mode de défaillance rencontré avec le client propriétaire.
 | `paperlike speed` | 1–5 | Vitesse de rafraîchissement |
 | `paperlike light on\|off\|toggle` | — | Lumière frontale : allumer / éteindre |
 | `paperlike light-mode` | 0–3 | Lumière frontale : 0 éteinte |
-| `paperlike light` | 0–100 | Lumière frontale : luminosité |
+| `paperlike light` | 0–100 | Lumière frontale : luminosité (0 éteint) |
 | `paperlike light-temp` | 0–100 | Lumière frontale : température |
 | `paperlike text-enhance` | 0–1 | Rehaussement du texte |
 | `paperlike refresh` | — | Ghost Cleanup |
 | `paperlike read 09` | — | Lire un registre brut (diagnostic) |
 
-La luminosité frontale n'est acceptée **que si la lumière est allumée** : sinon le
-moniteur ignore l'écriture sans rien dire. L'agent le détecte et le signale.
-`paperlike light on` rétablit le dernier mode de lumière utilisé, retenu entre
+La luminosité frontale se comporte **comme une touche de luminosité** : 0 veut
+dire éteinte. Depuis la lumière éteinte, `light +10` (Ctrl+Opt+Cmd+↑) l'allume
+au premier cran, 10 % ; descendre jusqu'à 0 l'éteint vraiment, au lieu de la
+laisser allumée à zéro. Le moniteur ignorant la luminosité lumière éteinte,
+l'allumage passe d'abord brièvement par le dernier niveau mémorisé.
+`paperlike light on` (Ctrl+Opt+Cmd+L) rétablit le dernier mode de lumière utilisé, retenu entre
 deux redémarrages de l'agent ; pour en choisir un, `paperlike light-mode 1..3`
 une fois. Si la luminosité vaut alors 0, elle est remontée à 20 pour que
 l'allumage se voie.

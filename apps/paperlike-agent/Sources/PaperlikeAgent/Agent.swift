@@ -197,6 +197,7 @@ final class Agent {
                      into response: inout [String: Any]) throws {
         response["setting"] = setting.name
         response["bounds"] = [setting.bounds.lowerBound, setting.bounds.upperBound]
+        if setting.name == "light" { return try adjustLight(setting, adjustment, on: serial, into: &response) }
         if let requirement = setting.requires, try serial.query(requirement.command) == 0 {
             throw PaperlikeError("\(setting.name) ne peut pas être réglé : \(requirement.explanation).", code: requirement.code)
         }
@@ -218,6 +219,38 @@ final class Agent {
         response["value"] = target
         // `paperlike light-mode 3` is how a mode is chosen for the toggle.
         if setting.name == "light-mode", target != 0 { lastLightMode = target }
+    }
+
+    // Brightness as one level where 0 means off — see FrontLight. Switching
+    // off leaves the brightness register alone, so the toggle brings the last
+    // level back.
+    private func adjustLight(_ light: Setting, _ adjustment: Adjustment, on serial: SerialPort,
+                             into response: inout [String: Any]) throws {
+        guard let mode = Setting.named("light-mode") else { return }
+        let current = Int(try serial.query(mode.command))
+        if current != 0 { lastLightMode = current }
+        let level = current != 0 ? Int(try serial.query(light.command)) : 0
+        response["from"] = level
+        var received: [String] = []
+        switch FrontLight.step(isOn: current != 0, level: level, by: adjustment, within: light.bounds) {
+        case .stay(let value):
+            response["value"] = value
+            if current == 0 { response["power"] = "off" }
+        case .switchOff:
+            received += try write(mode, 0, on: serial)
+            response["value"] = 0
+            response["power"] = "off"
+        case .setLevel(let value):
+            received += try write(light, value, on: serial)
+            response["value"] = value
+        case .switchOn(let value):
+            received += try write(mode, lastLightMode, on: serial)
+            received += try write(light, value, on: serial)
+            response["value"] = value
+            response["power"] = "on"
+        }
+        response["received"] = received
+        response["delivery"] = received.isEmpty && response["value"] as? Int == level ? "unchanged" : "confirmed_by_readback"
     }
 
     // The panel keeps its brightness register while the light is off, so
