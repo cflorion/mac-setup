@@ -35,7 +35,7 @@ QSDF = [
 WXCV = [
     ("W", "app", "WezTerm", ""), ("X", "none", "", ""), ("C", "app", "Chat", "Google Chat"),
     ("V", "app", "Meet", "Google Meet"), ("B", "app", "Browser", "Safari"),
-    ("N", "none", "", ""), (",", "sys", "Raycast", ""), (";", "sys", "Raycast", ""),
+    ("N", "app", "Notes", "Brouillon"), (",", "sys", "Raycast", ""), (";", "sys", "Raycast", ""),
     (":", "sys", "Raycast", ""), ("=", "sys", "Raycast", ""),
 ]
 SPECIAL = [  # (cap, cat, line1, line2, width)

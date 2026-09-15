@@ -190,8 +190,10 @@
 <text x="540.0" y="550" font-size="10.5" text-anchor="middle" fill="#e9d5ff">Safari</text>
 </g>
 <g>
-<rect x="592" y="478" width="88" height="84" rx="11" fill="#f1f5f9" stroke="#00000022" stroke-width="1"/>
-<text x="603" y="508" font-size="23" font-weight="700" fill="#94a3b8">N</text>
+<rect x="592" y="478" width="88" height="84" rx="11" fill="#7c3aed" stroke="#00000022" stroke-width="1"/>
+<text x="603" y="508" font-size="23" font-weight="700" fill="#ffffff">N</text>
+<text x="636.0" y="534" font-size="12.5" font-weight="600" text-anchor="middle" fill="#ffffff">Notes</text>
+<text x="636.0" y="550" font-size="10.5" text-anchor="middle" fill="#e9d5ff">Brouillon</text>
 </g>
 <g>
 <rect x="688" y="478" width="88" height="84" rx="11" fill="#b45309" stroke="#00000022" stroke-width="1"/>

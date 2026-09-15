@@ -1,36 +1,62 @@
 #!/bin/bash
 set -euo pipefail
 
-# Focus (or open) a dedicated Apple Notes window used as a scratch pad.
+# Hyper+N: toggle Apple Notes, on the "Brouillon" scratch note, over whatever you
+# are doing — one window, the main Notes window.
 #
-# Replaces Antinote: one hotkey (Hyper+N), a note window right over whatever you
-# are doing — but the note is a real Apple Notes note, so it syncs to the iPhone
-# through iCloud instead of living in a second, Mac-only data store.
+# Replaces Antinote: the scratch note is a real Apple Notes note, so it syncs to
+# the iPhone through iCloud instead of living in a second, Mac-only data store.
 #
-# Warm path (window already open): a single AeroSpace focus, ~150ms.
-# Cold path: create the note if missing, select it, open it in its own window —
-# ~1.5s, or ~2.5s when Notes itself has to launch. Notes does not restore
-# separate note windows, so the first Hyper+N after a login pays the cold path.
+# - Notes focused: park its windows on the off-bar "Notes" workspace. AeroSpace
+#   hands focus back to the window you were on, and puts the Notes window back
+#   where it was when it returns.
+# - Otherwise: bring every Notes window to the focused workspace, select the note
+#   (created on first run) and front Notes, launching it if needed.
 #
-# The window floats thanks to the `com.apple.Notes` rule in aerospace.toml.
-# The note name is also the window title, and Apple Notes derives the name from
-# the first line of the note — so keep that first line intact and type below it.
+# Parking rather than ⌘H: AeroSpace (0.21) turns the window of a macOS-hidden app
+# into a tiling window when it moves to another workspace, reshuffling that
+# workspace until the app is unhidden. A manual ⌘H is still handled: Notes is
+# unhidden first — without being fronted — and its windows move once AeroSpace
+# sees them floating again.
+#
+# Windows move *before* Notes is fronted: fronting an app whose window sits on
+# another workspace makes AeroSpace switch to that workspace.
+#
+# Apple Notes derives a note's name from its first line — keep "Brouillon" on
+# line 1 and type below it, or the next Hyper+N creates a fresh note.
 
 NOTE_NAME="${NOTES_SCRATCH_NOTE:-Brouillon}"
 BUNDLE_ID="com.apple.Notes"
+# Deliberately not in sketchybar's spaces.lua (like OBS in aerospace.toml): out of
+# the bar and out of the workspace cycle.
+PARKING_WORKSPACE="Notes"
 
-find_window() {
+# Serialize. Hyper+N binds this via `exec-and-forget`, which does not wait, so a
+# quick double press runs two copies at once — and the first one could front
+# Notes after the second one parked it, pulling you onto the parking workspace.
+# A press that lands while another copy is running is dropped.
+LOCK="${TMPDIR:-/tmp}/notes-scratch.lock"
+if command -v shlock >/dev/null 2>&1; then
+    shlock -f "$LOCK" -p "$$" || exit 0
+    trap '/bin/rm -f "$LOCK"' EXIT
+fi
+
+notes_windows() {
     aerospace list-windows --monitor all --app-bundle-id "$BUNDLE_ID" \
-        --format '%{window-id}|%{window-title}' 2>/dev/null \
-        | awk -F'|' -v name="$NOTE_NAME" '$2 == name { print $1; exit }'
+        --format '%{window-id} %{workspace} %{window-layout}' 2>/dev/null || true
 }
 
-# Bring the window to the workspace in front of the user, then focus it.
-focus_window() {
-    local wid="$1" ws
-    ws=$(aerospace list-workspaces --focused)
-    aerospace move-node-to-workspace --window-id "$wid" "$ws" 2>/dev/null || true
-    aerospace focus --window-id "$wid"
+notes_hidden() {
+    notes_windows | grep -q ' macos_native_window_of_hidden_app$'
+}
+
+# Move every Notes window to a workspace, skipping those already on it.
+move_notes_to() {
+    notes_windows | while read -r wid wws _; do
+        if [ -n "$wid" ] && [ "$wws" != "$1" ]; then
+            aerospace move-node-to-workspace --window-id "$wid" "$1" 2>/dev/null || true
+        fi
+    done
 }
 
 # Create the note on first run, then select it in the notes list.
@@ -51,55 +77,28 @@ end run
 APPLESCRIPT
 }
 
-# Window > "Open Note in New Window". There is no AppleScript command for it, and
-# the menu item is a no-op unless Notes was activated through its URL scheme
-# (`activate` alone is not enough — verified on macOS 26).
-open_in_own_window() {
-    osascript <<'APPLESCRIPT'
-tell application "System Events" to tell process "Notes"
-    -- Window is always the second-to-last menu, before Help, in every locale.
-    set windowMenu to menu 1 of menu bar item -2 of menu bar 1
-    repeat with mi in (every menu item of windowMenu)
-        set nm to name of mi
-        if nm is not missing value then
-            if (nm contains "nouvelle fenêtre") or (nm contains "New Window") then
-                click mi
-                return
-            end if
-        end if
-    end repeat
-    error "menu item 'Open Note in New Window' not found"
-end tell
-APPLESCRIPT
-}
+ws=$(aerospace list-workspaces --focused)
 
-wid=$(find_window)
-if [ -n "$wid" ]; then
-    focus_window "$wid"
+if [ "$(aerospace list-windows --focused --format '%{app-bundle-id}' 2>/dev/null)" = "$BUNDLE_ID" ]; then
+    move_notes_to "$PARKING_WORKSPACE"
+    # Notes was reached on its parking workspace (⌘Tab): go back where you were.
+    if [ "$ws" = "$PARKING_WORKSPACE" ]; then
+        aerospace workspace-back-and-forth 2>/dev/null || true
+    fi
     exit 0
 fi
 
-select_note >/dev/null
-open "notes://"
-
-# Notes may still be launching; retry until its menu bar answers and the window
-# shows up. The window check comes first so a slow-to-appear window never gets a
-# second menu click.
-for _ in 1 2 3 4 5 6 7 8 9 10; do
-    wid=$(find_window)
-    [ -n "$wid" ] && break
-    open_in_own_window >/dev/null 2>&1 || true
-    sleep 0.3
-done
-
-if [ -z "$wid" ]; then
-    # Bound to a hotkey, so stderr goes nowhere. The notification is itself an
-    # Automation call, so it can be blocked by the very denial it would report —
-    # fall back to plain Notes so the hotkey always surfaces something.
-    echo "notes-scratch: could not open a window for note '$NOTE_NAME'" >&2
-    osascript -e "display notification \"Could not open the note '$NOTE_NAME'\" with title \"notes-scratch\"" >/dev/null 2>&1 || true
-    open -a Notes
-    exit 1
+if notes_hidden; then
+    # NSRunningApplication needs no Automation permission, and unhide does not
+    # front the app. AeroSpace sees the windows floating again within ~0.2s.
+    osascript -l JavaScript -e "ObjC.import('AppKit'); \$.NSRunningApplication.runningApplicationsWithBundleIdentifier('$BUNDLE_ID').firstObject.unhide" >/dev/null
+    for _ in $(seq 20); do
+        notes_hidden || break
+        sleep 0.05
+    done
 fi
 
-focus_window "$wid"
+move_notes_to "$ws"
+# Still front Notes when the note can't be selected (e.g. Automation denied).
+select_note >/dev/null || echo "notes-scratch: could not select note '$NOTE_NAME'" >&2
+open -b "$BUNDLE_ID"
