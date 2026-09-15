@@ -97,7 +97,6 @@ cask "obs"
 cask "nikitabobko/tap/aerospace"
 cask "karabiner-elements"
 cask "ukelele"
-cask "jordanbaird-ice@beta"
 cask "stillcolor"
 cask "displaylink"
 
