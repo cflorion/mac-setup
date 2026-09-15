@@ -80,7 +80,7 @@ Each camera key shows one source and hides the others in one shot.
 ### Scratch note
 | Shortcut | Action |
 |---|---|
-| Hyper+N | Apple Notes on the `Brouillon` note, over the current workspace; press again while Notes is in front to hide it (`notes-scratch`) |
+| Hyper+N | Apple Notes on the `Brouillon` note, over the current workspace, pinned to a fixed size and centered; press again while Notes is in front to hide it (`notes-scratch`) |
 
 > The note title is its first line: keep `Brouillon` on line 1 and type below it.
 > Overwrite that line and the note is renamed — Hyper+N then no longer finds it

@@ -26,8 +26,16 @@ set -euo pipefail
 #
 # Apple Notes derives a note's name from its first line — keep "Brouillon" on
 # line 1 and type below it, or the next Hyper+N creates a fresh note.
+#
+# Every time the window is shown, it is pinned to a fixed size and centered on
+# whichever display it lands on. Apple Notes has no persistent window-size
+# setting: a freshly launched window (e.g. after Notes was quit) opens at its
+# own small default instead of the size you actually work with, so this
+# re-applies WIDTH/HEIGHT on every show rather than only on first launch.
 
 NOTE_NAME="${NOTES_SCRATCH_NOTE:-Brouillon}"
+WIDTH="${NOTES_SCRATCH_WIDTH:-904}"
+HEIGHT="${NOTES_SCRATCH_HEIGHT:-761}"
 BUNDLE_ID="com.apple.Notes"
 # Deliberately not in sketchybar's spaces.lua (like OBS in aerospace.toml): out of
 # the bar and out of the workspace cycle.
@@ -81,6 +89,41 @@ end run
 APPLESCRIPT
 }
 
+# Resize and center the frontmost Notes window on the display it is on.
+#
+# Two engines, deliberately: the geometry (which display, how big its visible
+# frame is) only exists in AppKit, reachable from JXA via NSScreen; but JXA's
+# own property-setter for "bounds" is a no-op on Notes' window (assigning
+# [x1,y1,x2,y2], {x1,...}, or .position/.size all silently fail or error) —
+# classic AppleScript's `set bounds of window` is what actually moves it. So
+# JXA computes the target origin and plain AppleScript applies it.
+#
+# The coordinates from NSScreen are bottom-left/y-up; "bounds" wants
+# top-left/y-down. The y-flip is anchored on the primary screen's height,
+# which is how macOS defines the global coordinate space across monitors
+# regardless of which one is "main" (NSScreen.mainScreen — the one with the
+# key window, i.e. Notes' display once it's been focused).
+resize_and_center() {
+    local origin x y
+    origin=$(osascript -l JavaScript - "$WIDTH" "$HEIGHT" <<'JXA' 2>/dev/null
+function run(argv) {
+    ObjC.import('AppKit')
+    var w = Number(argv[0])
+    var h = Number(argv[1])
+    var primaryHeight = $.NSScreen.screens.objectAtIndex(0).frame.size.height
+    var vf = $.NSScreen.mainScreen.visibleFrame
+    var x = Math.round(vf.origin.x + (vf.size.width - w) / 2)
+    var appkitY = vf.origin.y + (vf.size.height - h) / 2
+    var y = Math.round(primaryHeight - appkitY - h)
+    return x + " " + y
+}
+JXA
+    ) || return 0
+    x=${origin% *}
+    y=${origin#* }
+    osascript -e "tell application \"Notes\" to set bounds of window 1 to {$x, $y, $((x + WIDTH)), $((y + HEIGHT))}" >/dev/null 2>&1
+}
+
 # Each AeroSpace query costs ~15ms, so one query answers both "is Notes in front"
 # and "which workspace"; only an empty workspace (no focused window) needs another.
 focused=$(aerospace list-windows --focused --format '%{app-bundle-id} %{workspace}' 2>/dev/null || true)
@@ -119,3 +162,4 @@ if [ -z "$first_window" ] || ! aerospace focus --window-id "$first_window" 2>/de
 fi
 # Notes stays in front even when the note can't be selected (e.g. Automation denied).
 select_note >/dev/null || echo "notes-scratch: could not select note '$NOTE_NAME'" >&2
+resize_and_center || true
