@@ -88,6 +88,20 @@ Each camera key shows one source and hides the others in one shot.
 
 ---
 
+## Links — Finicky
+
+Finicky is the default browser: it sends every link to Safari.
+
+| Action | Opens in |
+|---|---|
+| Click a link | Safari |
+| Shift+click a link (outside Safari) | Helium |
+
+> Links clicked inside Safari stay in Safari — Finicky never sees them.
+> In WezTerm, Shift+click is also a selection gesture — not a reliable way to send a link to Helium.
+
+---
+
 ## Raycast
 
 | Shortcut | Action |
