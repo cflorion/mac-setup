@@ -117,12 +117,12 @@ cmd-ctrl-alt-shift-1 = 'workspace 1'
 cmd-ctrl-alt-shift-2 = 'workspace 2'
 cmd-ctrl-alt-shift-3 = 'workspace 3'
 
-# Move window to workspace — via mode 'move' (Meh+M, puis lettre/chiffre)
+# Move window to workspace — via mode 'move' (Meh+M, then a letter/digit)
 ctrl-alt-shift-m = 'mode move'
 
 # ----------------------------
 # Move mode (send window to workspace)
-# Enter: hyper+d, then type the workspace key
+# Enter: Meh+M, then type the workspace key
 # ----------------------------
 [mode.move.binding]
 w = ['move-node-to-workspace W --focus-follows-window', 'mode main']
@@ -281,11 +281,11 @@ run = 'layout floating'
 if.app-id = 'com.apple.Notes'
 run = 'layout floating'
 
-# OBS Studio — background app driven entirely by global hotkeys (fn+1/2/3/4/E/R,
+# OBS Studio — background app driven entirely by global hotkeys (Meh+1/2/3/4/W/Q,
 # see karabiner). Banish it to a dedicated 'OBS' workspace WITHOUT stealing focus
 # (move-node only, no `workspace OBS`), so its window is never in front of you.
 # 'OBS' is deliberately NOT in sketchybar's spaces.lua workspace_defs: that keeps
-# it out of the bar AND out of the Hyper+↑/↓ cycle (aerospace-workspace-cycle
+# it out of the bar AND out of the Hyper+←/→ cycle (aerospace-workspace-cycle
 # reads its order from spaces.lua). Reach it via ⌘Tab or Raycast when needed.
 [[on-window-detected]]
 if.app-id = 'com.obsproject.obs-studio'

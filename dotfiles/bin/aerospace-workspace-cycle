@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Serialize. Hyper+up/down bind this via `exec-and-forget`, which does not wait,
+# Serialize. Hyper+left/right bind this via `exec-and-forget`, which does not wait,
 # so spamming the key fast spawns several copies at once. Concurrent copies all
 # read the same stale focus and issue redundant/backward `aerospace workspace`
 # calls; AeroSpace then fires its workspace-change hooks out of order and the
