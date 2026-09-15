@@ -10,8 +10,8 @@ set -euo pipefail
 # - Notes focused: park its windows on the off-bar "Notes" workspace. AeroSpace
 #   hands focus back to the window you were on, and puts the Notes window back
 #   where it was when it returns.
-# - Otherwise: bring every Notes window to the focused workspace, select the note
-#   (created on first run) and front Notes, launching it if needed.
+# - Otherwise: bring every Notes window to the focused workspace and front Notes
+#   (launching it if needed), then select the note (created on first run).
 #
 # Parking rather than ⌘H: AeroSpace (0.21) turns the window of a macOS-hidden app
 # into a tiling window when it moves to another workspace, reshuffling that
@@ -19,8 +19,10 @@ set -euo pipefail
 # unhidden first — without being fronted — and its windows move once AeroSpace
 # sees them floating again.
 #
-# Windows move *before* Notes is fronted: fronting an app whose window sits on
-# another workspace makes AeroSpace switch to that workspace.
+# Order matters. Windows move *before* Notes is fronted: fronting an app whose
+# window sits on another workspace makes AeroSpace switch to that workspace. And
+# Notes is fronted through AeroSpace *before* the note is selected: the
+# AppleScript round trip to Notes takes ~0.2s, which used to delay the window.
 #
 # Apple Notes derives a note's name from its first line — keep "Brouillon" on
 # line 1 and type below it, or the next Hyper+N creates a fresh note.
@@ -46,17 +48,19 @@ notes_windows() {
         --format '%{window-id} %{workspace} %{window-layout}' 2>/dev/null || true
 }
 
+# Whether $windows lists a window of a macOS-hidden Notes (a manual ⌘H).
 notes_hidden() {
-    notes_windows | grep -q ' macos_native_window_of_hidden_app$'
+    grep -q ' macos_native_window_of_hidden_app$' <<<"$windows"
 }
 
-# Move every Notes window to a workspace, skipping those already on it.
+# Move every window listed in $windows to a workspace, skipping those already on it.
 move_notes_to() {
-    notes_windows | while read -r wid wws _; do
+    local wid wws
+    while read -r wid wws _; do
         if [ -n "$wid" ] && [ "$wws" != "$1" ]; then
             aerospace move-node-to-workspace --window-id "$wid" "$1" 2>/dev/null || true
         fi
-    done
+    done <<<"$windows"
 }
 
 # Create the note on first run, then select it in the notes list.
@@ -77,9 +81,17 @@ end run
 APPLESCRIPT
 }
 
-ws=$(aerospace list-workspaces --focused)
+# Each AeroSpace query costs ~15ms, so one query answers both "is Notes in front"
+# and "which workspace"; only an empty workspace (no focused window) needs another.
+focused=$(aerospace list-windows --focused --format '%{app-bundle-id} %{workspace}' 2>/dev/null || true)
+focused_app=${focused% *}
+ws=${focused##* }
+if [ -z "$focused" ]; then
+    ws=$(aerospace list-workspaces --focused)
+fi
+windows=$(notes_windows)
 
-if [ "$(aerospace list-windows --focused --format '%{app-bundle-id}' 2>/dev/null)" = "$BUNDLE_ID" ]; then
+if [ "$focused_app" = "$BUNDLE_ID" ]; then
     move_notes_to "$PARKING_WORKSPACE"
     # Notes was reached on its parking workspace (⌘Tab): go back where you were.
     if [ "$ws" = "$PARKING_WORKSPACE" ]; then
@@ -93,12 +105,17 @@ if notes_hidden; then
     # front the app. AeroSpace sees the windows floating again within ~0.2s.
     osascript -l JavaScript -e "ObjC.import('AppKit'); \$.NSRunningApplication.runningApplicationsWithBundleIdentifier('$BUNDLE_ID').firstObject.unhide" >/dev/null
     for _ in $(seq 20); do
-        notes_hidden || break
         sleep 0.05
+        windows=$(notes_windows)
+        notes_hidden || break
     done
 fi
 
 move_notes_to "$ws"
-# Still front Notes when the note can't be selected (e.g. Automation denied).
+first_window=${windows%% *}
+if [ -z "$first_window" ] || ! aerospace focus --window-id "$first_window" 2>/dev/null; then
+    # Not running, or no window left: launch Notes or reopen its main window.
+    open -b "$BUNDLE_ID"
+fi
+# Notes stays in front even when the note can't be selected (e.g. Automation denied).
 select_note >/dev/null || echo "notes-scratch: could not select note '$NOTE_NAME'" >&2
-open -b "$BUNDLE_ID"
