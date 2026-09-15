@@ -2,7 +2,7 @@
 
 > **Hyper** = hold CapsLock = Cmd+Ctrl+Opt+Shift
 > **CapsLock** tapped alone = Escape
-> **Meh** = hold right ⇧ = Ctrl+Opt+Shift (OBS / video-call layer)
+> **Meh** = hold right ⌥ = Ctrl+Opt+Shift (window and OBS layer)
 
 ---
 
@@ -12,9 +12,10 @@
 |---|---|
 | CapsLock (hold) | Hyper (Cmd+Ctrl+Opt+Shift) |
 | CapsLock (tap) | Escape |
-| Right ⇧ (hold) | Meh (Ctrl+Opt+Shift) |
-| Right ⇧ (tap) | Shift |
+| Right ⌥ (hold) | Meh (Ctrl+Opt+Shift) |
 | Left ⌥ (tap) | Handy dictation (⌃⌥⌘D) |
+
+> Right ⌥ is Meh only: type ⌥-characters (`{`, `[`, `|`…) with left ⌥.
 
 ---
 
@@ -30,8 +31,11 @@ Each camera key shows one source and hides the others in one shot.
 | Meh+2 | F20 | Camera **Brio** |
 | Meh+3 | F16 | Camera **ionPhone** |
 | Meh+4 | F13 | Camera **Fuji** |
-| Meh+Z | F18 | Scene **Écran** (incrustation) |
-| Meh+A | F17 | Scene **Régie** |
+| Meh+W | F18 | Scene **Écran** (incrustation) |
+| Meh+Q | F17 | Scene **Régie** |
+
+> Karabiner key codes name physical (US QWERTY) positions: its `z` and `a` are the
+> AZERTY **W** and **Q** keys.
 
 ---
 
@@ -50,7 +54,7 @@ Each camera key shows one source and hides the others in one shot.
 | Meh+Space | Floating ↔ Tiling |
 | Meh+← / → | Move window to left/right monitor |
 | Meh+↑ / ↓ | Move window to monitor above/below |
-| Meh+R | Resize mode (then H/J/K/L, Esc to exit) |
+| Meh+R | Resize mode (then H/J/K/L, Esc or Enter to exit) |
 | Meh+M | Move mode (then a letter/digit to send the window there) |
 
 ### Workspaces
@@ -66,14 +70,16 @@ Each camera key shows one source and hides the others in one shot.
 | Hyper+F | yazi (Files) |
 | Hyper+M | Superhuman (Mail) |
 | Hyper+S | Slack |
-| Hyper+C | Google Chat |
+| Hyper+D | Messages + WhatsApp (Discussions), Messages on the left |
+| Hyper+C | Claude |
 | Hyper+L | Linear |
 | Hyper+O | Obsidian |
+| Hyper+R | Reminders |
 | Hyper+A | Notion Calendar (Agenda) |
 | Hyper+H | Helium |
 | Hyper+V | Google Meet (Visio) |
 | Hyper+B | Safari (Browser) |
-| Hyper+G | Gemini |
+| Hyper+G | ChatGPT |
 | Hyper+Y | Kaset (YouTube Music) |
 
 ### Scratch note
@@ -109,6 +115,17 @@ Finicky is the default browser: it sends every link to Safari.
 | Hyper+; | Toggle System Appearance |
 | Hyper+: | Search Emoji & Symbols |
 | Hyper+= | Clipboard History |
+
+---
+
+## Homerow
+
+| Shortcut | Action |
+|---|---|
+| Hyper+U | Click |
+| Hyper+J | Scroll |
+
+> Karabiner turns them into ⌃⌥⌘H / ⌃⌥⌘J, the shortcuts set in Homerow.
 
 ---
 
