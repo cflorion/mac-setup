@@ -22,7 +22,6 @@ local workspace_defs = {
   { key = "C", app = "Claude",          label = "Claude",   side = "left" },
   { key = "L", app = "Linear",          label = "Linear",   side = "left" },
   { key = "O", app = "Obsidian",        label = "Obsidian", side = "left" },
-  { key = "T", app = "TickTick",        label = "TickTick", side = "left" },
   { key = "R", app = "Rappels",         label = "Rappels",  side = "left" },
   { key = "A", app = "Notion Calendar", label = "Agenda",   side = "left" },
   { key = "H", app = "Helium",          label = "Helium",   side = "left" },

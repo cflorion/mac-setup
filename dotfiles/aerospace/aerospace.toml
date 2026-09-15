@@ -98,7 +98,6 @@ cmd-ctrl-alt-shift-d = 'exec-and-forget aerospace-focus-or-open-discussions'
 cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.openai.codex ChatGPT'
 cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C com.anthropic.claudefordesktop Claude'
 cmd-ctrl-alt-shift-o = 'exec-and-forget aerospace-focus-or-open O md.obsidian Obsidian'
-cmd-ctrl-alt-shift-t = 'exec-and-forget aerospace-focus-or-open T com.TickTick.task.mac TickTick'
 cmd-ctrl-alt-shift-r = 'exec-and-forget aerospace-focus-or-open R com.apple.reminders Reminders'
 cmd-ctrl-alt-shift-a = 'exec-and-forget aerospace-focus-or-open A com.cron.electron "Notion Calendar"'
 cmd-ctrl-alt-shift-l = 'exec-and-forget aerospace-focus-or-open L com.linear Linear'
@@ -217,11 +216,6 @@ run = ['move-node-to-workspace L', 'workspace L']
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
 run = ['move-node-to-workspace O', 'workspace O']
-
-# Tasks - TickTick (T)
-[[on-window-detected]]
-if.app-id = 'com.TickTick.task.mac'
-run = ['move-node-to-workspace T', 'workspace T']
 
 # Reminders - Apple Reminders (R = Rappels)
 [[on-window-detected]]

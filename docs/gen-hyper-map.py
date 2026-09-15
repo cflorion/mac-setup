@@ -21,7 +21,7 @@ NUMBERS = [
 ]
 AZERTY = [
     ("A", "app", "Agenda", "Notion Cal."), ("Z", "none", "", ""), ("E", "none", "", ""),
-    ("R", "win", "Resize mode", "h j k l"), ("T", "app", "TickTick", ""),
+    ("R", "win", "Resize mode", "h j k l"), ("T", "none", "", ""),
     ("Y", "app", "YouTube", "Kaset"), ("U", "sys", "Homerow", "click"),
     ("I", "none", "", ""), ("O", "app", "Obsidian", ""), ("P", "none", "", ""),
     ("^", "win", "Focus", "← left"), ("$", "win", "Focus", "right →"),

@@ -69,7 +69,6 @@ Each camera key shows one source and hides the others in one shot.
 | Hyper+C | Google Chat |
 | Hyper+L | Linear |
 | Hyper+O | Obsidian |
-| Hyper+T | TickTick |
 | Hyper+A | Notion Calendar (Agenda) |
 | Hyper+H | Helium |
 | Hyper+V | Google Meet (Visio) |

@@ -35,7 +35,6 @@ return {
   ["微信"] = ":wechat:",
   ["Dropbox"] = ":dropbox:",
   ["Transmit"] = ":transmit:",
-  ["TickTick"] = ":tick_tick:",
   ["Parallels Desktop"] = ":parallels:",
   ["Audacity"] = ":audacity:",
   ["Rider"] = ":rider:",
