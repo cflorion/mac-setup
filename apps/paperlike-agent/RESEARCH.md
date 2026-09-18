@@ -317,6 +317,10 @@ that screen's model — DASUNG product 0 being the black-and-white 253.
 Anything else stays unknown rather than guessed. Checked with the pointer
 warped onto each screen: each reached its own link.
 
+It is also silent on `0x07`, `0x08`, `0x09` (no front light) and `0x12`
+(text enhancement), so `paperlike query` lists the registers a monitor leaves
+unanswered under `unanswered` instead of failing on the first one.
+
 ### Black display: resolved by Ghost Cleanup
 
 A symptom distinct from the two previous ones: the Revo Color no longer

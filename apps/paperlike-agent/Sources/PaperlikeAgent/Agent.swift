@@ -162,10 +162,19 @@ final class Agent {
                             "value": Int(try serial.query(register))]
                 }
                 try sendMacStatus(serial)
-                var registers = ["firmware": Int(try serial.query(0x10)), "model": Int(try serial.query(Model.register))]
-                for setting in Setting.all { registers[setting.name] = Int(try serial.query(setting.command)) }
+                // Not every model answers every register: the black-and-white
+                // 253 never replies to 0x13 (model) nor to the front-light ones
+                // (it has none). Those are listed as unanswered rather than
+                // aborting the whole read-back on the first of them.
+                let fields = [("firmware", UInt8(0x10)), ("model", Model.register)] + Setting.all.map { ($0.name, $0.command) }
+                var registers: [String: Int] = [:]
+                var unanswered: [String] = []
+                for (name, command) in fields {
+                    if let value = try? serial.query(command) { registers[name] = Int(value) } else { unanswered.append(name) }
+                }
+                guard !registers.isEmpty else { throw PaperlikeError("The monitor answered no register.") }
                 return ["ok": true, "monitor": link.monitor.name, "port": link.monitor.path,
-                        "registers": registers, "received": serial.lastFrames]
+                        "registers": registers, "unanswered": unanswered, "received": serial.lastFrames]
             } catch {
                 return Agent.failure(error)
             }
