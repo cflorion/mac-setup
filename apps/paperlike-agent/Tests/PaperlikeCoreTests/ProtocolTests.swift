@@ -1,5 +1,6 @@
 import XCTest
 import Darwin
+import Carbon.HIToolbox
 @testable import PaperlikeCore
 
 final class ProtocolTests: XCTestCase {
@@ -188,6 +189,14 @@ final class SettingsTests: XCTestCase {
         XCTAssertNotEqual(ok.modifiers, 0)
     }
 
+    // The M key on AZERTY is the ANSI semicolon position; ANSI M types a comma.
+    func testModeShortcutSitsOnTheAZERTYMKey() throws {
+        let binding = try Configuration.binding(keys: "ctrl+alt+cmd+semicolon", action: ["mode", "next"])
+        XCTAssertEqual(binding.keyCode, UInt32(kVK_ANSI_Semicolon))
+        XCTAssertEqual(binding.parsed, .mode(.next))
+        XCTAssertTrue(Configuration.defaultHotkeys.contains { $0.0 == "ctrl+alt+cmd+semicolon" && $0.1 == ["mode", "next"] })
+    }
+
     func testDefaultHotkeysAllParse() {
         for (keys, action) in Configuration.defaultHotkeys {
             XCTAssertNoThrow(try Configuration.binding(keys: keys, action: action), "\(keys)")
@@ -294,6 +303,54 @@ final class ScreenClearTests: XCTestCase {
     }
 }
 
+final class DisplayModeTests: XCTestCase {
+    // The values come from the official client's per-model tables; the same
+    // name is not the same number on every model.
+    func testEachModelCyclesThroughItsOwnFourModes() throws {
+        for model in Model.allCases {
+            let modes = DisplayMode.modes(of: model)
+            XCTAssertEqual(modes.count, model == .mono253 ? 3 : 4, "\(model)")
+            XCTAssertEqual(Set(modes.map(\.value)).count, modes.count, "\(model)")
+            var value = modes[0].value
+            var seen: [Int] = []
+            for _ in modes {
+                value = try DisplayMode.choose(.next, current: value, among: modes).value
+                seen.append(value)
+            }
+            XCTAssertEqual(Set(seen), Set(modes.map(\.value)), "\(model)")
+            XCTAssertEqual(value, modes[0].value, "\(model)")
+        }
+        XCTAssertEqual(DisplayMode.modes(of: .color253).map(\.value), [3, 4, 5, 2])
+        XCTAssertEqual(DisplayMode.modes(of: .mono253).map(\.value), [3, 4, 2])
+        XCTAssertEqual(DisplayMode.modes(of: .color13K).map(\.value), [6, 2, 3, 7])
+        XCTAssertEqual(DisplayMode.modes(of: .paperlike103).map(\.value), [5, 2, 3, 7])
+    }
+
+    func testAnUnknownValueRestartsAtTheFirstModeAndNamesAreChecked() throws {
+        let modes = DisplayMode.modes(of: .color253)
+        XCTAssertEqual(try DisplayMode.choose(.next, current: 2, among: modes).name, "image")
+        XCTAssertEqual(try DisplayMode.choose(.next, current: 0, among: modes).name, "image")
+        XCTAssertEqual(try DisplayMode.choose(.named("text"), current: 3, among: modes).value, 2)
+        XCTAssertThrowsError(try DisplayMode.choose(.named("auto"), current: 3, among: modes))
+    }
+
+    func testModeIsChosenByNameNeverByNumber() throws {
+        XCTAssertEqual(try Action.parse(["mode", "next"]), .mode(.next))
+        XCTAssertEqual(try Action.parse(["mode", "text"]), .mode(.named("text")))
+        for raw in ["1", "2", "+1", "fly"] { XCTAssertThrowsError(try Action.parse(["mode", raw]), raw) }
+        XCTAssertEqual(Action.mode(.next).frame(value: 4), Frame(0x02, 4))
+        XCTAssertNil(Action.mode(.next).merged(with: .mode(.next)))
+    }
+
+    func testTheHUDNamesTheModeAndItsPlaceInTheCycle() {
+        let hud = HUDContent(reply: ["ok": true, "setting": "mode", "value": 4, "bounds": [2, 7],
+                                     "mode": "active", "modes": ["image", "active", "web", "text"]])
+        XCTAssertEqual(hud?.title, "Mode")
+        XCTAssertEqual(hud?.caption, "Active · 2 / 4")
+        XCTAssertEqual(hud?.gauge, HUDContent.Gauge(segments: 4, filled: 2))
+    }
+}
+
 final class HUDContentTests: XCTestCase {
     func testLimitsAreSpelledOutAndEachPressMovesOneSegment() {
         let top = HUDContent(reply: ["ok": true, "setting": "contrast", "value": 9, "bounds": [1, 9]])
@@ -356,6 +413,27 @@ final class MonitorTests: XCTestCase {
         XCTAssertFalse(Model.color253.drives(vendor: 0x4a8b, product: 447))
         XCTAssertTrue(Model.any(named: "13k", drives: k13Screen))
         XCTAssertFalse(Model.any(named: "253", drives: k13Screen))
+    }
+
+    // The black-and-white 253's MCU leaves 0x13 unanswered. Unknown, its link
+    // could not be ruled out on the Color's screen, and every shortcut there
+    // was refused as ambiguous; paired by elimination, each screen gets its own.
+    func testAMonitorWithoutAModelIsPairedByElimination() throws {
+        let color = Monitor(path: "/dev/cu.usbserial-2115410", firmware: 0x30, modelCode: 5)
+        let mono = Monitor(path: "/dev/cu.usbserial-2112410", firmware: 0x10, modelCode: 0)
+        let colorScreen = Display(id: 3, vendor: 0x1263, product: 0x253c, width: 3200, height: 1800)
+        let monoScreen = Display(id: 2, vendor: 0x1263, product: 0, width: 3200, height: 1800)
+        let screens = [colorScreen, monoScreen, builtIn]
+        let monitors = Monitor.inferModels([color, mono], screens: screens)
+        XCTAssertEqual(monitors[1].model, .mono253)
+        XCTAssertEqual(monitors[0], color)
+        XCTAssertEqual(try Targeting.choose(monitors, named: nil, pointer: colorScreen, screens: screens).path, color.path)
+        XCTAssertEqual(try Targeting.choose(monitors, named: nil, pointer: monoScreen, screens: screens).path, mono.path)
+        XCTAssertEqual(try Targeting.choose(monitors, named: "253-bw", pointer: nil, screens: screens).path, mono.path)
+        // Two screens left unclaimed, or a product never observed: no guess.
+        XCTAssertNil(Monitor.inferModels([mono], screens: screens)[0].model)
+        let other = Display(id: 5, vendor: 0x1263, product: 0x103, width: 1872, height: 1404)
+        XCTAssertNil(Monitor.inferModels([color, mono], screens: [colorScreen, other])[1].model)
     }
 
     func testAMonitorNameMayPrefixAnyCommand() throws {

@@ -32,11 +32,14 @@ public struct Configuration {
     // free. Arrows are used for the adjustments because their key codes do not
     // move between keyboard layouts — on AZERTY a letter-based default would land
     // on a different physical key than the one printed in the documentation.
-    // R, L and C sit at the same place on AZERTY and QWERTY.
+    // R, L and C sit at the same place on AZERTY and QWERTY. M does not: the
+    // key printed M on AZERTY is the ANSI semicolon key, while ANSI M types a
+    // comma there.
     public static let defaultHotkeys: [(String, [String])] = [
         ("ctrl+alt+cmd+r", ["refresh"]),
         ("ctrl+alt+cmd+c", ["clear"]),
         ("ctrl+alt+cmd+l", ["light", "toggle"]),
+        ("ctrl+alt+cmd+semicolon", ["mode", "next"]),
         ("ctrl+alt+cmd+up", ["light", "+10"]),
         ("ctrl+alt+cmd+down", ["light", "-10"]),
         ("ctrl+alt+cmd+right", ["contrast", "+1"]),
@@ -112,6 +115,8 @@ public struct Configuration {
             "left": UInt32(kVK_LeftArrow), "right": UInt32(kVK_RightArrow),
             "space": UInt32(kVK_Space), "return": UInt32(kVK_Return),
             "pageup": UInt32(kVK_PageUp), "pagedown": UInt32(kVK_PageDown),
+            "semicolon": UInt32(kVK_ANSI_Semicolon), "comma": UInt32(kVK_ANSI_Comma),
+            "period": UInt32(kVK_ANSI_Period), "slash": UInt32(kVK_ANSI_Slash),
         ]
         let letters: [(String, Int)] = [
             ("a", kVK_ANSI_A), ("b", kVK_ANSI_B), ("c", kVK_ANSI_C), ("d", kVK_ANSI_D),

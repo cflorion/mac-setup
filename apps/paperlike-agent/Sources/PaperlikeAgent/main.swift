@@ -14,6 +14,7 @@ PaperlikeAgent — background controller for DASUNG e-ink displays
                               white; drawn by the Mac, no USB needed
   paperlike light on|off|toggle  Switch the front light on or off
   paperlike 13k light on      Name the monitor first to aim at it
+  paperlike mode next         Cycle the display modes (four per model)
 \(Setting.all.map { "  paperlike \($0.name.padding(toLength: 12, withPad: " ", startingAt: 0)) \($0.bounds.lowerBound)..\($0.bounds.upperBound)\(String(repeating: " ", count: max(0, 7 - "\($0.bounds.lowerBound)..\($0.bounds.upperBound)".count)))\($0.summary)" }.joined(separator: "\n"))
 
 A signed value is relative: “paperlike light +10” goes up by ten.

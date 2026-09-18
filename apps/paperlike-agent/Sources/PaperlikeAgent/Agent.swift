@@ -14,7 +14,7 @@ private let reconfigurationCallback: CGDisplayReconfigurationCallBack = { _, fla
 // closes the port.
 private final class Link {
     let serial: SerialPort
-    let monitor: Monitor
+    var monitor: Monitor
     var lastHealthCheck = ProcessInfo.processInfo.systemUptime
     init(serial: SerialPort, monitor: Monitor) { self.serial = serial; self.monitor = monitor }
 }
@@ -207,6 +207,8 @@ final class Agent {
                     try set(setting, adjustment, on: link, into: &response)
                 case .light(let power):
                     try switchLight(power, on: link, into: &response)
+                case .mode(let choice):
+                    try switchMode(choice, on: link, into: &response)
                 }
                 lastReply = ISO8601DateFormatter().string(from: Date())
                 return response
@@ -221,11 +223,18 @@ final class Agent {
     // thread.
     private func target(_ name: String?) throws -> Link {
         guard !links.isEmpty else { throw PaperlikeError(message, code: "unavailable") }
+        inferModels()
         let monitors = links.values.map(\.monitor).sorted { $0.path < $1.path }
         let chosen = try Targeting.choose(monitors, named: name, pointer: name == nil ? Display.underPointer() : nil,
                                           screens: inventory?.displays ?? [])
         guard let link = links[chosen.path] else { throw PaperlikeError(message, code: "unavailable") }
         return link
+    }
+
+    private func inferModels() {
+        for monitor in Monitor.inferModels(links.values.map(\.monitor), screens: inventory?.displays ?? []) {
+            links[monitor.path]?.monitor = monitor
+        }
     }
 
     private func set(_ setting: Setting, _ adjustment: Adjustment, on link: Link,
@@ -288,6 +297,30 @@ final class Agent {
         }
         response["received"] = received
         response["delivery"] = received.isEmpty && response["value"] as? Int == level ? "unchanged" : "confirmed_by_readback"
+    }
+
+    // The current mode is read fresh, as for a relative setting: the monitor's
+    // own buttons change it too. A monitor whose model is unknown is refused
+    // rather than given another model's values.
+    private func switchMode(_ choice: ModeChoice, on link: Link, into response: inout [String: Any]) throws {
+        guard let setting = Setting.named("mode") else { return }
+        guard let model = link.monitor.model else {
+            throw PaperlikeError("\(link.monitor.name): unknown model, so its display modes are unknown.")
+        }
+        let modes = DisplayMode.modes(of: model)
+        let before = Int(try link.serial.query(setting.command))
+        let target = try DisplayMode.choose(choice, current: before, among: modes)
+        response["setting"] = setting.name
+        response["modes"] = modes.map(\.name)
+        response["mode"] = target.name
+        response["from"] = before
+        response["value"] = target.value
+        guard target.value != before else {
+            response["delivery"] = "unchanged"
+            return
+        }
+        response["received"] = try write(setting, target.value, on: link.serial)
+        response["delivery"] = "confirmed_by_readback"
     }
 
     // The panel keeps its brightness register while the light is off, so
@@ -482,6 +515,7 @@ final class Agent {
     }
 
     private func status() -> [String: Any] {
+        inferModels()
         // With the HUD, "zero windows" no longer describes the agent; what still
         // holds is that it never becomes the active application, so that is
         // what `takesFocus` reports.
@@ -498,6 +532,7 @@ final class Agent {
             ["name": link.monitor.name, "port": link.monitor.path,
              "firmware": String(format: "0x%02X", link.monitor.firmware),
              "model": Int(link.monitor.modelCode), "names": link.monitor.model?.names ?? [],
+             "inferredModel": link.monitor.inferred?.name ?? NSNull(),
              "lightModeRestored": lastLightMode(of: link.monitor), "recentFrames": link.serial.lastFrames]
         }
         result["portProblems"] = probeFailures.mapValues(\.reason)

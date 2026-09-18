@@ -142,7 +142,7 @@ precisely the failure mode encountered with the proprietary client.
 | Command | Bounds | Setting |
 | --- | --- | --- |
 | `paperlike contrast` | 1–9 | Contrast |
-| `paperlike mode` | 1–2 | Text / image |
+| `paperlike mode next\|<name>` | — | Display mode: cycle, or text / image / web / active (auto on the 103) |
 | `paperlike speed` | 1–5 | Refresh speed |
 | `paperlike light on\|off\|toggle` | — | Front light: on / off |
 | `paperlike light-mode` | 0–3 | Front light: 0 off |
@@ -161,6 +161,14 @@ turning it on briefly passes through the last stored level first.
 agent restarts; to choose one, run `paperlike light-mode 1..3`
 once. If brightness is 0 at that point, it is raised to 20 so that
 turning the light on is visible.
+
+Each model has four display modes, whose register values differ: the 253
+Color cycles image 3, active 4, web 5, text 2, and the black-and-white 253
+the same without web, which it refuses; the 13K web 6, text 2, image 3,
+active 7; the 103 auto 5, text 2, image 3, active 7 (the official client's
+tables and order, see RESEARCH.md). `mode next` follows that order; a value
+outside the table restarts at the first mode. A monitor whose model is
+unknown is refused.
 
 The light mode is a temperature preset: writing mode 1 reads back a
 temperature of 100, and writing any temperature switches the light to mode 3,
@@ -183,10 +191,12 @@ from one layout to another, which a letter does not guarantee on AZERTY.
 | `Ctrl+Opt+Cmd+R` | Ghost Cleanup, over USB |
 | `Ctrl+Opt+Cmd+C` | Clear by flashing the panel, no USB (both modes) |
 | `Ctrl+Opt+Cmd+L` | Turn the front light on / off |
+| `Ctrl+Opt+Cmd+M` | Next display mode (the AZERTY M key: `semicolon` in the config) |
 | `Ctrl+Opt+Cmd+↑ / ↓` | Front light brightness ±10 |
 | `Ctrl+Opt+Cmd+→ / ←` | Contrast ±1 |
 
-`R`, `L` and `C` are in the same position on AZERTY and QWERTY. `paperlike status` lists
+`R`, `L` and `C` are in the same position on AZERTY and QWERTY. `M` is not: key names are ANSI positions, and the key printed M on AZERTY is
+the ANSI `semicolon` key (ANSI `m` types a comma there), hence `ctrl+alt+cmd+semicolon`. `paperlike status` lists
 each shortcut with its registration state: otherwise, a shortcut already taken by another
 application fails silently.
 

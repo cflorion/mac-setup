@@ -59,6 +59,13 @@ public struct HUDContent: Equatable {
             self.init(symbol: "lightbulb.slash", title: "Front light", caption: "Off", gauge: gauge)
             return
         }
+        // A mode is a name, not a level: the gauge shows its place in the cycle.
+        if let mode = reply["mode"] as? String, let modes = reply["modes"] as? [String],
+           let index = modes.firstIndex(of: mode) {
+            self.init(symbol: "doc.text.image", title: "Mode", caption: "\(mode.capitalized) · \(index + 1) / \(modes.count)",
+                      gauge: Gauge(segments: modes.count, filled: index + 1))
+            return
+        }
         guard let name = reply["setting"] as? String, let shown = HUDContent.presentation[name],
               let value = reply["value"] as? Int, let bounds = reply["bounds"] as? [Int], bounds.count == 2,
               bounds[0] < bounds[1] else { return nil }

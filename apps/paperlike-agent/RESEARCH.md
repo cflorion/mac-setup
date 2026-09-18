@@ -61,11 +61,26 @@ EDID, the 253 Color with DASUNG product `0x253C`, the other DASUNG models
 with any other DASUNG product. USB topology cannot do it — here the 253's
 CH340 hangs off the CalDigit dock while its video takes another path.
 
-The client also decodes the display-mode register (`0x02`) per model
-(`updateModeIndexFromValue:forDevice:`): values 2, 3 and 7 for the 13K
-models, 2 to 5 for the 253 models. The agent's `mode` bounds (1–2) predate
-this and were not revisited — an open item; read-back keeps every write
-honest.
+### Display mode (`0x02`) is a per-model table
+
+The client lists four display modes per model (`updateDisplayVersonModes`),
+turns the selected index into a register value (`updateCurrentModeValueInfo`)
+and back (`updateModeIndexFromValue:forDevice:`); its mode hotkey
+(`updateCurrentModeNextValueForDisplay`) steps the index 0→1→2→3→0.
+
+| Model (`0x13`) | Index 0 | 1 | 2 | 3 |
+| --- | --- | --- | --- | --- |
+| 1–2, 13K | M1 Web = 6 | M2 Text = 2 | M3 Image = 3 | M4 Active = 7 |
+| 3, 103 | Auto = 5 | Text = 2 | Image = 3 | Active = 7 |
+| 4–5, 253 | Image = 3 | Active = 4 | Web = 5 | Text = 2 |
+
+The 253 labels are read from the Chinese list (图文 / 动态 / 网页 / 文本): the
+English one of that branch mixes in untranslated strings. Checked on the 253
+Color: 2 → 3 → 4 → 5 → 2, each confirmed by read-back. The black-and-white
+253 takes 3 and 4 but not 5: the write is acknowledged and reads back 2, so
+the agent cycles it through three modes only. The agent's former
+`mode` bounds (1–2) were wrong for every model; `mode` now takes `next` or a
+name, resolved against the monitor's model.
 
 ### Everything works on the 13K
 
@@ -284,6 +299,17 @@ At the time, only one CH340 adapter was present (`/dev/cu.usbserial-2115410`),
 and the agent refused any selection if a second one appeared. That refusal
 was lifted when the 13K arrived — see its section above.
 
+### The black-and-white 253 does not report its model
+
+Its CH340 answers MCU `0x10` (no front light), and `0x13` gets no reply at
+all. Left unknown, its link could not be ruled out on the Color's screen,
+so every command from there was refused as ambiguous. A link without a model
+is now paired by elimination (`Monitor.inferModels`): when it is the only
+one and exactly one Paperlike screen is driven by no other link, it takes
+that screen's model — DASUNG product 0 being the black-and-white 253.
+Anything else stays unknown rather than guessed. Checked with the pointer
+warped onto each screen: each reached its own link.
+
 ### Black display: resolved by Ghost Cleanup
 
 A symptom distinct from the two previous ones: the Revo Color no longer
@@ -361,7 +387,7 @@ immediately precedes the byte it sends, with no inference.
 | Cmd | Client method | Setting | Bounds | Original value |
 | --- | --- | --- | --- | --- |
 | `0x01` | `updateViewThresholdInfo:` | Contrast ("Contrast Level") | 1–9 | 1 |
-| `0x02` | `updateViewModeInfo:` | Mode: text / image | 1–2 | 2 |
+| `0x02` | `updateViewModeInfo:` | Display mode, per model (see above) | 2–7 | 2 |
 | `0x03` | `updateViewRefreshInfo:` | Ghost Cleanup | — | — |
 | `0x04` | `updateViewSpeedInfo:` | Refresh Speed | 1–5 | 4 |
 | `0x05` | `updateRealTimeClockInfo` | **Real-time clock** — not exposed | — | no response |

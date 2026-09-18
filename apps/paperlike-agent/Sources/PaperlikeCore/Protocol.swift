@@ -89,8 +89,10 @@ public struct Setting: Equatable {
     public static let all: [Setting] = [
         Setting(name: "contrast", command: 0x01, bounds: 1...9,
                 summary: "Contrast (the client's “Contrast Level”)", requires: nil),
-        Setting(name: "mode", command: 0x02, bounds: 1...2,
-                summary: "Display mode: 1 text, 2 image", requires: nil),
+        // The register's values differ per model (see DisplayMode); the bounds
+        // only span every model's, the agent checks the monitor's own list.
+        Setting(name: "mode", command: 0x02, bounds: 2...7,
+                summary: "Display mode: next, or a name (text, image, web, active, auto)", requires: nil),
         Setting(name: "speed", command: 0x04, bounds: 1...5,
                 summary: "Refresh speed: 1 slow and clean, 5 fast", requires: nil),
         // The mode is a temperature preset: mode 1 reads back temperature 100,
@@ -153,10 +155,59 @@ public enum Power: String, Equatable {
     case on, off, toggle
 }
 
+// The display mode (register 0x02), as the official client lists it per model
+// (`updateDisplayVersonModes`, `updateCurrentModeValueInfo`): four modes (three
+// on the black-and-white 253), in the client's order, which is also the order
+// its own mode hotkey cycles through. The same name does not carry the same value from one model to the
+// next, hence a table rather than bounds. See RESEARCH.md.
+public struct DisplayMode: Equatable {
+    public let name: String
+    public let value: Int
+    public init(_ name: String, _ value: Int) { self.name = name; self.value = value }
+
+    public static let names = ["text", "image", "web", "active", "auto"]
+
+    public static func modes(of model: Model) -> [DisplayMode] {
+        switch model {
+        case .color13K, .mono13K:
+            return [DisplayMode("web", 6), DisplayMode("text", 2), DisplayMode("image", 3), DisplayMode("active", 7)]
+        case .paperlike103:
+            return [DisplayMode("auto", 5), DisplayMode("text", 2), DisplayMode("image", 3), DisplayMode("active", 7)]
+        case .color253:
+            return [DisplayMode("image", 3), DisplayMode("active", 4), DisplayMode("web", 5), DisplayMode("text", 2)]
+        // The client offers web too, but the black-and-white 253 (MCU 0x10)
+        // does not take it: writing 5 reads back 2, text.
+        case .mono253:
+            return [DisplayMode("image", 3), DisplayMode("active", 4), DisplayMode("text", 2)]
+        }
+    }
+
+    // A value the table does not know (set by another tool, or the monitor's
+    // own buttons) restarts the cycle at the first mode.
+    public static func choose(_ choice: ModeChoice, current: Int, among modes: [DisplayMode]) throws -> DisplayMode {
+        switch choice {
+        case .next:
+            guard let index = modes.firstIndex(where: { $0.value == current }) else { return modes[0] }
+            return modes[(index + 1) % modes.count]
+        case .named(let name):
+            guard let mode = modes.first(where: { $0.name == name }) else {
+                throw PaperlikeError("This monitor has no “\(name)” mode; it has \(modes.map(\.name).joined(separator: ", ")).")
+            }
+            return mode
+        }
+    }
+}
+
+public enum ModeChoice: Equatable {
+    case next
+    case named(String)
+}
+
 public enum Action: Equatable {
     case refresh
     case set(Setting, Adjustment)
     case light(Power)
+    case mode(ModeChoice)
     // Ghost cleanup drawn by the host rather than asked of the monitor: the
     // panel is flashed black then white, which drives every pixel through the
     // full range. It needs no USB link, so it also serves a Paperlike plugged
@@ -167,6 +218,15 @@ public enum Action: Equatable {
         if args == ["refresh"] { return .refresh }
         if args == ["clear"] { return .clear }
         if args.count == 2, args[0] == "light", let power = Power(rawValue: args[1]) { return .light(power) }
+        // Modes are chosen by name: the number behind a name depends on the
+        // model, which is only known once the command reaches a monitor.
+        if args.count == 2, args[0] == "mode" {
+            if args[1] == "next" { return .mode(.next) }
+            guard DisplayMode.names.contains(args[1]) else {
+                throw PaperlikeError("mode expects next or a name: \(DisplayMode.names.joined(separator: ", ")).")
+            }
+            return .mode(.named(args[1]))
+        }
         guard args.count == 2, let setting = Setting.named(args[0]) else {
             throw PaperlikeError("Unknown command. See paperlike help.")
         }
@@ -187,6 +247,7 @@ public enum Action: Equatable {
         case .refresh, .clear: return nil
         case .set(let setting, _): return setting.command
         case .light: return Setting.named("light-mode")?.command
+        case .mode: return Setting.named("mode")?.command
         }
     }
 
@@ -196,6 +257,7 @@ public enum Action: Equatable {
         case .refresh: return Frame(0x03)
         case .set(let setting, _): return Frame(setting.command, UInt8(value))
         case .light: return Frame(register ?? 0x07, UInt8(value))
+        case .mode: return Frame(register ?? 0x02, UInt8(value))
         case .clear: return nil
         }
     }
@@ -212,6 +274,8 @@ public enum Action: Equatable {
         case .set(let setting, .absolute(let value)): return [setting.name, String(value)]
         case .set(let setting, .relative(let delta)): return [setting.name, delta > 0 ? "+\(delta)" : String(delta)]
         case .light(let power): return ["light", power.rawValue]
+        case .mode(.next): return ["mode", "next"]
+        case .mode(.named(let name)): return ["mode", name]
         }
     }
 

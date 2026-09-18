@@ -73,6 +73,15 @@ public enum Model: Int, CaseIterable {
         }
     }
 
+    // The model of a screen whose USB link does not report one. Only the
+    // black-and-white 253 is known to do this (its MCU, 0x10, leaves 0x13
+    // unanswered); it is DASUNG product 0. Anything else stays unknown.
+    public static func inferred(from display: Display) -> Model? {
+        guard display.vendor == Panel.dasungVendor else { return nil }
+        if display.product == Panel.color253Product { return .color253 }
+        return display.product == 0 ? .mono253 : nil
+    }
+
     public static func any(named name: String, drives display: Display) -> Bool {
         allCases.contains { $0.names.contains(name) && $0.drives(vendor: display.vendor, product: display.product) }
     }
@@ -83,11 +92,31 @@ public struct Monitor: Equatable {
     public let path: String
     public let firmware: UInt8
     public let modelCode: UInt8
-    public init(path: String, firmware: UInt8, modelCode: UInt8) {
-        self.path = path; self.firmware = firmware; self.modelCode = modelCode
+    // Set by `inferModels` when the link does not report its model.
+    public private(set) var inferred: Model?
+    public init(path: String, firmware: UInt8, modelCode: UInt8, inferred: Model? = nil) {
+        self.path = path; self.firmware = firmware; self.modelCode = modelCode; self.inferred = inferred
     }
 
-    public var model: Model? { Model(rawValue: Int(modelCode)) }
+    public var model: Model? { Model(rawValue: Int(modelCode)) ?? inferred }
+
+    // A link that does not report its model is paired by elimination: when it
+    // is the only such link and exactly one Paperlike screen is left that no
+    // other link drives, it is that screen's model. Otherwise it stays
+    // unknown — it is never guessed between several screens. Recomputed from
+    // the current screens every time, so an inference never outlives them.
+    public static func inferModels(_ monitors: [Monitor], screens: [Display]) -> [Monitor] {
+        let reported = monitors.filter { Model(rawValue: Int($0.modelCode)) != nil }
+        let unreported = monitors.filter { Model(rawValue: Int($0.modelCode)) == nil }
+        let unclaimed = screens.filter { screen in
+            screen.isPaperlike && !reported.contains { $0.model?.drives(vendor: screen.vendor, product: screen.product) == true }
+        }
+        let guess = unreported.count == 1 && unclaimed.count == 1 ? Model.inferred(from: unclaimed[0]) : nil
+        return monitors.map { monitor in
+            guard Model(rawValue: Int(monitor.modelCode)) == nil else { return monitor }
+            return Monitor(path: monitor.path, firmware: monitor.firmware, modelCode: monitor.modelCode, inferred: guess)
+        }
+    }
     public var name: String { model?.name ?? "Paperlike (model \(modelCode))" }
     // Per-monitor preferences, such as the light mode to restore, are kept
     // under this key: stable across ports, unlike the path.
