@@ -202,14 +202,18 @@ application fails silently.
 
 ### HUD
 
-After each shortcut but `clear`, a small panel appears for 1.6 s at the top right of the
+After each shortcut but `clear`, a small panel appears for 2 s at the top right of the
 display under the pointer, like the macOS brightness one: setting,
 value (`40%`, `3 / 9`), a gauge with one segment per step, and **`Max` / `Min`**
-at the limit. It shows only the response of the command that just succeeded, with no
-extra serial exchange.
+at the limit. The display mode shows every mode of that monitor by name, the
+current one inverted, so the next press is predictable. It shows only the
+response of the command that just succeeded, with no extra serial exchange.
 
-It is drawn for e-ink: opaque, black on white, with no shadow or animation
-— every frame of a fade would be one more partial refresh. On the
+It is drawn for e-ink, black-and-white and colour: opaque, black on white,
+with no shadow, animation or accent colour — every frame of a fade would be
+one more partial refresh, and a colour lands washed out through a colour
+filter. Outlines are 2–3 pt and drawn without antialiasing, whose grey fringe
+shows as speckle; the type is large and bold. On the
 panel, its appearance and disappearance still cost two small
 refreshes, and may leave ghosting that Ctrl+Opt+Cmd+R or C clears.
 The panel is non-activating and ignores the mouse: focus stays on the current

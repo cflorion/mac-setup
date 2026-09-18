@@ -350,8 +350,9 @@ final class DisplayModeTests: XCTestCase {
         let hud = HUDContent(reply: ["ok": true, "setting": "mode", "value": 4, "bounds": [2, 7],
                                      "mode": "active", "modes": ["image", "active", "web", "text"]])
         XCTAssertEqual(hud?.title, "Mode")
-        XCTAssertEqual(hud?.caption, "Active · 2 / 4")
-        XCTAssertEqual(hud?.gauge, HUDContent.Gauge(segments: 4, filled: 2))
+        XCTAssertEqual(hud?.caption, "Active")
+        XCTAssertNil(hud?.gauge)
+        XCTAssertEqual(hud?.choices, HUDContent.Choices(names: ["Image", "Active", "Web", "Text"], selected: 1))
     }
 }
 

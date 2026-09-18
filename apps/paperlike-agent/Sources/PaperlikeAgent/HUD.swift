@@ -2,16 +2,22 @@ import AppKit
 import PaperlikeCore
 
 // Transient feedback after a shortcut, in the spirit of the macOS brightness
-// HUD. Drawn for e-ink: opaque, pure text colours, no shadow, no animation —
-// every fade frame would be one more partial refresh of the panel, and a
-// shadow is a grey gradient the waveform renders as noise.
+// HUD. Drawn for e-ink, black-and-white and colour alike: opaque, pure ink and
+// paper, no shadow, no animation — every fade frame would be one more partial
+// refresh of the panel, and a shadow is a grey gradient the waveform renders as
+// noise. No accent colour either: on a colour e-paper filter it lands as a
+// washed-out tint with less contrast than black. Strokes are thick and the
+// type large and heavy, because a colour filter halves the effective
+// resolution and a thin line comes out broken.
 //
 // The panel is non-activating and ignores the mouse: the agent never becomes
 // the active application, so the focused window keeps the keyboard.
 final class HUD {
-    private static let size = NSSize(width: 300, height: 64)
+    private static let size = NSSize(width: 360, height: 84)
     private static let margin: CGFloat = 16
-    private static let duration = 1.6
+    // Long enough to read once the panel has settled: at a slow refresh speed
+    // the HUD itself takes a noticeable part of a second to appear.
+    private static let duration = 2.0
 
     private let panel: NSPanel
     private let view = HUDView(frame: NSRect(origin: .zero, size: HUD.size))
@@ -58,50 +64,88 @@ final class HUD {
 private final class HUDView: NSView {
     var content: HUDContent?
 
+    private static let inset: CGFloat = 18
+    private static let textLeft: CGFloat = 66
+
     override func draw(_ dirtyRect: NSRect) {
-        guard let content else { return }
+        guard let content, let context = NSGraphicsContext.current else { return }
         // textColor/textBackgroundColor are opaque black and white (inverted in
         // Dark Mode); labelColor carries alpha and would land as grey on e-ink.
         let ink = NSColor.textColor, paper = NSColor.textBackgroundColor
-        let outline = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 12, yRadius: 12)
+        // Geometry is drawn without antialiasing: an antialiased edge is a
+        // one-pixel grey fringe, which e-ink renders as speckle around every
+        // shape. Text keeps it; glyphs without it are harder to read.
+        context.shouldAntialias = false
+        let outline = NSBezierPath(roundedRect: bounds.insetBy(dx: 1.5, dy: 1.5), xRadius: 8, yRadius: 8)
         paper.setFill(); outline.fill()
-        outline.lineWidth = 2
+        outline.lineWidth = 3
         ink.setStroke(); outline.stroke()
+        context.shouldAntialias = true
 
-        let configuration = NSImage.SymbolConfiguration(pointSize: 22, weight: .semibold)
+        let configuration = NSImage.SymbolConfiguration(pointSize: 26, weight: .bold)
             .applying(NSImage.SymbolConfiguration(paletteColors: [ink]))
         if let symbol = NSImage(systemSymbolName: content.symbol, accessibilityDescription: content.title)?
             .withSymbolConfiguration(configuration) {
-            let box = NSRect(x: 14, y: (bounds.height - 30) / 2, width: 30, height: 30)
+            let box = NSRect(x: HUDView.inset, y: (bounds.height - 36) / 2, width: 36, height: 36)
             let size = symbol.size
             symbol.draw(in: NSRect(x: box.midX - size.width / 2, y: box.midY - size.height / 2,
                                    width: size.width, height: size.height))
         }
 
-        let left: CGFloat = 56, right = bounds.width - 16
-        let title: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 13, weight: .semibold),
-                                                    .foregroundColor: ink]
-        let caption: [NSAttributedString.Key: Any] = [.font: NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .medium),
-                                                      .foregroundColor: ink]
-        let captionText = NSAttributedString(string: content.caption, attributes: caption)
+        let left = HUDView.textLeft, right = bounds.width - HUDView.inset
+        let title = NSAttributedString(string: content.title, attributes: [
+            .font: NSFont.systemFont(ofSize: 16, weight: .bold), .foregroundColor: ink])
+        let caption = NSAttributedString(string: content.caption, attributes: [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: 16, weight: .semibold), .foregroundColor: ink])
+        let top: CGFloat = 48, bottom: CGFloat = 16
 
-        guard let gauge = content.gauge, gauge.segments > 0 else {
-            NSAttributedString(string: content.title, attributes: title).draw(at: NSPoint(x: left, y: 34))
-            captionText.draw(at: NSPoint(x: left, y: 14))
+        if let choices = content.choices, !choices.names.isEmpty {
+            title.draw(at: NSPoint(x: left, y: top))
+            drawChoices(choices, in: NSRect(x: left, y: bottom, width: right - left, height: 24), ink: ink, paper: paper)
             return
         }
-        NSAttributedString(string: content.title, attributes: title).draw(at: NSPoint(x: left, y: 34))
-        captionText.draw(at: NSPoint(x: right - captionText.size().width, y: 34))
+        guard let gauge = content.gauge, gauge.segments > 0 else {
+            title.draw(at: NSPoint(x: left, y: top))
+            caption.draw(at: NSPoint(x: left, y: bottom + 2))
+            return
+        }
+        title.draw(at: NSPoint(x: left, y: top))
+        caption.draw(at: NSPoint(x: right - caption.size().width, y: top))
 
         // Empty segments are outlined rather than grey, for the same reason.
-        let gap: CGFloat = 3
-        let width = (right - left - gap * CGFloat(gauge.segments - 1)) / CGFloat(gauge.segments)
+        context.shouldAntialias = false
+        let gap: CGFloat = 4
+        let width = ((right - left - gap * CGFloat(gauge.segments - 1)) / CGFloat(gauge.segments)).rounded(.down)
         for index in 0..<gauge.segments {
-            let cell = NSRect(x: left + CGFloat(index) * (width + gap), y: 14, width: width, height: 10)
-            let shape = NSBezierPath(roundedRect: cell.insetBy(dx: 0.5, dy: 0.5), xRadius: 2, yRadius: 2)
+            let cell = NSRect(x: left + CGFloat(index) * (width + gap), y: bottom, width: width, height: 16)
+            let shape = NSBezierPath(rect: cell.insetBy(dx: 1, dy: 1))
             if index < gauge.filled { ink.setFill(); shape.fill() }
-            shape.lineWidth = 1
+            shape.lineWidth = 2
             ink.setStroke(); shape.stroke()
+        }
+        context.shouldAntialias = true
+    }
+
+    // One cell per option, the current one inverted: black on white would be
+    // the only difference a grey-free panel can show at a glance.
+    private func drawChoices(_ choices: HUDContent.Choices, in area: NSRect, ink: NSColor, paper: NSColor) {
+        guard let context = NSGraphicsContext.current else { return }
+        let count = CGFloat(choices.names.count), gap: CGFloat = 4
+        let width = ((area.width - gap * (count - 1)) / count).rounded(.down)
+        for (index, name) in choices.names.enumerated() {
+            let cell = NSRect(x: area.minX + CGFloat(index) * (width + gap), y: area.minY, width: width, height: area.height)
+            let selected = index == choices.selected
+            context.shouldAntialias = false
+            let shape = NSBezierPath(rect: cell.insetBy(dx: 1, dy: 1))
+            if selected { ink.setFill(); shape.fill() }
+            shape.lineWidth = 2
+            ink.setStroke(); shape.stroke()
+            context.shouldAntialias = true
+            let label = NSAttributedString(string: name, attributes: [
+                .font: NSFont.systemFont(ofSize: 13, weight: selected ? .bold : .semibold),
+                .foregroundColor: selected ? paper : ink])
+            let size = label.size()
+            label.draw(at: NSPoint(x: cell.midX - size.width / 2, y: cell.midY - size.height / 2))
         }
     }
 }

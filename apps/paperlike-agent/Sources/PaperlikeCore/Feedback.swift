@@ -9,10 +9,18 @@ public struct HUDContent: Equatable {
     public let title: String
     public let caption: String
     public let gauge: Gauge?
+    // A choice among named options (the display mode): every name is drawn,
+    // the current one inverted, rather than a gauge whose steps mean nothing.
+    public let choices: Choices?
 
     public struct Gauge: Equatable {
         public let segments: Int
         public let filled: Int
+    }
+
+    public struct Choices: Equatable {
+        public let names: [String]
+        public let selected: Int
     }
 
     private static let presentation: [String: (title: String, symbol: String)] = [
@@ -25,8 +33,8 @@ public struct HUDContent: Equatable {
         "text-enhance": ("Text enhance", "textformat"),
     ]
 
-    public init(symbol: String, title: String, caption: String, gauge: Gauge?) {
-        self.symbol = symbol; self.title = title; self.caption = caption; self.gauge = gauge
+    public init(symbol: String, title: String, caption: String, gauge: Gauge?, choices: Choices? = nil) {
+        self.symbol = symbol; self.title = title; self.caption = caption; self.gauge = gauge; self.choices = choices
     }
 
     public init?(reply: [String: Any]) {
@@ -59,11 +67,12 @@ public struct HUDContent: Equatable {
             self.init(symbol: "lightbulb.slash", title: "Front light", caption: "Off", gauge: gauge)
             return
         }
-        // A mode is a name, not a level: the gauge shows its place in the cycle.
+        // A mode is a name, not a level: every mode is listed so the next
+        // press is predictable, the current one marked.
         if let mode = reply["mode"] as? String, let modes = reply["modes"] as? [String],
            let index = modes.firstIndex(of: mode) {
-            self.init(symbol: "doc.text.image", title: "Mode", caption: "\(mode.capitalized) · \(index + 1) / \(modes.count)",
-                      gauge: Gauge(segments: modes.count, filled: index + 1))
+            self.init(symbol: "doc.text.image", title: "Mode", caption: mode.capitalized, gauge: nil,
+                      choices: Choices(names: modes.map(\.capitalized), selected: index))
             return
         }
         guard let name = reply["setting"] as? String, let shown = HUDContent.presentation[name],
