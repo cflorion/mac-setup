@@ -10,11 +10,12 @@ dotfiles/raycast/extensions/
 # Karabiner-Elements auto-generates these on every config change.
 dotfiles/karabiner/automatic_backups/
 
-# build.sh routes SwiftPM into cache/; this only appears when swift build or
-# swift test is run by hand from apps/paperlike-agent.
-apps/paperlike-agent/.build/
-
 # ~/.local/bin is a symlink to dotfiles/bin, so Claude Code's native installer
 # writes its launcher here: a symlink to ~/.local/share/claude/versions/<ver>
 # that it rewrites on every auto-update. The installer owns it, not the repo.
 dotfiles/bin/claude
+
+# Ditherbuster (~/code/ditherbuster) installs its CLI and the dbust alias the
+# same way: symlinks owned by that repository's make install.
+dotfiles/bin/ditherbuster
+dotfiles/bin/dbust

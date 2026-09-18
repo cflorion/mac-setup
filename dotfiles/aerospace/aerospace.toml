@@ -264,10 +264,10 @@ run = 'layout floating'
 if.app-id = 'com.apple.AppStore'
 run = 'layout floating'
 
-# PaperlikeAgent's shortcut HUD is a non-activating panel that AeroSpace should
+# Ditherbuster's shortcut HUD is a non-activating panel that AeroSpace should
 # not manage at all; this rule is insurance so it is never tiled if it is.
 [[on-window-detected]]
-if.app-id = 'com.user.paperlike-agent'
+if.app-id = 'io.github.cflorion.ditherbuster'
 run = 'layout floating'
 
 # Notes — Hyper+N (dotfiles/bin/notes-scratch) shows it over the current work and

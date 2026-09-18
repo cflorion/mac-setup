@@ -54,10 +54,6 @@ It installs the Command Line Tools + Homebrew, clones this repo into
 | `make pwa` | Recreate the Chrome PWA shortcuts (e.g. Google Chat) |
 | `make pwa-helium` | Create Helium app-window wrappers (links open in Helium) |
 | `make ollama` | Pull the Ollama models |
-| `make paperlike` | Build, install and start the DASUNG agent at login: strips macOS dithering from the e-ink panel (no USB writes) |
-| `make paperlike-test` | Test the DASUNG protocol without accessing a monitor |
-| `make paperlike-stop` | Stop the DASUNG agent and disable its login launch (dithering returns unless PaperLikeClient runs) |
-| `make paperlike-uninstall` | Remove the DASUNG app and its LaunchAgent |
 
 `make macos-<module>` modules:
 `finder` · `dock` · `keyboard` · `trackpad` · `mission-control` · `desktop` ·
@@ -66,13 +62,9 @@ It installs the Command Line Tools + Homebrew, clones this repo into
 SketchyBar remains installed and configured, but `make install` and `make update`
 leave it disabled by default. Run `make sketchybar` if you want it back.
 
-The [PaperlikeAgent](apps/paperlike-agent/README.md) keeps macOS dithering off
-the DASUNG Paperlike — macOS renders it as grain and blotches on e-ink, and
-restores it on every reconnect, wake and mode change, so it has to be re-applied.
-It runs without a window, Dock or Cmd-Tab entry. Its CLI is `paperlike`.
-USB control and Control+Option+Command+R are a separate experimental mode,
-pending visual validation. The reported display issue also occurs with the
-official client; its cause remains undetermined.
+The DASUNG Paperlike agent lives in its own repository,
+[cflorion/ditherbuster](https://github.com/cflorion/ditherbuster), cloned in
+`~/code/ditherbuster` and installed from there (`make install-control`).
 The general install/update targets do not enable it. See its documentation
 for hardware evidence and returning to the official client.
 
