@@ -164,8 +164,8 @@ turning the light on is visible.
 
 Each model has four display modes, whose register values differ: the 253
 Color cycles image 3, active 4, web 5, text 2, and the black-and-white 253
-the same without web, which it refuses; the 13K web 6, text 2, image 3,
-active 7; the 103 auto 5, text 2, image 3, active 7 (the official client's
+the same without web, which it refuses; the 13K web 6 (read back as 1),
+text 2, image 3, active 7; the 103 auto 5, text 2, image 3, active 7 (the official client's
 tables and order, see RESEARCH.md). `mode next` follows that order; a value
 outside the table restarts at the first mode. A monitor whose model is
 unknown is refused.

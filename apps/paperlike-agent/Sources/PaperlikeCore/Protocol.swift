@@ -158,19 +158,25 @@ public enum Power: String, Equatable {
 // The display mode (register 0x02), as the official client lists it per model
 // (`updateDisplayVersonModes`, `updateCurrentModeValueInfo`): four modes (three
 // on the black-and-white 253), in the client's order, which is also the order
-// its own mode hotkey cycles through. The same name does not carry the same value from one model to the
-// next, hence a table rather than bounds. See RESEARCH.md.
+// its own mode hotkey cycles through. The same name does not carry the same
+// value from one model to the next, hence a table rather than bounds. See
+// RESEARCH.md.
 public struct DisplayMode: Equatable {
     public let name: String
     public let value: Int
-    public init(_ name: String, _ value: Int) { self.name = name; self.value = value }
+    // What the register reads once the mode is set, when it is not the value
+    // written: the 13K takes web as 6 and reports it as 1.
+    public let readBack: Int
+    public init(_ name: String, _ value: Int, readBack: Int? = nil) {
+        self.name = name; self.value = value; self.readBack = readBack ?? value
+    }
 
     public static let names = ["text", "image", "web", "active", "auto"]
 
     public static func modes(of model: Model) -> [DisplayMode] {
         switch model {
         case .color13K, .mono13K:
-            return [DisplayMode("web", 6), DisplayMode("text", 2), DisplayMode("image", 3), DisplayMode("active", 7)]
+            return [DisplayMode("web", 6, readBack: 1), DisplayMode("text", 2), DisplayMode("image", 3), DisplayMode("active", 7)]
         case .paperlike103:
             return [DisplayMode("auto", 5), DisplayMode("text", 2), DisplayMode("image", 3), DisplayMode("active", 7)]
         case .color253:
@@ -187,7 +193,7 @@ public struct DisplayMode: Equatable {
     public static func choose(_ choice: ModeChoice, current: Int, among modes: [DisplayMode]) throws -> DisplayMode {
         switch choice {
         case .next:
-            guard let index = modes.firstIndex(where: { $0.value == current }) else { return modes[0] }
+            guard let index = modes.firstIndex(where: { $0.readBack == current }) else { return modes[0] }
             return modes[(index + 1) % modes.count]
         case .named(let name):
             guard let mode = modes.first(where: { $0.name == name }) else {

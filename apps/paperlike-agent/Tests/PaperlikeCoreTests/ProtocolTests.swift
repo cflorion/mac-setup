@@ -311,14 +311,14 @@ final class DisplayModeTests: XCTestCase {
             let modes = DisplayMode.modes(of: model)
             XCTAssertEqual(modes.count, model == .mono253 ? 3 : 4, "\(model)")
             XCTAssertEqual(Set(modes.map(\.value)).count, modes.count, "\(model)")
-            var value = modes[0].value
+            var value = modes[0].readBack
             var seen: [Int] = []
             for _ in modes {
-                value = try DisplayMode.choose(.next, current: value, among: modes).value
+                value = try DisplayMode.choose(.next, current: value, among: modes).readBack
                 seen.append(value)
             }
-            XCTAssertEqual(Set(seen), Set(modes.map(\.value)), "\(model)")
-            XCTAssertEqual(value, modes[0].value, "\(model)")
+            XCTAssertEqual(Set(seen), Set(modes.map(\.readBack)), "\(model)")
+            XCTAssertEqual(value, modes[0].readBack, "\(model)")
         }
         XCTAssertEqual(DisplayMode.modes(of: .color253).map(\.value), [3, 4, 5, 2])
         XCTAssertEqual(DisplayMode.modes(of: .mono253).map(\.value), [3, 4, 2])
@@ -331,6 +331,10 @@ final class DisplayModeTests: XCTestCase {
         XCTAssertEqual(try DisplayMode.choose(.next, current: 2, among: modes).name, "image")
         XCTAssertEqual(try DisplayMode.choose(.next, current: 0, among: modes).name, "image")
         XCTAssertEqual(try DisplayMode.choose(.named("text"), current: 3, among: modes).value, 2)
+        // The 13K reports web, written as 6, as 1: the cycle must not stall there.
+        let k13 = DisplayMode.modes(of: .color13K)
+        XCTAssertEqual(try DisplayMode.choose(.next, current: 7, among: k13).value, 6)
+        XCTAssertEqual(try DisplayMode.choose(.next, current: 1, among: k13).name, "text")
         XCTAssertThrowsError(try DisplayMode.choose(.named("auto"), current: 3, among: modes))
     }
 
@@ -432,6 +436,17 @@ final class MonitorTests: XCTestCase {
         XCTAssertEqual(try Targeting.choose(monitors, named: "253-bw", pointer: nil, screens: screens).path, mono.path)
         // Two screens left unclaimed, or a product never observed: no guess.
         XCTAssertNil(Monitor.inferModels([mono], screens: screens)[0].model)
+        // Its USB cable plugged in without its screen: no screen left to pair
+        // it with, and it must not shadow the 13K or the Color on theirs.
+        let k13 = Monitor(path: "/dev/cu.usbserial-120", firmware: 0x31, modelCode: 1)
+        let k13Screen = Display(id: 2, vendor: 0x4a8b, product: 447, width: 2800, height: 2100)
+        let unplugged = [k13Screen, colorScreen, builtIn]
+        let alone = Monitor.inferModels([k13, mono, color], screens: unplugged)
+        XCTAssertNil(alone[1].model)
+        XCTAssertEqual(try Targeting.choose(alone, named: nil, pointer: k13Screen, screens: unplugged).path, k13.path)
+        XCTAssertEqual(try Targeting.choose(alone, named: nil, pointer: colorScreen, screens: unplugged).path, color.path)
+        XCTAssertThrowsError(try Targeting.choose(alone, named: nil, pointer: builtIn, screens: unplugged))
+        XCTAssertEqual(try Targeting.choose([k13, mono], named: nil, pointer: builtIn, screens: [k13Screen, builtIn]).path, k13.path)
         let other = Display(id: 5, vendor: 0x1263, product: 0x103, width: 1872, height: 1404)
         XCTAssertNil(Monitor.inferModels([color, mono], screens: [colorScreen, other])[1].model)
     }
@@ -481,10 +496,12 @@ final class MonitorTests: XCTestCase {
         XCTAssertEqual(try Targeting.choose([p253, mono253], named: "253-bw", pointer: nil), mono253)
     }
 
-    func testAMonitorOfUnknownModelIsNotRuledOutByThePointer() throws {
+    // An unknown model is a candidate only on a screen no known one drives:
+    // a known pairing always wins over a link that cannot say which it is.
+    func testAMonitorOfUnknownModelOnlyTakesAScreenNoKnownOneDrives() throws {
         let unknown = Monitor(path: "/dev/cu.usbserial-7", firmware: 0x30, modelCode: 0)
         XCTAssertEqual(try Targeting.choose([k13, unknown], named: nil, pointer: p253Screen), unknown)
-        XCTAssertThrowsError(try Targeting.choose([p253, unknown], named: nil, pointer: p253Screen))
+        XCTAssertEqual(try Targeting.choose([p253, unknown], named: nil, pointer: p253Screen), p253)
     }
 
     // Observed: the black-and-white 253 on screen, only the Color's USB cable

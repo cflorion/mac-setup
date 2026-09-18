@@ -78,7 +78,14 @@ The 253 labels are read from the Chinese list (图文 / 动态 / 网页 / 文本
 English one of that branch mixes in untranslated strings. Checked on the 253
 Color: 2 → 3 → 4 → 5 → 2, each confirmed by read-back. The black-and-white
 253 takes 3 and 4 but not 5: the write is acknowledged and reads back 2, so
-the agent cycles it through three modes only. The agent's former
+the agent cycles it through three modes only. The 13K takes 2, 3 and 7 as
+written, but 6 (web) reads back **1**: the mode does change (it left 7),
+consistently, and the client's decoder files any unlisted value, 1
+included, under index 0, web. The agent expects 1 after writing 6, so the
+cycle neither fails nor stalls there. Unplugged, the black-and-white 253's
+USB cable still answers from the dock; a link of unknown model is now a
+candidate only on a screen no known link drives, so it no longer shadows
+the 13K or the Color. The agent's former
 `mode` bounds (1–2) were wrong for every model; `mode` now takes `next` or a
 name, resolved against the monitor's model.
 

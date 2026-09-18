@@ -156,10 +156,16 @@ public enum Targeting {
             }
             return matching[0]
         }
+        // A monitor whose model is unknown is only ruled out by a screen that
+        // a known one drives: otherwise the black-and-white 253's USB cable,
+        // plugged in without its screen, would shadow every other Paperlike.
+        func mayDrive(_ monitor: Monitor, _ screen: Display) -> Bool {
+            if let model = monitor.model { return model.drives(vendor: screen.vendor, product: screen.product) }
+            return !monitors.contains { $0.model?.drives(vendor: screen.vendor, product: screen.product) == true }
+        }
         var candidates = monitors
         if let pointer, pointer.isPaperlike {
-            // A monitor whose model is unknown cannot be ruled out.
-            candidates = monitors.filter { $0.model?.drives(vendor: pointer.vendor, product: pointer.product) ?? true }
+            candidates = monitors.filter { mayDrive($0, pointer) }
             guard !candidates.isEmpty else {
                 throw PaperlikeError("The Paperlike under the pointer has no USB control link; connected: \(list(monitors)).", code: "unavailable")
             }
@@ -167,7 +173,7 @@ public enum Targeting {
             // A USB cable plugged in without its screen is not the panel being
             // worked on. With no Paperlike screen at all, every link stays.
             let shown = monitors.filter { monitor in
-                screens.contains { $0.isPaperlike && (monitor.model?.drives(vendor: $0.vendor, product: $0.product) ?? true) }
+                screens.contains { $0.isPaperlike && mayDrive(monitor, $0) }
             }
             if !shown.isEmpty { candidates = shown }
         }

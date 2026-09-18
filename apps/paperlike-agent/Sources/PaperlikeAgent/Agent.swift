@@ -314,12 +314,12 @@ final class Agent {
         response["modes"] = modes.map(\.name)
         response["mode"] = target.name
         response["from"] = before
-        response["value"] = target.value
-        guard target.value != before else {
+        response["value"] = target.readBack
+        guard target.readBack != before else {
             response["delivery"] = "unchanged"
             return
         }
-        response["received"] = try write(setting, target.value, on: link.serial)
+        response["received"] = try write(setting, target.value, on: link.serial, expecting: target.readBack)
         response["delivery"] = "confirmed_by_readback"
     }
 
@@ -368,13 +368,14 @@ final class Agent {
     // acknowledged commands that had not landed, which is precisely the
     // failure this agent exists to avoid. An acknowledgement only ends the
     // wait early; it is never taken as proof.
-    private func write(_ setting: Setting, _ value: Int, on serial: SerialPort) throws -> [String] {
+    private func write(_ setting: Setting, _ value: Int, on serial: SerialPort, expecting expected: Int? = nil) throws -> [String] {
         let frame = Frame(setting.command, UInt8(value))
         try serial.send(frame)
         let received = try serial.readFrames(timeout: 0.25) { $0.contains { $0.acknowledges(frame) } }
         let actual = Int(try serial.query(setting.command))
-        guard actual == value else {
-            throw PaperlikeError("Command sent, but the read-back gives \(actual) instead of \(value). The monitor may have clamped the value.")
+        let expected = expected ?? value
+        guard actual == expected else {
+            throw PaperlikeError("Command sent, but the read-back gives \(actual) instead of \(expected). The monitor may have clamped the value.")
         }
         return received.map(\.ascii)
     }
