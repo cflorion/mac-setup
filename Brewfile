@@ -59,6 +59,7 @@ cask "wezterm"
 cask "termius"
 cask "github"
 cask "orbstack"
+cask "utm"
 cask "gcloud-cli"
 
 # --- AI apps ---
