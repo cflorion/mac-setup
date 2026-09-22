@@ -264,6 +264,12 @@ run = 'layout floating'
 if.app-id = 'com.apple.AppStore'
 run = 'layout floating'
 
+# Centered at a fixed proportion of the screen (dotfiles/bin/passwords-center):
+# the app has no persistent window-size setting and reopens small.
+[[on-window-detected]]
+if.app-id = 'com.apple.Passwords'
+run = ['layout floating', 'exec-and-forget passwords-center']
+
 # Ditherbuster's shortcut HUD is a non-activating panel that AeroSpace should
 # not manage at all; this rule is insurance so it is never tiled if it is.
 [[on-window-detected]]
