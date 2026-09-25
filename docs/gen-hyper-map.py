@@ -59,7 +59,7 @@ MEH_NUMBERS = [
 MEH_AZERTY = [
     ("A", "none", "", ""), ("Z", "none", "", ""), ("E", "none", "", ""),
     ("R", "win", "Resize mode", "h j k l"), ("T", "none", "", ""), ("Y", "none", "", ""),
-    ("U", "none", "", ""), ("I", "none", "", ""), ("O", "none", "", ""),
+    ("U", "none", "", ""), ("I", "sys", "GitHub", "my issues"), ("O", "none", "", ""),
     ("P", "none", "", ""), ("^", "none", "", ""), ("$", "none", "", ""),
 ]
 MEH_QSDF = [
@@ -70,7 +70,7 @@ MEH_QSDF = [
 ]
 MEH_WXCV = [
     ("W", "obs", "Écran", "scene · F18"), ("X", "none", "", ""), ("C", "none", "", ""),
-    ("V", "none", "", ""), ("B", "none", "", ""), ("N", "none", "", ""),
+    ("V", "none", "", ""), ("B", "none", "", ""), ("N", "sys", "Issue NEXT", "chezion#81"),
     (",", "none", "", ""), (";", "none", "", ""), (":", "none", "", ""), ("=", "none", "", ""),
 ]
 MEH_SPECIAL = [
@@ -89,6 +89,8 @@ NOTES = [
     "Digits: Hyper and Meh both include ⇧, so the number row reads as digits "
     "(unshifted it types & é \" ').",
     "Raycast ×4: , ; : = launch 4 Raycast commands (Raycast config is binary, not detailed here).",
+    "Meh + I / N: raycast:// deeplinks into the GitHub extension (My Issues · issue cflorion/chezion#81 "
+    "“NEXT”); Raycast asks once per command → Always Run Command.",
     "Left ⌥: tap alone → Handy dictation (⌃⌥⌘D); hold it to type ⌥-characters ({ [ | …), "
     "since right ⌥ is Meh.",
     "Apps whose key isn't the initial: B→Safari (Browser), M→Superhuman (Mail), "

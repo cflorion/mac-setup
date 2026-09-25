@@ -2,7 +2,7 @@
 
 > **Hyper** = hold CapsLock = Cmd+Ctrl+Opt+Shift
 > **CapsLock** tapped alone = Escape
-> **Meh** = hold right ⌥ = Ctrl+Opt+Shift (window and OBS layer)
+> **Meh** = hold right ⌥ = Ctrl+Opt+Shift (window, OBS and GitHub-issues layer)
 
 ---
 
@@ -115,6 +115,12 @@ Finicky is the default browser: it sends every link to Safari.
 | Hyper+; | Toggle System Appearance |
 | Hyper+: | Search Emoji & Symbols |
 | Hyper+= | Clipboard History |
+| Meh+I | GitHub — **My Issues** |
+| Meh+N | GitHub — issue **cflorion/chezion#81 (NEXT)**: Search Issues prefilled with it, Enter shows its details |
+
+> Meh+I and Meh+N are AeroSpace bindings that open `raycast://` deeplinks into the
+> GitHub extension (Raycast hotkeys only live in its binary export). The first press
+> of each shows Raycast's *Request to run …* prompt: answer **Always Run Command** once.
 
 ---
 

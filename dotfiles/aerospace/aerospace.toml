@@ -81,6 +81,17 @@ cmd-ctrl-alt-shift-right = 'exec-and-forget aerospace-workspace-cycle next'
 # Resize mode — Meh
 ctrl-alt-shift-r = 'mode resize'
 
+# GitHub issues in Raycast — Meh. Raycast hotkeys only live in its binary export,
+# so these are deeplinks into the GitHub extension instead. The first press of
+# each shows Raycast's "Request to run …" prompt (the command was triggered
+# outside Raycast): answer "Always Run Command" once per command.
+# Meh+I: My Issues (created / assigned / mentioned).
+# Meh+N: Search Issues prefilled (fallbackText) with cflorion/chezion#81, the
+# "NEXT" issue — the command resolves owner/repo#123 to that one issue, and
+# Enter shows its details inside Raycast.
+ctrl-alt-shift-i = 'exec-and-forget open "raycast://extensions/raycast/github/my-issues"'
+ctrl-alt-shift-n = 'exec-and-forget open "raycast://extensions/raycast/github/search-issues?fallbackText=cflorion%2Fchezion%2381"'
+
 # Service mode (reload config, flatten, close all) — not bound, accessible via CLI: aerospace reload-config
 
 

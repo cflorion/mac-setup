@@ -53,6 +53,14 @@ else
 fi
 
 # -----------------------------------------------------------------------------
+# Reminders (Raycast only lets you do these by hand)
+# -----------------------------------------------------------------------------
+
+echo "==> Manual step: Meh+I (GitHub My Issues) and Meh+N (issue cflorion/chezion#81) are"
+echo "   AeroSpace bindings opening raycast:// deeplinks (dotfiles/aerospace/aerospace.toml)."
+echo "   On their first use Raycast shows 'Request to run …': choose 'Always Run Command'."
+
+# -----------------------------------------------------------------------------
 # TODO (manual steps)
 # -----------------------------------------------------------------------------
 
