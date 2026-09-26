@@ -256,6 +256,10 @@ run = ['move-node-to-workspace V', 'workspace V']
 
 # Always floating (dialogs, utilities)
 [[on-window-detected]]
+if.app-id = 'com.apple.weather'
+run = 'layout floating'
+
+[[on-window-detected]]
 if.app-id = 'com.apple.systempreferences'
 run = 'layout floating'
 
