@@ -254,11 +254,6 @@ run = ['move-node-to-workspace H', 'workspace H']
 if.app-id = 'net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan'
 run = ['move-node-to-workspace V', 'workspace V']
 
-# Weather floats by default (AeroSpace treats it as a utility window); force tiling.
-[[on-window-detected]]
-if.app-id = 'com.apple.weather'
-run = 'layout tiling'
-
 # Always floating (dialogs, utilities)
 [[on-window-detected]]
 if.app-id = 'com.apple.systempreferences'
