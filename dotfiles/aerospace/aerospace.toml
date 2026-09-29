@@ -242,7 +242,7 @@ run = ['move-node-to-workspace A', 'workspace A']
 if.app-id = 'com.sertacozercan.Kaset'
 run = ['move-node-to-workspace Y', 'workspace Y']
 
-# Google Meet - Helium PWA (V = visio). 
+# Google Meet - Helium PWA (V = visio).
 [[on-window-detected]]
 if.app-id = 'net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan'
 run = ['move-node-to-workspace V', 'workspace V']
