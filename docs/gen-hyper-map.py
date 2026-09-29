@@ -22,7 +22,7 @@ NUMBERS = [
     ("7", "none", "", ""), ("8", "none", "", ""), ("9", "none", "", ""), ("0", "none", "", ""),
 ]
 AZERTY = [
-    ("A", "app", "Agenda", "Notion Cal."), ("Z", "none", "", ""), ("E", "none", "", ""),
+    ("A", "app", "Agenda", "Calendar"), ("Z", "none", "", ""), ("E", "none", "", ""),
     ("R", "app", "Reminders", ""), ("T", "none", "", ""),
     ("Y", "app", "YouTube", "Kaset"), ("U", "sys", "Homerow", "click"),
     ("I", "none", "", ""), ("O", "app", "Obsidian", ""), ("P", "none", "", ""),
@@ -30,7 +30,7 @@ AZERTY = [
 ]
 QSDF = [
     ("Q", "none", "", ""), ("S", "app", "Slack", ""), ("D", "app", "Messages", "+ WhatsApp"),
-    ("F", "app", "Files", "yazi"), ("G", "app", "ChatGPT", ""), ("H", "app", "Helium", ""),
+    ("F", "app", "Files", "yazi"), ("G", "app", "ChatGPT", ""), ("H", "none", "", ""),
     ("J", "sys", "Homerow", "scroll"), ("K", "none", "", ""), ("L", "app", "Linear", ""),
     ("M", "app", "Mail", "Superhuman"),
 ]
@@ -94,7 +94,7 @@ NOTES = [
     "Left ⌥: tap alone → Handy dictation (⌃⌥⌘D); hold it to type ⌥-characters ({ [ | …), "
     "since right ⌥ is Meh.",
     "Apps whose key isn't the initial: B→Safari (Browser), M→Superhuman (Mail), "
-    "Y→Kaset (YouTube), A→Notion Calendar (Agenda),",
+    "Y→Kaset (YouTube), A→Calendar (Agenda),",
     "V→Google Meet (Visio), D→Messages + WhatsApp (Discussions), F→yazi (Files), "
     "G→ChatGPT (GPT).",
 ]

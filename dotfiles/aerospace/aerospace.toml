@@ -110,10 +110,9 @@ cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.openai.cod
 cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C com.anthropic.claudefordesktop Claude'
 cmd-ctrl-alt-shift-o = 'exec-and-forget aerospace-focus-or-open O md.obsidian Obsidian'
 cmd-ctrl-alt-shift-r = 'exec-and-forget aerospace-focus-or-open R com.apple.reminders Reminders'
-cmd-ctrl-alt-shift-a = 'exec-and-forget aerospace-focus-or-open A com.cron.electron "Notion Calendar"'
+cmd-ctrl-alt-shift-a = 'exec-and-forget aerospace-focus-or-open A com.apple.iCal Calendar'
 cmd-ctrl-alt-shift-l = 'exec-and-forget aerospace-focus-or-open L com.linear Linear'
 cmd-ctrl-alt-shift-y = 'exec-and-forget aerospace-focus-or-open Y com.sertacozercan.Kaset Kaset'
-cmd-ctrl-alt-shift-h = 'exec-and-forget aerospace-focus-or-open H net.imput.helium Helium'
 cmd-ctrl-alt-shift-f = 'exec-and-forget yazi-focus-or-open'
 
 cmd-ctrl-alt-shift-v = 'exec-and-forget aerospace-focus-or-open V net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan "$HOME/Applications/Chromium Apps.localized/Google Meet.app"'
@@ -233,9 +232,9 @@ run = ['move-node-to-workspace O', 'workspace O']
 if.app-id = 'com.apple.reminders'
 run = ['move-node-to-workspace R', 'workspace R']
 
-# Calendar - Notion Calendar (A = Agenda)
+# Calendar - Apple Calendar (A = Agenda)
 [[on-window-detected]]
-if.app-id = 'com.cron.electron'
+if.app-id = 'com.apple.iCal'
 run = ['move-node-to-workspace A', 'workspace A']
 
 # Music - Kaset / YouTube Music (Y)
@@ -243,13 +242,7 @@ run = ['move-node-to-workspace A', 'workspace A']
 if.app-id = 'com.sertacozercan.Kaset'
 run = ['move-node-to-workspace Y', 'workspace Y']
 
-# Browser - Helium (H)
-[[on-window-detected]]
-if.app-id = 'net.imput.helium'
-run = ['move-node-to-workspace H', 'workspace H']
-
-# Google Meet - Helium PWA (V = visio). Its app-id differs from
-# net.imput.helium, so no conflict with the Helium rule above.
+# Google Meet - Helium PWA (V = visio). 
 [[on-window-detected]]
 if.app-id = 'net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan'
 run = ['move-node-to-workspace V', 'workspace V']
