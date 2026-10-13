@@ -29,7 +29,7 @@ AZERTY = [
     ("^", "none", "", ""), ("$", "none", "", ""),
 ]
 QSDF = [
-    ("Q", "none", "", ""), ("S", "app", "Slack", ""), ("D", "app", "Messages", "+ WhatsApp"),
+    ("Q", "none", "", ""), ("S", "app", "msga", ""), ("D", "app", "Messages", "+ WhatsApp"),
     ("F", "app", "Files", "yazi"), ("G", "app", "ChatGPT", ""), ("H", "none", "", ""),
     ("J", "sys", "Homerow", "scroll"), ("K", "none", "", ""), ("L", "app", "Linear", ""),
     ("M", "app", "Mail", "Superhuman"),

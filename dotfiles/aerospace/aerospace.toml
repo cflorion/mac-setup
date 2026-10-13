@@ -104,7 +104,7 @@ ctrl-alt-shift-n = 'exec-and-forget open "raycast://extensions/raycast/github/se
 cmd-ctrl-alt-shift-w = 'exec-and-forget aerospace-focus-or-open W com.github.wez.wezterm WezTerm'
 cmd-ctrl-alt-shift-b = 'exec-and-forget aerospace-focus-or-open B com.apple.Safari Safari'
 cmd-ctrl-alt-shift-m = 'exec-and-forget aerospace-focus-or-open M com.superhuman.electron Superhuman'
-cmd-ctrl-alt-shift-s = 'exec-and-forget aerospace-focus-or-open S com.tinyspeck.slackmacgap Slack'
+cmd-ctrl-alt-shift-s = 'exec-and-forget aerospace-focus-or-open S com.nisdos.msga msga'
 cmd-ctrl-alt-shift-d = 'exec-and-forget aerospace-focus-or-open-discussions'
 cmd-ctrl-alt-shift-g = 'exec-and-forget aerospace-focus-or-open G com.openai.codex ChatGPT'
 cmd-ctrl-alt-shift-c = 'exec-and-forget aerospace-focus-or-open C com.anthropic.claudefordesktop Claude'
@@ -193,9 +193,9 @@ run = ['move-node-to-workspace B', 'workspace B']
 if.app-id = 'com.superhuman.electron'
 run = ['move-node-to-workspace M', 'workspace M']
 
-# Notifications - Slack (S)
+# Notifications - msga (S)
 [[on-window-detected]]
-if.app-id = 'com.tinyspeck.slackmacgap'
+if.app-id = 'com.nisdos.msga'
 run = ['move-node-to-workspace S', 'workspace S']
 
 # Messaging - Messages and WhatsApp share D (Discussions), with Messages on the left
