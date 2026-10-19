@@ -1,27 +1,64 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Messages and WhatsApp share workspace D side by side. WhatsApp has an 800 pt
-# minimum width, which is 48 pt wider than half of the built-in 1512 pt display.
-# Rebalance first so repeated window-detected callbacks remain idempotent, then
-# give those 48 pt to WhatsApp instead of letting its right edge leave the screen.
+# Messages and WhatsApp share workspace D side by side, matching the screenshot:
+# Messages uses about 34% on the left and WhatsApp 66% on the right.
+# Calculate an absolute width on the workspace's actual display, so repeated
+# callbacks cannot accumulate a resize and external displays use the same ratio.
+# Minimum native widths observed: Messages 434 pt, WhatsApp 800 pt.
 
 WORKSPACE="D"
+MESSAGES_BUNDLE_ID="com.apple.MobileSMS"
 WHATSAPP_BUNDLE_ID="net.whatsapp.WhatsApp"
 
-WINDOW_COUNT=$(aerospace list-windows --workspace "$WORKSPACE" --count)
-[[ "$WINDOW_COUNT" -eq 2 ]] || exit 0
+# Floating utility windows (such as System Settings) do not share the split.
+OTHER_TILED=$(aerospace list-windows --workspace "$WORKSPACE" \
+    --format '%{app-bundle-id} %{window-parent-container-layout}' \
+    | awk -v messages="$MESSAGES_BUNDLE_ID" -v whatsapp="$WHATSAPP_BUNDLE_ID" \
+        '$1 != messages && $1 != whatsapp && $2 != "floating" { n++ } END { print n+0 }')
+[[ "$OTHER_TILED" -eq 0 ]] || exit 0
 
-WHATSAPP_WINDOW_ID=$(
+MESSAGES_WINDOW_ID=$(
     aerospace list-windows \
         --workspace "$WORKSPACE" \
-        --app-bundle-id "$WHATSAPP_BUNDLE_ID" \
+        --app-bundle-id "$MESSAGES_BUNDLE_ID" \
         --format '%{window-id}' \
         | head -1
 )
+[[ -n "$MESSAGES_WINDOW_ID" ]] || exit 0
+
+WHATSAPP_WINDOW_ID=$(aerospace list-windows --workspace "$WORKSPACE" \
+    --app-bundle-id "$WHATSAPP_BUNDLE_ID" --format '%{window-id}')
 [[ -n "$WHATSAPP_WINDOW_ID" ]] || exit 0
 
 aerospace workspace "$WORKSPACE"
+aerospace layout --window-id "$MESSAGES_WINDOW_ID" tiling
+aerospace layout --window-id "$WHATSAPP_WINDOW_ID" tiling
 aerospace layout --workspace "$WORKSPACE" --root horizontal
-aerospace balance-sizes
-aerospace resize --window-id "$WHATSAPP_WINDOW_ID" width +48
+aerospace move --window-id "$MESSAGES_WINDOW_ID" --boundaries workspace left
+# Reset stale tile sizes after a display/resolution change before resizing.
+aerospace balance-sizes --workspace "$WORKSPACE"
+
+# This AeroSpace index is 1-based; NSScreen's array is 0-based. Do not use
+# mainScreen: focus can change while the asynchronous callbacks are running.
+SCREEN_INDEX=$(aerospace list-windows --workspace "$WORKSPACE" \
+    --app-bundle-id "$MESSAGES_BUNDLE_ID" \
+    --format '%{monitor-appkit-nsscreen-screens-id}')
+TARGET_WIDTH=$(osascript -l JavaScript - "$SCREEN_INDEX" <<'JXA'
+function run(argv) {
+    ObjC.import('AppKit');
+    var screen = $.NSScreen.screens.objectAtIndex(Number(argv[0]) - 1);
+    var width = Math.floor(screen.visibleFrame.size.width);
+    // Matches aerospace.toml: 8 pt inner gap, zero outer left/right gaps.
+    // AeroSpace absolute resize includes half the gap in each tile.
+    var halfGap = 4;
+    var messagesMin = 434 + halfGap;
+    var whatsappMin = 800 + halfGap;
+    if (width < messagesMin + whatsappMin) {
+        throw new Error('Display too narrow for Messages and WhatsApp side by side');
+    }
+    return Math.max(messagesMin, Math.min(Math.round(width * 0.34), width - whatsappMin));
+}
+JXA
+)
+aerospace resize --window-id "$MESSAGES_WINDOW_ID" width "$TARGET_WIDTH"
