@@ -198,7 +198,7 @@ run = ['move-node-to-workspace M', 'workspace M']
 if.app-id = 'com.nisdos.msga'
 run = ['move-node-to-workspace S', 'workspace S']
 
-# Messaging - Messages and WhatsApp share D (Discussions), with Messages on the left at about 34% width
+# Messaging - Messages and WhatsApp share D (Discussions), with Messages on the left at about 43% width (wide enough to keep its conversation list visible)
 [[on-window-detected]]
 if.app-id = 'com.apple.MobileSMS'
 run = ['move-node-to-workspace D', 'layout --workspace D --root horizontal', 'move left', 'workspace D', 'exec-and-forget aerospace-layout-discussions']

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Messages and WhatsApp share workspace D side by side, matching the screenshot:
-# Messages uses about 34% on the left and WhatsApp 66% on the right.
+# Messages and WhatsApp share workspace D side by side, with the proportions measured on the 1512 pt built-in display (Messages 643 pt, WhatsApp 861 pt):
+# Messages uses about 43% on the left and WhatsApp 57% on the right.
 # Calculate an absolute width on the workspace's actual display, so repeated
 # callbacks cannot accumulate a resize and external displays use the same ratio.
 # Minimum native widths observed: Messages 434 pt, WhatsApp 800 pt.
@@ -57,7 +57,7 @@ function run(argv) {
     if (width < messagesMin + whatsappMin) {
         throw new Error('Display too narrow for Messages and WhatsApp side by side');
     }
-    return Math.max(messagesMin, Math.min(Math.round(width * 0.34), width - whatsappMin));
+    return Math.max(messagesMin, Math.min(Math.round(width * 0.43), width - whatsappMin));
 }
 JXA
 )
