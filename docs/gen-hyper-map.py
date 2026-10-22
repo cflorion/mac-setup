@@ -25,7 +25,7 @@ AZERTY = [
     ("A", "app", "Agenda", "Calendar"), ("Z", "none", "", ""), ("E", "none", "", ""),
     ("R", "app", "Reminders", ""), ("T", "none", "", ""),
     ("Y", "app", "YouTube", "Kaset"), ("U", "sys", "Homerow", "click"),
-    ("I", "none", "", ""), ("O", "app", "Obsidian", ""), ("P", "app", "PaperVibe", "Mail"),
+    ("I", "none", "", ""), ("O", "app", "Obsidian", ""), ("P", "app", "KissMail", ""),
     ("^", "none", "", ""), ("$", "none", "", ""),
 ]
 QSDF = [

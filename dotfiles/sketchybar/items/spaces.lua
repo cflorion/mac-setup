@@ -17,7 +17,7 @@ local spaces = {}
 local workspace_defs = {
   { key = "W", app = "WezTerm",         label = "WezTerm",  side = "left" },
   { key = "M", app = "Superhuman",      label = "Mail Pro", side = "left" },
-  { key = "P", app = "PaperVibe Mail",  label = "PaperVibe", side = "left" },
+  { key = "P", app = "KissMail",        label = "KissMail", side = "left" },
   { key = "S", app = "msga",            label = "msga",     side = "left" },
   { key = "D", app = "‎WhatsApp",       label = "WhatsApp (D)", side = "left" },
   { key = "C", app = "Claude",          label = "Claude",   side = "left" },

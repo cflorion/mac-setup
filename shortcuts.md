@@ -69,7 +69,7 @@ Each camera key shows one source and hides the others in one shot.
 | Hyper+W | WezTerm |
 | Hyper+F | yazi (Files) |
 | Hyper+M | Superhuman (Mail) |
-| Hyper+P | PaperVibe Mail |
+| Hyper+P | KissMail |
 | Hyper+S | msga |
 | Hyper+D | Messages + WhatsApp (Discussions), Messages on the left |
 | Hyper+C | Claude |
