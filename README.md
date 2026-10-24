@@ -112,7 +112,7 @@ mac-setup/
 │   ├── obsidian/         # Theme + plugins (copied, not symlinked)
 │   └── sublime-text/     # → ~/Library/.../Sublime Text/
 │
-├── launchd/              # LaunchAgents (e.g. reload SketchyBar on theme change)
+├── launchd/              # LaunchAgents (e.g. reload SketchyBar on theme change, daily trackers in Safari)
 ├── documents/            # Templates (e.g. Typst) copied into ~/templates/
 ├── wallpapers/           # Wallpapers
 │
