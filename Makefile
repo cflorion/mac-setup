@@ -4,13 +4,13 @@ OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/
 
 UHK_AGENT_DIR := $(HOME)/Library/Application Support/uhk-agent
 
-.PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh sketchybar disable-sketchybar obsidian ollama pwa-helium uhk-backup wezterm \
+.PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh sketchybar disable-sketchybar obsidian ollama pwa-helium uhk-backup wezterm trackers \
 	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer macos-e-ink
 
 all: install
 
 # Full setup for a new machine
-install: brew fuji-webcam open-pdf-studio node npm-global link disable-sketchybar obsidian macos raycast mas ollama pwa-helium wezterm
+install: brew fuji-webcam open-pdf-studio node npm-global link disable-sketchybar obsidian macos raycast mas ollama pwa-helium wezterm trackers
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -214,6 +214,19 @@ wezterm:
 	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.wezterm-mux-server.plist 2>/dev/null || true
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.wezterm-mux-server.plist
 	@echo "  WezTerm mux server registered!"
+
+# Open the private torrent trackers in Safari once a day (keeps accounts active).
+# The agent fires at login and hourly; the script's daily stamp makes it act once.
+trackers:
+	@echo "==> Installing daily trackers opener..."
+	@mkdir -p $(HOME)/Library/LaunchAgents
+	@# Migrate: remove the hand-installed agent if present
+	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/io.github.cflorion.trackers-daily.plist 2>/dev/null || true
+	@/bin/rm -f $(HOME)/Library/LaunchAgents/io.github.cflorion.trackers-daily.plist
+	@sed "s|__HOME__|$(HOME)|g" launchd/com.user.trackers-daily.plist > $(HOME)/Library/LaunchAgents/com.user.trackers-daily.plist
+	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.trackers-daily.plist 2>/dev/null || true
+	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.trackers-daily.plist
+	@echo "  Trackers opener registered! Stay logged in to each site in Safari."
 
 # Install Helium PWAs — native Helium web apps (Google Chat, Google Meet).
 # Their links open inside Helium instead of the default browser (unlike Chrome PWAs,
