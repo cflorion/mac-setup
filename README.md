@@ -99,7 +99,7 @@ mac-setup/
 │
 ├── dotfiles/             # Configs symlinked by `make link`
 │   ├── .zshrc            # → ~/            (dotfiles into the home dir)
-│   ├── .gitconfig        # → ~/
+│   ├── .gitconfig        # included by ~/.gitconfig
 │   ├── .finicky.js       # → ~/            (link router to browsers)
 │   ├── nvim/             # → ~/.config/nvim/    (Neovim / LazyVim)
 │   ├── wezterm/          # → ~/.config/wezterm/ (terminal)

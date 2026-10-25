@@ -100,10 +100,17 @@ link:
 	@mkdir -p $(HOME)/templates
 	@# Install templates
 	@cp -f $(DOTFILES_DIR)/../documents/popina-template.typ $(HOME)/templates/popina-pandoc.typ 2>/dev/null || true
-	@# Link hidden files (e.g. .zshrc, .gitconfig) to HOME
+	@# Link hidden files (e.g. .zshrc) to HOME
 	@find $(DOTFILES_DIR) -maxdepth 1 -name ".*" \
-		-not -name "." -not -name ".." -not -name ".git" \
+		-not -name "." -not -name ".." -not -name ".git" -not -name ".gitconfig" \
 		-exec ln -sfnv {} $(HOME)/ \;
+	@# ~/.gitconfig is a local file that includes the repo's: `git config --global`
+	@# (e.g. the CI runner's safe.directory) then writes there, not into the repo.
+	@if [ -L $(HOME)/.gitconfig ] || [ ! -e $(HOME)/.gitconfig ]; then \
+		/bin/rm -f $(HOME)/.gitconfig; \
+		printf '[include]\n\tpath = %s/.gitconfig\n' "$(DOTFILES_DIR)" > $(HOME)/.gitconfig; \
+		echo "  Created $(HOME)/.gitconfig (includes $(DOTFILES_DIR)/.gitconfig)"; \
+	fi
 	@# Link starship.toml to ~/.config/starship.toml (special case: file, not directory)
 	@ln -sfnv $(DOTFILES_DIR)/starship.toml $(CONFIG_DIR)/starship.toml
 	@# Link zed/settings.json only (preserve Zed's own extensions, keymap, etc.)
