@@ -19,3 +19,6 @@ dotfiles/bin/claude
 # same way: symlinks owned by that repository's make install.
 dotfiles/bin/ditherbuster
 dotfiles/bin/dbust
+
+# bun's installer links bunx into ~/.local/bin, pointing at ~/.bun/bin/bun.
+dotfiles/bin/bunx

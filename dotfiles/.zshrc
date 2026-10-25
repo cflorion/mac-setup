@@ -83,3 +83,7 @@ function y() {
   rm -f -- "$tmp"
 }
 
+# bun (installed by its own curl installer, not Homebrew)
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
