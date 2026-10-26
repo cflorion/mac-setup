@@ -50,6 +50,11 @@ When the user ask changes, the goal is to update this macOs setup repo.
   - `uhk/uhk-config.json` → **not** symlinked: the Ultimate Hacking Keyboard user-config export, re-imported manually via UHK Agent (like the Raycast export). See `dotfiles/uhk/README.md`.
 - **documents/** — Templates (e.g. Typst) copied to `~/templates/` by `make link`.
 
+## Git Workflow
+
+- **No pull requests.** Every change is committed directly on `main` and pushed to `origin/main` at the end of the task, without the user having to ask. Do not create feature branches or open PRs; if work was done on another branch (e.g. a branch imposed by the session), integrate it into `main` (fast-forward or cherry-pick) and push `main`.
+- Keep commits small and descriptive (Conventional Commits style: `feat(scope): …`, `fix(scope): …`).
+
 ## Conventions
 
 - All shell scripts use `set -euo pipefail`.
