@@ -1,0 +1,24 @@
+#!/bin/zsh
+# Ouvre les trackers privés dans Safari une fois par jour (garder les comptes actifs).
+# Lancé par le LaunchAgent com.user.trackers-daily (installé par `make trackers`)
+# toutes les heures + à l'ouverture de session ; le tampon du jour évite les doublons.
+set -euo pipefail
+
+URLS=(
+  https://c411.org/
+  https://digitalcore.club/
+  https://tr4ker.net/
+)
+
+STATE_DIR="$HOME/.local/state/trackers-daily"
+STAMP="$STATE_DIR/last-run"
+TODAY=$(date +%F)
+
+mkdir -p "$STATE_DIR"
+[[ "${1:-}" == "--force" ]] || [[ "$(cat "$STAMP" 2>/dev/null)" != "$TODAY" ]] || exit 0
+
+# Pas de réseau : on ne tamponne pas, le prochain passage horaire réessaiera.
+curl -sfI --max-time 10 https://c411.org/ >/dev/null || { echo "$(date) offline, retry later"; exit 0; }
+
+# -g : ouvre en arrière-plan sans voler le focus.
+open -g -a Safari "${URLS[@]}" && echo "$TODAY" > "$STAMP" && echo "$(date) opened ${#URLS} trackers"
