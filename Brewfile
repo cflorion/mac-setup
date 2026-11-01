@@ -2,6 +2,7 @@ tap "anomalyco/tap"
 tap "nikitabobko/tap"
 tap "felixkratz/formulae"
 tap "cormacrelf/tap"
+tap "asmvik/formulae"
 
 # --- Dev tools ---
 brew "git"
@@ -46,6 +47,7 @@ brew "nowplaying-cli"
 brew "container"
 brew "felixkratz/formulae/sketchybar"
 brew "cormacrelf/tap/dark-notify"
+brew "asmvik/formulae/skhd"
 
 # --- AI ---
 brew "opencode"
@@ -94,7 +96,7 @@ cask "breaktimer"
 cask "obs"
 
 # --- Window management & display ---
-cask "nikitabobko/tap/aerospace"
+cask "flashspace"
 cask "karabiner-elements"
 cask "ukelele"
 cask "stillcolor"

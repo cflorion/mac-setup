@@ -5,7 +5,7 @@ defaults write com.apple.dock mru-spaces -bool false
 defaults write NSGlobalDomain AppleSpacesSwitchOnActivate -bool false
 # Group windows by application
 defaults write com.apple.dock expose-group-apps -bool true
-# Displays do not have separate Spaces
+# Give each display its own Spaces (required by FlashSpace)
 defaults write com.apple.spaces spans-displays -bool false
 # Do not drag windows to top of screen to trigger Mission Control
 defaults write com.apple.dock mcx-expose-disabled -bool true

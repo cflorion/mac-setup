@@ -9,13 +9,14 @@ When the user ask changes, the goal is to update this macOs setup repo.
 
 ## Key Commands
 
-- `make install` — Full setup for a new machine (brew, node, npm-global, link, disabled SketchyBar, obsidian, macos, raycast, mas, ollama, pwa-helium)
-- `make update` — Fast daily update (brew, node, link, macos, disabled SketchyBar)
+- `make install` — Full setup for a new machine (brew, node, npm-global, link, FlashSpace, disabled SketchyBar, obsidian, macos, raycast, mas, ollama, pwa-helium)
+- `make update` — Fast daily update (brew, node, link, FlashSpace, macos, disabled SketchyBar)
 - `make backup` — Backup SSH keys before formatting
 - `make restore-ssh` — Restore SSH keys from most recent backup
 - `make link` — Symlink dotfiles only
 - `make brew` — Install Homebrew packages only
 - `make macos` — Apply all macOS defaults
+- `make flashspace` — Stop AeroSpace and start FlashSpace app workspaces plus auxiliary skhd shortcuts
 - `make fuji-webcam` — Install FUJIFILM X Webcam from the bundled `.pkg` (no Homebrew cask exists; needs sudo, restart after)
 - `make sketchybar` — Build and enable the optional SketchyBar setup
 - `make disable-sketchybar` — Stop SketchyBar and its theme watcher without deleting their configuration
@@ -31,7 +32,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - **bootstrap.sh** — Curl-runnable first-time script: installs Xcode CLT, Homebrew, clones repo, runs `make install`.
 - **macos-defaults.sh** — Runner that sources all modules from `macos/`. Some settings require manual steps (logged to stdout).
 - **macos/** — Individual `defaults write` modules: `finder.sh`, `dock.sh`, `keyboard.sh`, `trackpad.sh`, `mission-control.sh`, `desktop.sh`, `control-center.sh`, `pointer.sh`.
-- **raycast.sh** — Disables Spotlight shortcuts (freeing Cmd+Space for Raycast), opens extension install URLs, imports the newest Raycast `*.rayconfig` export. Raycast commands bound to keys are **not** in that export: they are AeroSpace bindings in `aerospace.toml` running `open raycast://extensions/…` deeplinks (Meh+I → GitHub *My Issues*; Meh+N → GitHub *Search Issues* prefilled via `fallbackText` with `cflorion/chezion#81`, the "NEXT" issue, which that command resolves to the single issue). Raycast shows "Request to run …" the first time a command is triggered from outside Raycast: answer *Always Run Command* once per command.
+- **raycast.sh** — Disables Spotlight shortcuts (freeing Cmd+Space for Raycast), opens extension install URLs, imports the newest Raycast `*.rayconfig` export. Raycast commands bound to keys are **not** in that export: they are skhd bindings in `skhdrc` running `open raycast://extensions/…` deeplinks (Meh+I → GitHub *My Issues*; Meh+N → GitHub *Search Issues* prefilled via `fallbackText` with `cflorion/chezion#81`, the "NEXT" issue, which that command resolves to the single issue). Raycast shows "Request to run …" the first time a command is triggered from outside Raycast: answer *Always Run Command* once per command.
 - **apps-mas.sh** — Mac App Store installs via `mas`.
 - **installers/** — Vendor `.pkg` installers with no Homebrew cask (e.g. `XWebcamIns220.pkg` for FUJIFILM X Webcam). Installed by the `fuji-webcam` Makefile target via `sudo installer -pkg … -target /`, guarded so it skips when the app already exists.
 - **pwa-helium.sh** — Recreates *native* Helium PWA `.app` shortcuts (Google Chat, Google Meet) in `~/Applications/Chromium Apps.localized/` by launching `Helium --app-id=<id>` (same trick as Chrome's `--app-id`, which regenerates the shortcut on disk). Used for Google web apps: they open external links via their parent browser process, bypassing the default browser, so Finicky can't route those clicks — running them *inside* Helium makes their links open in Helium. Each PWA must be installed once via Helium's ⋮ menu > "Install app…" (registers it in the Helium profile); the script regenerates it on re-runs. Installed by `make pwa-helium`. Note: the very first launch after regeneration triggers a Helium "rebuild" cycle that may not open a window — just launch it again.
@@ -40,9 +41,10 @@ When the user ask changes, the goal is to update this macOs setup repo.
   - Hidden files (`.zshrc`, `.gitignore_global`, `.finicky.js`) → `~/`
   - `.gitconfig` is **included**, not symlinked: `~/.gitconfig` is a machine-local file whose `[include]` points at the repo copy, so `git config --global` writes (e.g. the CI runner's `safe.directory`) stay out of the repo. Edit shared settings in `dotfiles/.gitconfig`.
     - `.finicky.js` — Finicky is the system default browser and sends every link to Safari; holding **Shift** while clicking a link in another app sends it to Helium instead (`finicky.getModifierKeys()`, listed first so it also beats the Linear rule). Not ⌘ (Zed and VS Code open links on ⌘-click), ⌥ (⌥-click marks a Slack message unread) or ⌃ (⌃-click is a right-click, and Hyper and Meh both hold ⌃). The key is read when the URL arrives, so the rule relies on Finicky staying resident (`keepRunning`, true by default, set explicitly). Links clicked inside Safari never reach Finicky. In WezTerm, Shift+click is also a selection gesture (it extends the selection), so it is not a reliable way to send a terminal link to Helium.
-  - Directories (`nvim/`, `lazygit/`, `sketchybar/`, `atuin/`, `wezterm/`, `karabiner/`, `aerospace/`, `raycast/`) → `~/.config/<name>/`
-  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`, `popina-pdf`, `aerospace-focus-or-open`, `aerospace-workspace-cycle`, `notes-scratch`, `Codex`)
-    - `notes-scratch` — Hyper+N toggles Apple Notes (Antinote replacement): brings the main Notes window, on the `Brouillon` note (created on first run), over the current workspace — floated by the `com.apple.Notes` rule in `aerospace.toml` — so the scratch note syncs to the iPhone through iCloud; pressed while Notes is focused, it hides Notes by parking its windows on the off-bar `Notes` workspace (kept out of `spaces.lua`, like `OBS`). Every time the window is shown it is also pinned to a fixed size (`NOTES_SCRATCH_WIDTH`/`HEIGHT`, default 904×761) and centered on the display it lands on, because Apple Notes has no persistent window-size setting and a freshly launched window opens at its own small default. The resize is split across two engines: JXA (`NSScreen`) computes the centered origin — the only way to reach AppKit's screen geometry — but JXA's own `bounds` setter on a Notes window is a silent no-op, so classic AppleScript's `set bounds of window` applies it. Two other non-obvious constraints: it parks instead of ⌘H-hiding because AeroSpace turns a hidden app's window into a tiling one when it moves to another workspace (a manual ⌘H is handled by unhiding Notes first — `NSRunningApplication.unhide` does not front it); and Apple Notes derives a note's name from its **first line**, so `Brouillon` must stay on line 1.
+  - Directories (`nvim/`, `lazygit/`, `sketchybar/`, `atuin/`, `wezterm/`, `karabiner/`, `flashspace/`, `skhd/`, `aerospace/`, `raycast/`) → `~/.config/<name>/`; `aerospace/` is retained only as a disabled rollback config.
+  - `bin/` → `~/.local/bin/` (custom scripts: `commit`, `pr`, `popina-pdf`, `flashspace-maximize`, `Codex`)
+    - `flashspace-maximize` — Runs after each FlashSpace switch and fills the focused standard window through macOS Accessibility. It uses the visible display frame instead of macOS native fullscreen, so it never creates a native Space.
+    - `flashspace-yazi-focus-or-open` — Hyper+F raises an existing `Yazi:` WezTerm window through macOS Accessibility or opens a new one. It has no separate workspace because FlashSpace manages whole applications.
   - `starship.toml` → `~/.config/starship.toml`
   - `zed/settings.json` → `~/.config/zed/settings.json` (only settings, not full dir)
   - `sublime-text/` → `~/Library/Application Support/Sublime Text/Packages/User/`
@@ -64,4 +66,5 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - Sketchybar is disabled by default, but its Lua config is preserved. It has C event providers (`helpers/event_providers/`) that compile via `make` — run `make sketchybar` to rebuild and re-enable it after changes.
 - macOS defaults modules are sourced (not executed) by `macos-defaults.sh`, so they don't need their own shebang or `set -euo pipefail`.
 - The `npm-global` target installs global packages via **pnpm** (`PNPM_HOME=~/Library/pnpm`), despite its name.
+- FlashSpace is the workspace manager. Its JSON files define one application per virtual workspace and require no native Space creation. Window filling and Yazi focus use macOS Accessibility, with no Yabai dependency. Keep SIP enabled. The disabled AeroSpace config remains available for rollback.
 - The Raycast config file (`dotfiles/raycast/*.rayconfig`) is a binary export — update it by re-exporting from Raycast, not by hand-editing. `dotfiles/raycast/extensions/` is gitignored: Raycast rewrites it via the `~/.config/raycast` symlink and it is not config.

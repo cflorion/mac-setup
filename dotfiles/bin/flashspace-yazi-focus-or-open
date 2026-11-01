@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Yazi runs inside a WezTerm window, so FlashSpace cannot give it an independent
+# app workspace. Activate its existing pane through WezTerm's own CLI, or create
+# a window when none exists. This deliberately has no Yabai dependency.
+
+find_yazi_pane() {
+    wezterm cli list --format json 2>/dev/null \
+        | jq -r '[.[] | select((.title // "") | startswith("Yazi:"))][0].pane_id // empty'
+}
+
+pane_id=$(find_yazi_pane || true)
+if [[ -n "$pane_id" ]]; then
+    wezterm cli activate-pane --pane-id "$pane_id"
+    exit 0
+fi
+
+wezterm start -- yazi >/dev/null 2>&1 &
+
+for _ in $(seq 1 50); do
+    pane_id=$(find_yazi_pane || true)
+    if [[ -n "$pane_id" ]]; then
+        wezterm cli activate-pane --pane-id "$pane_id"
+        exit 0
+    fi
+    sleep 0.1
+done
+
+echo "Timed out waiting for the Yazi window" >&2
+exit 1

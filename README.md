@@ -48,6 +48,7 @@ It installs the Command Line Tools + Homebrew, clones this repo into
 | `make macos` | Apply all macOS settings |
 | `make macos-<module>` | Apply a single setting (see the list below) |
 | `make raycast` | Configure Raycast (frees Cmd+Space, imports the config) |
+| `make flashspace` | Start FlashSpace app workspaces and stop AeroSpace |
 | `make sketchybar` | Build and enable the optional SketchyBar menu bar |
 | `make disable-sketchybar` | Stop SketchyBar and its theme watcher without removing their config |
 | `make obsidian` | Copy the Obsidian theme and plugins into the vault |
@@ -61,6 +62,27 @@ It installs the Command Line Tools + Homebrew, clones this repo into
 
 SketchyBar remains installed and configured, but `make install` and `make update`
 leave it disabled by default. Run `make sketchybar` if you want it back.
+
+### FlashSpace app workspaces
+
+FlashSpace replaces AeroSpace with virtual app workspaces defined entirely in
+`dotfiles/flashspace/`. It stays inside one native macOS Space: Hyper+letter
+hides the previous application, opens or reveals the selected one, and leaves
+exactly that application visible. WhatsApp (`D`) and Messages (`H`) are separate
+because FlashSpace manages complete applications rather than individual windows.
+
+FlashSpace deliberately does not resize windows. After every workspace switch,
+`flashspace-maximize` uses macOS Accessibility to fill the focused window without
+tiling and without using macOS native fullscreen. skhd only owns the remaining
+non-workspace commands (Yazi and the Raycast GitHub deeplinks). Yazi is focused
+through macOS Accessibility, so the setup has no Yabai dependency. SIP remains on.
+
+On first install, run `make flashspace`, then enable FlashSpace and skhd
+in **System Settings → Privacy & Security → Accessibility**. Re-run
+`make flashspace` afterwards. The only manual operation is macOS security consent;
+workspaces, apps, shortcuts, startup and window sizing all come from this repo.
+The old AeroSpace configuration remains available as a rollback option, with
+automatic startup disabled.
 
 The DASUNG Paperlike agent lives in its own repository,
 [cflorion/ditherbuster](https://github.com/cflorion/ditherbuster), cloned in
@@ -103,11 +125,13 @@ mac-setup/
 │   ├── .finicky.js       # → ~/            (link router to browsers)
 │   ├── nvim/             # → ~/.config/nvim/    (Neovim / LazyVim)
 │   ├── wezterm/          # → ~/.config/wezterm/ (terminal)
-│   ├── aerospace/        # → ~/.config/aerospace/ (window manager)
+│   ├── flashspace/       # → ~/.config/flashspace/ (app workspaces)
+│   ├── skhd/             # → ~/.config/skhd/ (auxiliary hotkeys)
+│   ├── aerospace/        # → ~/.config/aerospace/ (disabled rollback config)
 │   ├── sketchybar/       # → ~/.config/sketchybar/ (menu bar, in Lua)
 │   ├── karabiner/        # → ~/.config/karabiner/ (key remaps, e.g. Hyper)
 │   ├── atuin/ lazygit/ zed/ starship.toml …
-│   ├── bin/              # → ~/.local/bin/  (scripts: commit, pr, aerospace-*…)
+│   ├── bin/              # → ~/.local/bin/  (scripts: commit, pr, FlashSpace helpers…)
 │   ├── raycast/          # Raycast config export (*.rayconfig)
 │   ├── obsidian/         # Theme + plugins (copied, not symlinked)
 │   └── sublime-text/     # → ~/Library/.../Sublime Text/
@@ -116,7 +140,7 @@ mac-setup/
 ├── documents/            # Templates (e.g. Typst) copied into ~/templates/
 ├── wallpapers/           # Wallpapers
 │
-├── shortcuts.md          # All my keyboard shortcuts (AeroSpace, Raycast, WezTerm…)
+├── shortcuts.md          # All my keyboard shortcuts (FlashSpace, Raycast, WezTerm…)
 └── CLAUDE.md             # Notes for the AI assistant working on this repo
 ```
 

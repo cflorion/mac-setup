@@ -1,0 +1,10 @@
+# FlashSpace owns workspace/app shortcuts (Hyper+letter and Hyper+arrows).
+# skhd remains only for commands that are not FlashSpace workspaces.
+
+# Raycast GitHub commands — Meh (ctrl-alt-shift)
+ctrl + alt + shift - i : open "raycast://extensions/raycast/github/my-issues"
+ctrl + alt + shift - n : open "raycast://extensions/raycast/github/search-issues?fallbackText=cflorion%2Fchezion%2381"
+
+# Yazi is a WezTerm window, not a separate application, so FlashSpace cannot
+# assign it to a distinct app workspace.
+cmd + ctrl + alt + shift - f : flashspace-yazi-focus-or-open

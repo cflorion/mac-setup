@@ -4,17 +4,17 @@ OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/
 
 UHK_AGENT_DIR := $(HOME)/Library/Application Support/uhk-agent
 
-.PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh sketchybar disable-sketchybar obsidian ollama pwa-helium uhk-backup wezterm trackers \
+.PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh flashspace sketchybar disable-sketchybar obsidian ollama pwa-helium uhk-backup wezterm trackers \
 	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer macos-e-ink
 
 all: install
 
 # Full setup for a new machine
-install: brew fuji-webcam open-pdf-studio node npm-global link disable-sketchybar obsidian macos raycast mas ollama pwa-helium wezterm trackers
+install: brew fuji-webcam open-pdf-studio node npm-global link flashspace disable-sketchybar obsidian macos raycast mas ollama pwa-helium wezterm trackers
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
-update: brew node link macos disable-sketchybar
+update: brew node link flashspace macos disable-sketchybar
 	@echo "==> Updates applied!"
 
 brew:
@@ -92,6 +92,33 @@ raycast:
 	@echo "==> Configuring Raycast..."
 	@bash ./raycast.sh
 
+# FlashSpace owns the virtual workspaces and their global shortcuts. Its
+# integration script fills the focused window through macOS Accessibility,
+# without tiling windows or creating native macOS Spaces. skhd retains the few
+# non-workspace shortcuts that launch Raycast commands and focus/open Yazi.
+flashspace: link
+	@echo "==> Configuring FlashSpace app workspaces..."
+	@if command -v aerospace >/dev/null 2>&1; then aerospace enable off 2>/dev/null || true; fi
+	@osascript -e 'tell application "AeroSpace" to quit' >/dev/null 2>&1 || true
+	@skhd --restart-service 2>/dev/null || skhd --start-service
+	@mkdir -p $(HOME)/Library/LaunchAgents
+	@sed "s|__HOME__|$(HOME)|g" launchd/com.user.flashspace.plist > $(HOME)/Library/LaunchAgents/com.user.flashspace.plist
+	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.flashspace.plist 2>/dev/null || true
+	@launchctl enable gui/$$(id -u)/com.user.flashspace
+	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.flashspace.plist
+	@osascript -e 'tell application "FlashSpace" to quit' >/dev/null 2>&1 || true
+	@sleep 0.3
+	@open -gja FlashSpace
+	@attempt=0; \
+	while [ $$attempt -lt 30 ]; do \
+		if flashspace list-workspaces >/dev/null 2>&1; then \
+			echo "  FlashSpace started with declarative app workspaces."; \
+			exit 0; \
+		fi; \
+		attempt=$$((attempt + 1)); \
+		sleep 0.1; \
+	done; \
+	echo "  ⚠️  FlashSpace started, but its CLI did not answer yet."
 # Smart symlink: dotfiles/.* -> ~, dotfiles/<dir> -> ~/.config/<dir>
 link:
 	@echo "==> Linking dotfiles..."

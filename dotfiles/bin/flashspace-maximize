@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Fill the frontmost standard window without macOS native fullscreen. Native
+# fullscreen creates another macOS Space; this keeps FlashSpace inside the one
+# existing Space. FlashSpace's Accessibility grant covers this child script.
+
+sleep 0.1
+
+workspace="${1:-}"
+case "$workspace" in
+    W) expected_bundle="com.github.wez.wezterm" ;;
+    M) expected_bundle="com.superhuman.electron" ;;
+    P) expected_bundle="studio.kissapps.mail" ;;
+    S) expected_bundle="com.nisdos.msga" ;;
+    D) expected_bundle="net.whatsapp.WhatsApp" ;;
+    H) expected_bundle="com.apple.MobileSMS" ;;
+    C) expected_bundle="com.anthropic.claudefordesktop" ;;
+    L) expected_bundle="com.linear" ;;
+    O) expected_bundle="md.obsidian" ;;
+    R) expected_bundle="com.apple.reminders" ;;
+    A) expected_bundle="com.apple.iCal" ;;
+    V) expected_bundle="net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan" ;;
+    B) expected_bundle="com.apple.Safari" ;;
+    G) expected_bundle="com.openai.codex" ;;
+    Y) expected_bundle="com.sertacozercan.Kaset" ;;
+    N) expected_bundle="com.apple.Notes" ;;
+    *) expected_bundle="" ;;
+esac
+
+for _ in $(seq 1 40); do
+    front_bundle=$(osascript -l JavaScript -e \
+        'ObjC.import("AppKit"); $.NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier.js' \
+        2>/dev/null || true)
+
+    if [[ -n "$expected_bundle" && "$front_bundle" != "$expected_bundle" ]]; then
+        sleep 0.05
+        continue
+    fi
+
+    geometry=$(osascript -l JavaScript <<'JXA' 2>/dev/null || true
+ObjC.import('AppKit')
+
+var screens = $.NSScreen.screens
+if (screens.count === 0 || !$.NSScreen.mainScreen) {
+    throw new Error('No display')
+}
+
+var primaryHeight = screens.objectAtIndex(0).frame.size.height
+var frame = $.NSScreen.mainScreen.visibleFrame
+var x = Math.round(frame.origin.x)
+var y = Math.round(primaryHeight - frame.origin.y - frame.size.height)
+var width = Math.round(frame.size.width)
+var height = Math.round(frame.size.height)
+
+x + ' ' + y + ' ' + width + ' ' + height
+JXA
+    )
+
+    if [[ -n "$geometry" ]]; then
+        read -r x y width height <<<"$geometry"
+        if osascript - "$x" "$y" "$width" "$height" <<'APPLESCRIPT' >/dev/null 2>&1
+on run argv
+    set targetX to item 1 of argv as integer
+    set targetY to item 2 of argv as integer
+    set targetWidth to item 3 of argv as integer
+    set targetHeight to item 4 of argv as integer
+
+    tell application "System Events"
+        set frontProcess to first application process whose frontmost is true
+        if not (exists front window of frontProcess) then error "No front window"
+        set position of front window of frontProcess to {targetX, targetY}
+        set size of front window of frontProcess to {targetWidth, targetHeight}
+    end tell
+end run
+APPLESCRIPT
+        then
+            exit 0
+        fi
+    fi
+
+    sleep 0.05
+done
+
+# Transient and fixed-size windows are allowed to ignore the fill request.
+exit 0

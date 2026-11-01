@@ -1,0 +1,170 @@
+{
+  "profiles": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Default",
+      "workspaces": [
+        {
+          "id": "00000000-0000-4000-8000-000000000101",
+          "name": "W",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+w",
+          "apps": [{ "name": "WezTerm", "bundleIdentifier": "com.github.wez.wezterm", "autoOpen": true }],
+          "appToFocus": { "name": "WezTerm", "bundleIdentifier": "com.github.wez.wezterm", "autoOpen": true },
+          "symbolIconName": "terminal",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000102",
+          "name": "M",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+m",
+          "apps": [{ "name": "Superhuman", "bundleIdentifier": "com.superhuman.electron", "autoOpen": true }],
+          "appToFocus": { "name": "Superhuman", "bundleIdentifier": "com.superhuman.electron", "autoOpen": true },
+          "symbolIconName": "envelope",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000103",
+          "name": "P",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+p",
+          "apps": [{ "name": "KissMail", "bundleIdentifier": "studio.kissapps.mail", "autoOpen": true }],
+          "appToFocus": { "name": "KissMail", "bundleIdentifier": "studio.kissapps.mail", "autoOpen": true },
+          "symbolIconName": "mail",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000104",
+          "name": "S",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+s",
+          "apps": [{ "name": "msga", "bundleIdentifier": "com.nisdos.msga", "autoOpen": true }],
+          "appToFocus": { "name": "msga", "bundleIdentifier": "com.nisdos.msga", "autoOpen": true },
+          "symbolIconName": "bell",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000105",
+          "name": "D",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+d",
+          "apps": [{ "name": "WhatsApp", "bundleIdentifier": "net.whatsapp.WhatsApp", "autoOpen": true }],
+          "appToFocus": { "name": "WhatsApp", "bundleIdentifier": "net.whatsapp.WhatsApp", "autoOpen": true },
+          "symbolIconName": "message",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000106",
+          "name": "H",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+h",
+          "apps": [{ "name": "Messages", "bundleIdentifier": "com.apple.MobileSMS", "autoOpen": true }],
+          "appToFocus": { "name": "Messages", "bundleIdentifier": "com.apple.MobileSMS", "autoOpen": true },
+          "symbolIconName": "bubble.left.and.bubble.right",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000107",
+          "name": "C",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+c",
+          "apps": [{ "name": "Claude", "bundleIdentifier": "com.anthropic.claudefordesktop", "autoOpen": true }],
+          "appToFocus": { "name": "Claude", "bundleIdentifier": "com.anthropic.claudefordesktop", "autoOpen": true },
+          "symbolIconName": "sparkles",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000108",
+          "name": "L",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+l",
+          "apps": [{ "name": "Linear", "bundleIdentifier": "com.linear", "autoOpen": true }],
+          "appToFocus": { "name": "Linear", "bundleIdentifier": "com.linear", "autoOpen": true },
+          "symbolIconName": "checkmark.circle",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000109",
+          "name": "O",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+o",
+          "apps": [{ "name": "Obsidian", "bundleIdentifier": "md.obsidian", "autoOpen": true }],
+          "appToFocus": { "name": "Obsidian", "bundleIdentifier": "md.obsidian", "autoOpen": true },
+          "symbolIconName": "note.text",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000110",
+          "name": "R",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+r",
+          "apps": [{ "name": "Reminders", "bundleIdentifier": "com.apple.reminders", "autoOpen": true }],
+          "appToFocus": { "name": "Reminders", "bundleIdentifier": "com.apple.reminders", "autoOpen": true },
+          "symbolIconName": "list.bullet",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000111",
+          "name": "A",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+a",
+          "apps": [{ "name": "Calendar", "bundleIdentifier": "com.apple.iCal", "autoOpen": true }],
+          "appToFocus": { "name": "Calendar", "bundleIdentifier": "com.apple.iCal", "autoOpen": true },
+          "symbolIconName": "calendar",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000112",
+          "name": "V",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+v",
+          "apps": [{ "name": "Google Meet", "bundleIdentifier": "net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan", "autoOpen": true }],
+          "appToFocus": { "name": "Google Meet", "bundleIdentifier": "net.imput.helium.app.kjgfgldnnfoeklkmfkjfagphfepbbdan", "autoOpen": true },
+          "symbolIconName": "video",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000113",
+          "name": "B",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+b",
+          "apps": [{ "name": "Safari", "bundleIdentifier": "com.apple.Safari", "autoOpen": true }],
+          "appToFocus": { "name": "Safari", "bundleIdentifier": "com.apple.Safari", "autoOpen": true },
+          "symbolIconName": "safari",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000114",
+          "name": "G",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+g",
+          "apps": [{ "name": "ChatGPT", "bundleIdentifier": "com.openai.codex", "autoOpen": true }],
+          "appToFocus": { "name": "ChatGPT", "bundleIdentifier": "com.openai.codex", "autoOpen": true },
+          "symbolIconName": "brain",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000115",
+          "name": "Y",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+y",
+          "apps": [{ "name": "Kaset", "bundleIdentifier": "com.sertacozercan.Kaset", "autoOpen": true }],
+          "appToFocus": { "name": "Kaset", "bundleIdentifier": "com.sertacozercan.Kaset", "autoOpen": true },
+          "symbolIconName": "music.note",
+          "openAppsOnActivation": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000116",
+          "name": "N",
+          "display": "Paperlike253",
+          "shortcut": "cmd+ctrl+opt+shift+n",
+          "apps": [{ "name": "Notes", "bundleIdentifier": "com.apple.Notes", "autoOpen": true }],
+          "appToFocus": { "name": "Notes", "bundleIdentifier": "com.apple.Notes", "autoOpen": true },
+          "symbolIconName": "note",
+          "openAppsOnActivation": true
+        }
+      ]
+    }
+  ]
+}

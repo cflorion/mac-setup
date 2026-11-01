@@ -39,29 +39,13 @@ Each camera key shows one source and hides the others in one shot.
 
 ---
 
-## AeroSpace — Window Manager
-
-### Window navigation
-| Shortcut | Action |
-|---|---|
-| Meh+H / L | Focus window left / right |
-| Meh+J / K | Focus window down / up |
-
-### Layout — Meh (Ctrl+Opt+Shift)
-| Shortcut | Action |
-|---|---|
-| Meh+F | Fullscreen |
-| Meh+Space | Floating ↔ Tiling |
-| Meh+← / → | Move window to left/right monitor |
-| Meh+↑ / ↓ | Move window to monitor above/below |
-| Meh+R | Resize mode (then H/J/K/L, Esc or Enter to exit) |
-| Meh+M | Move mode (then a letter/digit to send the window there) |
+## FlashSpace — App Workspaces
 
 ### Workspaces
 | Shortcut | Action |
 |---|---|
 | Hyper+← / → | Previous / next workspace |
-| Hyper+1 / 2 / 3 | Free workspace |
+| Option+Tab | Workspace switcher |
 
 ### Focus or launch app (key = workspace)
 | Shortcut | App |
@@ -71,7 +55,8 @@ Each camera key shows one source and hides the others in one shot.
 | Hyper+M | Superhuman (Mail) |
 | Hyper+P | KissMail |
 | Hyper+S | msga |
-| Hyper+D | Messages + WhatsApp (Discussions), Messages on the left |
+| Hyper+D | WhatsApp |
+| Hyper+H | Messages |
 | Hyper+C | Claude |
 | Hyper+L | Linear |
 | Hyper+O | Obsidian |
@@ -81,15 +66,12 @@ Each camera key shows one source and hides the others in one shot.
 | Hyper+B | Safari (Browser) |
 | Hyper+G | ChatGPT |
 | Hyper+Y | Kaset (YouTube Music) |
+| Hyper+N | Apple Notes |
 
-### Scratch note
-| Shortcut | Action |
-|---|---|
-| Hyper+N | Apple Notes on the `Brouillon` note, over the current workspace, pinned to a fixed size and centered; press again while Notes is in front to hide it (`notes-scratch`) |
-
-> The note title is its first line: keep `Brouillon` on line 1 and type below it.
-> Overwrite that line and the note is renamed — Hyper+N then no longer finds it
-> and creates a fresh `Brouillon` note next to the old one.
+Each workspace contains exactly one application. The focused window fills the
+display without entering macOS native fullscreen, so switching does not create
+or animate native Spaces. Hyper+F remains a separate skhd command because Yazi
+is a WezTerm window rather than an independent macOS application.
 
 ---
 
@@ -118,7 +100,7 @@ Finicky is the default browser: it sends every link to Safari.
 | Meh+I | GitHub — **My Issues** |
 | Meh+N | GitHub — issue **cflorion/chezion#81 (NEXT)**: Search Issues prefilled with it, Enter shows its details |
 
-> Meh+I and Meh+N are AeroSpace bindings that open `raycast://` deeplinks into the
+> Meh+I and Meh+N are skhd bindings that open `raycast://` deeplinks into the
 > GitHub extension (Raycast hotkeys only live in its binary export). The first press
 > of each shows Raycast's *Request to run …* prompt: answer **Always Run Command** once.
 
