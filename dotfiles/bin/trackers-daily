@@ -8,6 +8,7 @@ URLS=(
   https://c411.org/
   https://digitalcore.club/
   https://tr4ker.net/
+  https://v3x.club/
 )
 
 STATE_DIR="$HOME/.local/state/trackers-daily"

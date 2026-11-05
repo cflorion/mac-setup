@@ -16,7 +16,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - `make link` — Symlink dotfiles only
 - `make brew` — Install Homebrew packages only
 - `make macos` — Apply all macOS defaults
-- `make trackers` — Install the LaunchAgent that opens the private torrent trackers (c411.org, digitalcore.club, tr4ker.net) in Safari once a day
+- `make trackers` — Install the LaunchAgent that opens the private torrent trackers (c411.org, digitalcore.club, tr4ker.net, v3x.club) in Safari once a day
 - `make fuji-webcam` — Install FUJIFILM X Webcam from the bundled `.pkg` (no Homebrew cask exists; needs sudo, restart after)
 - `make sketchybar` — Build and enable the optional SketchyBar setup
 - `make disable-sketchybar` — Stop SketchyBar and its theme watcher without deleting their configuration
