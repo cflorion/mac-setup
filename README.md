@@ -136,6 +136,7 @@ mac-setup/
 │   ├── obsidian/         # Theme + plugins (copied, not symlinked)
 │   └── sublime-text/     # → ~/Library/.../Sublime Text/
 │
+├── apps/eye-break/       # EyeBreak: menu-bar app for eye breaks (`make eye-break`)
 ├── launchd/              # LaunchAgents (e.g. reload SketchyBar on theme change, daily trackers in Safari)
 ├── documents/            # Templates (e.g. Typst) copied into ~/templates/
 ├── wallpapers/           # Wallpapers

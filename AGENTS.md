@@ -9,7 +9,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 
 ## Key Commands
 
-- `make install` — Full setup for a new machine (brew, node, npm-global, link, FlashSpace, disabled SketchyBar, obsidian, macos, raycast, mas, ollama, pwa-helium)
+- `make install` — Full setup for a new machine (brew, node, npm-global, link, FlashSpace, disabled SketchyBar, obsidian, macos, raycast, mas, ollama, pwa-helium, eye-break)
 - `make update` — Fast daily update (brew, node, link, FlashSpace, macos, disabled SketchyBar)
 - `make backup` — Backup SSH keys before formatting
 - `make restore-ssh` — Restore SSH keys from most recent backup
@@ -17,6 +17,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - `make brew` — Install Homebrew packages only
 - `make macos` — Apply all macOS defaults
 - `make flashspace` — Stop AeroSpace and start FlashSpace app workspaces plus auxiliary skhd shortcuts
+- `make eye-break` — Build the EyeBreak menu-bar app (eye breaks) into `~/Applications` and start it at login
 - `make fuji-webcam` — Install FUJIFILM X Webcam from the bundled `.pkg` (no Homebrew cask exists; needs sudo, restart after)
 - `make sketchybar` — Build and enable the optional SketchyBar setup
 - `make disable-sketchybar` — Stop SketchyBar and its theme watcher without deleting their configuration
@@ -34,6 +35,7 @@ When the user ask changes, the goal is to update this macOs setup repo.
 - **macos/** — Individual `defaults write` modules: `finder.sh`, `dock.sh`, `keyboard.sh`, `trackpad.sh`, `mission-control.sh`, `desktop.sh`, `control-center.sh`, `pointer.sh`.
 - **raycast.sh** — Disables Spotlight shortcuts (freeing Cmd+Space for Raycast), opens extension install URLs, imports the newest Raycast `*.rayconfig` export. Raycast commands bound to keys are **not** in that export: they are skhd bindings in `skhdrc` running `open raycast://extensions/…` deeplinks (Meh+I → GitHub *My Issues*; Meh+N → GitHub *Search Issues* prefilled via `fallbackText` with `cflorion/chezion#81`, the "NEXT" issue, which that command resolves to the single issue). Raycast shows "Request to run …" the first time a command is triggered from outside Raycast: answer *Always Run Command* once per command.
 - **apps-mas.sh** — Mac App Store installs via `mas`.
+- **apps/eye-break/** — EyeBreak, a single-file AppKit menu-bar app (`EyeBreak.swift`, no Xcode project) for 20-20-20 eye breaks: every N minutes (default 20) a full-screen black overlay on every screen counts down N seconds (default 20); Esc/*Passer* skips, *Dans 5 min* snoozes. The menu sets interval and duration (UserDefaults, `io.github.cflorion.eyebreak`) and pauses 1 h or until resumed. Sleep, lock, or 60 s without input restarts the cycle. The menu-bar title shows whole minutes only, so it redraws once a minute (e-ink friendly). `build.sh` compiles with `swiftc`, ad-hoc signs and installs to `~/Applications/EyeBreak.app`; `launchd/com.user.eye-break.plist` starts it at login (quitting from the menu keeps it quit until next login).
 - **installers/** — Vendor `.pkg` installers with no Homebrew cask (e.g. `XWebcamIns220.pkg` for FUJIFILM X Webcam). Installed by the `fuji-webcam` Makefile target via `sudo installer -pkg … -target /`, guarded so it skips when the app already exists.
 - **pwa-helium.sh** — Recreates *native* Helium PWA `.app` shortcuts (Google Chat, Google Meet) in `~/Applications/Chromium Apps.localized/` by launching `Helium --app-id=<id>` (same trick as Chrome's `--app-id`, which regenerates the shortcut on disk). Used for Google web apps: they open external links via their parent browser process, bypassing the default browser, so Finicky can't route those clicks — running them *inside* Helium makes their links open in Helium. Each PWA must be installed once via Helium's ⋮ menu > "Install app…" (registers it in the Helium profile); the script regenerates it on re-runs. Installed by `make pwa-helium`. Note: the very first launch after regeneration triggers a Helium "rebuild" cycle that may not open a window — just launch it again.
 - **launchd/** — LaunchAgent templates (`__HOME__` placeholder is substituted at install time). `com.user.sketchybar-theme.plist` runs `dark-notify` to reload sketchybar on light/dark switch when the optional bar is enabled by `make sketchybar`.

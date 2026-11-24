@@ -4,13 +4,13 @@ OBSIDIAN_VAULT := $(HOME)/Library/Mobile Documents/iCloud~md~obsidian/Documents/
 
 UHK_AGENT_DIR := $(HOME)/Library/Application Support/uhk-agent
 
-.PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh flashspace sketchybar disable-sketchybar obsidian ollama pwa-helium uhk-backup wezterm trackers \
+.PHONY: all install update link brew fuji-webcam open-pdf-studio npm-global mas macos node raycast backup restore-ssh flashspace sketchybar disable-sketchybar obsidian ollama pwa-helium uhk-backup wezterm trackers eye-break \
 	macos-finder macos-dock macos-keyboard macos-trackpad macos-mission-control macos-desktop macos-control-center macos-pointer macos-e-ink
 
 all: install
 
 # Full setup for a new machine
-install: brew fuji-webcam open-pdf-studio node npm-global link flashspace disable-sketchybar obsidian macos raycast mas ollama pwa-helium wezterm trackers
+install: brew fuji-webcam open-pdf-studio node npm-global link flashspace disable-sketchybar obsidian macos raycast mas ollama pwa-helium wezterm trackers eye-break
 	@echo "==> Setup complete!"
 
 # Fast update for daily use
@@ -254,6 +254,17 @@ trackers:
 	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.trackers-daily.plist 2>/dev/null || true
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.trackers-daily.plist
 	@echo "  Trackers opener registered! Stay logged in to each site in Safari."
+
+# Build the EyeBreak menu-bar app (20-20-20 eye breaks) into ~/Applications
+# and start it at login. Needs only the Xcode Command Line Tools (swiftc).
+eye-break:
+	@echo "==> Building EyeBreak..."
+	@bash ./apps/eye-break/build.sh
+	@mkdir -p $(HOME)/Library/LaunchAgents
+	@sed "s|__HOME__|$(HOME)|g" launchd/com.user.eye-break.plist > $(HOME)/Library/LaunchAgents/com.user.eye-break.plist
+	@launchctl bootout gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.eye-break.plist 2>/dev/null || true
+	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/com.user.eye-break.plist
+	@echo "  EyeBreak running (eye icon in the menu bar)."
 
 # Install Helium PWAs — native Helium web apps (Google Chat, Google Meet).
 # Their links open inside Helium instead of the default browser (unlike Chrome PWAs,
